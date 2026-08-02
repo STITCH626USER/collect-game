@@ -191,23 +191,26 @@ input::placeholder { color: #a0aec0; }
 
 .my-collection { 
     display: flex; 
-    gap: 15px; 
-    height: clamp(130px, 18vh, 200px); 
+    gap: clamp(5px, 1vw, 12px); 
+    min-height: clamp(100px, 18vh, 180px); 
+    height: auto;
     overflow-x: auto; 
     align-items: center; 
-    padding: 10px 50vw 10px 10px; 
+    padding: 15px 5vw; 
     scrollbar-width: none; 
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
 }
-.my-collection::after { content: ''; flex: 0 0 5vw; } /* Add space at the end */
+.my-collection::before { content: ''; margin-left: auto; }
+.my-collection::after { content: ''; margin-right: auto; }
 .my-collection::-webkit-scrollbar { display: none; }
 
 .my-collection .card { 
-    width: clamp(70px, 12vw, 120px); 
-    height: clamp(105px, 18vw, 180px); 
-    border-radius: 10px; 
+    width: clamp(45px, calc(14.2vw - 8px), 110px); 
+    height: auto;
+    aspect-ratio: 2/3;
+    border-radius: 8px; 
     flex-shrink: 0; 
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
     box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
