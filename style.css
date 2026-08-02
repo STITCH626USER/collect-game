@@ -153,7 +153,7 @@ input::placeholder { color: #a0aec0; }
     flex-shrink: 0; 
     position: relative;
 }
-.opp-cards-mini img:not(:first-child) { margin-left: -15px; }
+.opp-cards-mini img:not(:first-child) { margin-left: -5px; }
 
 .targeting-mode {
     border-color: var(--primary) !important;
@@ -163,7 +163,7 @@ input::placeholder { color: #a0aec0; }
     width: 60px;
     height: 90px;
 }
-.targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -20px; }
+.targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -10px; }
 
 /* 1 vs 1 Mode (Bigger Opponent Cards) */
 .opponents-carousel.two-players-mode { padding-bottom: 25px; }
@@ -172,9 +172,9 @@ input::placeholder { color: #a0aec0; }
 .two-players-mode .opp-score { font-size: 1.2rem; top: -12px; right: -12px; padding: 6px 12px; }
 .two-players-mode .opp-cards-mini { margin-top: 20px; }
 .two-players-mode .opp-cards-mini img { width: 60px; height: 90px; border-radius: 8px; border-width: 2px; }
-.two-players-mode .opp-cards-mini img:not(:first-child) { margin-left: -20px; }
+.two-players-mode .opp-cards-mini img:not(:first-child) { margin-left: -10px; }
 .two-players-mode .targeting-mode .opp-cards-mini img { width: 80px; height: 120px; }
-.two-players-mode .targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -30px; }
+.two-players-mode .targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -15px; }
 
 
 /* Center Board */
@@ -252,7 +252,7 @@ input::placeholder { color: #a0aec0; }
     position: relative; 
     background: white;
 }
-.my-collection .card:not(:first-child) { margin-left: -25px; }
+.my-collection .card:not(:first-child) { margin-left: -15px; }
 
 /* Desktop adaptations */
 @media (min-width: 768px) {

@@ -144,28 +144,22 @@ const ui = {
     },
     
     updateDock: () => {
-        document.querySelectorAll('.opp-cards-mini, .my-collection').forEach(container => {
-            const cards = container.querySelectorAll('img:not(.deck-thumbnail), .card:not(.drawn-card)');
-            if (cards.length === 0) return;
+        const viewCenter = window.innerWidth / 2;
+        const maxDist = window.innerWidth / 2;
+        
+        document.querySelectorAll('.opp-cards-mini img:not(.deck-thumbnail), .my-collection .card:not(.drawn-card)').forEach(card => {
+            if (card.classList.contains('crab-ghost')) return;
             
-            const containerRect = container.getBoundingClientRect();
-            const containerCenter = containerRect.left + containerRect.width / 2;
-            const maxDist = containerRect.width / 2;
+            const rect = card.getBoundingClientRect();
+            const cardCenter = rect.left + rect.width / 2;
+            const dist = Math.abs(viewCenter - cardCenter);
             
-            cards.forEach(card => {
-                if (card.classList.contains('crab-ghost')) return;
-                
-                const rect = card.getBoundingClientRect();
-                const cardCenter = rect.left + rect.width / 2;
-                const dist = Math.abs(containerCenter - cardCenter);
-                
-                let scale = 1.3 - (dist / maxDist) * 0.5; // 1.3 in middle, 0.8 at edges
-                if (scale < 0.8) scale = 0.8;
-                if (scale > 1.3) scale = 1.3;
-                
-                card.style.transform = `scale(${scale})`;
-                card.style.zIndex = Math.floor(scale * 100);
-            });
+            let scale = 1.3 - (dist / maxDist) * 0.5; // 1.3 in middle, 0.8 at edges
+            if (scale < 0.8) scale = 0.8;
+            if (scale > 1.3) scale = 1.3;
+            
+            card.style.transform = `scale(${scale})`;
+            card.style.zIndex = Math.floor(scale * 100);
         });
     },
 
@@ -442,6 +436,8 @@ const ui = {
         }
 
         const oppCarousel = document.getElementById('opponents-carousel');
+        oppCarousel.addEventListener('scroll', () => requestAnimationFrame(ui.updateDock));
+        
         if (state.players.length === 2) oppCarousel.classList.add('two-players-mode');
         else oppCarousel.classList.remove('two-players-mode');
         
@@ -511,9 +507,6 @@ const ui = {
             `;
             div.appendChild(oppCardsMini);
             oppCarousel.appendChild(div);
-            
-            // Add scroll listener for dock effect
-            oppCardsMini.addEventListener('scroll', () => requestAnimationFrame(ui.updateDock));
         });
         
         if (ui.updateDock) requestAnimationFrame(ui.updateDock);
