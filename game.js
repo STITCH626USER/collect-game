@@ -29,7 +29,7 @@ const vfx = {
         });
     },
 
-    flyCardToRect: (imgSrc, startId, tRect, onComplete, forceStartRect = null) => {
+    flyCardToRect: (imgSrc, startId, tRect, onComplete, forceStartRect = null, customClass = 'spin') => {
         let sRect = forceStartRect;
         if (!sRect) {
             const startEl = document.getElementById(startId) || document.body;
@@ -38,7 +38,7 @@ const vfx = {
         
         const flying = document.createElement('img');
         flying.src = imgSrc;
-        flying.className = 'flying-card';
+        flying.className = `flying-card ${customClass}`;
         flying.style.left = sRect.left + 'px';
         flying.style.top = sRect.top + 'px';
         flying.style.width = (sRect.width || 80) + 'px';
@@ -51,7 +51,10 @@ const vfx = {
         flying.style.top = tRect.top + 'px';
         flying.style.width = (tRect.width || 75) + 'px';
         flying.style.height = (tRect.height || 110) + 'px';
-        flying.style.transform = 'rotate(360deg)';
+        
+        if (customClass === 'spin') flying.style.transform = 'rotate(360deg)';
+        else if (customClass === 'spin-reverse') flying.style.transform = 'rotate(-360deg)';
+        else if (customClass === 'attack') flying.style.transform = 'scale(1.4) rotate(10deg)';
 
         setTimeout(() => {
             flying.remove();
@@ -63,18 +66,43 @@ const vfx = {
         targetElement.classList.add('vfx-crocodile-bite');
         
         const rect = targetElement.getBoundingClientRect();
-        for(let i=0; i<10; i++) {
+        
+        const jaws = document.createElement('div');
+        jaws.style.position = 'absolute';
+        jaws.style.zIndex = '10000';
+        jaws.style.pointerEvents = 'none';
+        jaws.style.left = (rect.left + rect.width/2 - 75) + 'px';
+        jaws.style.top = (rect.top + rect.height/2 - 75) + 'px';
+        jaws.style.width = '150px';
+        jaws.style.height = '150px';
+        jaws.innerHTML = `
+            <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <g class="jaw-top" fill="#1b5e20">
+                    <path d="M 10 50 Q 50 10 90 50 L 75 50 L 65 35 L 50 50 L 35 35 L 25 50 Z" />
+                    <path d="M 25 50 L 35 35 L 50 50 L 65 35 L 75 50 Z" fill="#fff"/>
+                </g>
+                <g class="jaw-bottom" fill="#1b5e20">
+                    <path d="M 10 50 Q 50 90 90 50 L 75 50 L 65 65 L 50 50 L 35 65 L 25 50 Z" />
+                    <path d="M 25 50 L 35 65 L 50 50 L 65 65 L 75 50 Z" fill="#fff"/>
+                </g>
+            </svg>
+        `;
+        document.body.appendChild(jaws);
+
+        for(let i=0; i<15; i++) {
             const p = document.createElement('div');
             p.className = 'vfx-blood-particles';
             p.style.left = (rect.left + rect.width/2) + 'px';
             p.style.top = (rect.top + rect.height/2) + 'px';
-            p.style.setProperty('--tx', (Math.random() * 100 - 50) + 'px');
-            p.style.setProperty('--ty', (Math.random() * 100 - 50) + 'px');
+            p.style.setProperty('--tx', (Math.random() * 200 - 100) + 'px');
+            p.style.setProperty('--ty', (Math.random() * 200 - 100) + 'px');
+            p.style.background = Math.random() > 0.5 ? 'var(--primary)' : '#ff4d4d';
             document.body.appendChild(p);
-            setTimeout(() => p.remove(), 500);
+            setTimeout(() => p.remove(), 600);
         }
         
         setTimeout(() => {
+            jaws.remove();
             if(onComplete) onComplete();
         }, 800);
     }
@@ -790,7 +818,7 @@ const game = {
                     const tRect = targetCard.getBoundingClientRect();
                     vfx.flyCardToRect(data.crocImg, null, tRect, () => {
                         vfx.crocodileBite(targetCard, () => { done(); });
-                    }, sRect);
+                    }, sRect, 'attack');
                 } else done();
             });
         }
@@ -813,8 +841,8 @@ const game = {
                     const rectB = cardB.getBoundingClientRect();
                     cardA.style.opacity = '0';
                     cardB.style.opacity = '0';
-                    vfx.flyCardToRect(data.cardImgA, null, rectB, null, rectA);
-                    vfx.flyCardToRect(data.cardImgB, null, rectA, () => { done(); }, rectB);
+                    vfx.flyCardToRect(data.cardImgA, null, rectB, null, rectA, 'spin');
+                    vfx.flyCardToRect(data.cardImgB, null, rectA, () => { done(); }, rectB, 'spin-reverse');
                 } else done();
             });
         }
@@ -833,7 +861,7 @@ const game = {
                     const tRect = placeholder.getBoundingClientRect();
                     placeholder.remove();
                     cardEl.style.opacity = '0';
-                    vfx.flyCardToRect(data.cardImg, null, tRect, () => { done(); }, sRect);
+                    vfx.flyCardToRect(data.cardImg, null, tRect, () => { done(); }, sRect, 'crab-walk');
                 } else done();
             });
         }

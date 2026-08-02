@@ -236,3 +236,43 @@ input:focus { border-color: var(--secondary); }
     transition: all 0.2s;
     z-index: 100;
 }
+
+/* --- PREMIUM VFX ANIMATIONS --- */
+.jaw-top {
+    transform-origin: 50% 50%;
+    animation: chompTop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.jaw-bottom {
+    transform-origin: 50% 50%;
+    animation: chompBottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes chompTop {
+    0% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+    40% { transform: translateY(0) scale(1); opacity: 1; }
+    80% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-20px) scale(0.8); opacity: 0; }
+}
+@keyframes chompBottom {
+    0% { transform: translateY(40px) scale(1.2); opacity: 0; }
+    40% { transform: translateY(0) scale(1); opacity: 1; }
+    80% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(20px) scale(0.8); opacity: 0; }
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-25deg); }
+    75% { transform: rotate(25deg); }
+}
+.crab-walk {
+    animation: wiggle 0.15s infinite !important;
+}
+
+.attack {
+    transition: left 0.6s ease-in, top 0.6s cubic-bezier(0.2, -0.5, 0.8, 1.5) !important;
+    z-index: 10001 !important;
+    box-shadow: 0 30px 50px rgba(0,0,0,0.6) !important;
+}
+.spin-reverse {
+    transform: rotate(-360deg) !important;
+}
