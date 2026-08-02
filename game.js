@@ -380,6 +380,15 @@ const ui = {
                                 <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
                                 <button class="btn-action btn-keep" onclick="game.sendAction('PARROT_INIT', {})">✨ AVEC pouvoir</button>
                             `;
+                            if (state.parrotPredictedAnimal) {
+                                cardActions.innerHTML = `<div style="color: white; font-weight: bold; padding: 10px; font-size: 1.1rem; text-align: center; line-height: 1.4;">Piochez une carte pour vérifier votre prédiction !</div>`;
+                            } else {
+                                cardActions.innerHTML = `
+                                    ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
+                                    <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
+                                    <button class="btn-action btn-keep" onclick="game.sendAction('PARROT_INIT', {})">✨ AVEC pouvoir</button>
+                                `;
+                            }
                         } else {
                             cardActions.innerHTML = `
                                 ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
@@ -402,9 +411,14 @@ const ui = {
                     ui.showPlacement(false);
                 }
                 
-                if (state.monkeyTargeting === myId || state.parrotPredicting === myId) {
-                    document.getElementById('drawn-card').style.transform = 'scale(0.5) translateY(30px)';
-                    cardActions.style.display = 'none';
+                if (state.monkeyTargeting === myId || state.parrotPredicting === myId || (state.parrotPredictedAnimal && state.turn === myId)) {
+                    if (state.parrotPredictedAnimal) {
+                        document.getElementById('drawn-card').style.transform = '';
+                        cardActions.style.display = 'block';
+                    } else {
+                        document.getElementById('drawn-card').style.transform = 'scale(0.5) translateY(30px)';
+                        cardActions.style.display = 'none';
+                    }
                 } else {
                     document.getElementById('drawn-card').style.transform = '';
                 }
@@ -967,7 +981,7 @@ const game = {
         if(game.state.turn !== playerId) return;
 
         if (action === 'DRAW') {
-            if(game.state.currentDrawnCard) return;
+            if(game.state.currentDrawnCard && !game.state.parrotPredictedAnimal) return;
             if(game.state.parrotPredicting) return;
             if(game.state.forcedDeck && payload.deckIndex !== game.state.forcedDeck) return;
 
@@ -1379,12 +1393,15 @@ const game = {
             return;
         }
 
-        if(!game.state.currentDrawnCard) {
+        const needsToDrawForParrot = game.state.parrotPredictedAnimal && game.state.currentDrawnCard && game.state.currentDrawnCard.id === 'parrot';
+
+        if(!game.state.currentDrawnCard || needsToDrawForParrot) {
             let delay = 500;
             if (game.state.parrotPredictedAnimal) delay = 2000;
 
             setTimeout(() => {
-                if(game.state.turn !== botId || game.state.currentDrawnCard) return;
+                if(game.state.turn !== botId) return;
+                if(game.state.currentDrawnCard && !needsToDrawForParrot) return;
                 const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
                 game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
             }, delay);
