@@ -831,6 +831,8 @@ const game = {
         if (action === 'MONKEY_INIT') {
             game.state.monkeyTargeting = playerId;
             game.broadcastState();
+            const sourcePlayer = game.state.players.find(p => p.id === playerId);
+            if (sourcePlayer && sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
             return;
         }
 
@@ -839,6 +841,7 @@ const game = {
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             game.addHistory(`${sourcePlayer.name} utilise son Perroquet et va faire une prédiction...`);
             game.broadcastState();
+            if (sourcePlayer && sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
             return;
         }
 
@@ -850,6 +853,7 @@ const game = {
             game.addHistory(`${sourcePlayer.name} prédit : ${animalObj.name}.`);
             game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} prédit un(e) ${animalObj.name} !` });
             game.broadcastState();
+            if (sourcePlayer && sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
             return;
         }
         else if (action === 'CROCODILE_SELECT') {
@@ -899,6 +903,7 @@ const game = {
                 game.addHistory(`${sourcePlayer.name} passe le pouvoir du Singe.`);
                 game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe sans cibler d'adversaire !` });
                 game.broadcastState();
+                if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                 return;
             }
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
@@ -923,6 +928,7 @@ const game = {
                     game.state.disablePower = true;
                     game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a volé une carte à ${targetPlayer.name} avec son Singe !` });
                     game.broadcastState();
+                    if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                 }, 600);
                 return;
             }
@@ -989,6 +995,7 @@ const game = {
                         game.broadcast({ type: 'ALERT', msg: "Prédiction réussie ! Le Perroquet est défaussé." });
                         game.state.parrotPredictedAnimal = null;
                         game.broadcastState();
+                        if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                     } else {
                         game.broadcastState();
                         game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Les deux cartes sont défaussées." });
@@ -1002,6 +1009,7 @@ const game = {
                     game.state.originalDeckIndex = payload.deckIndex;
                     game.state.forcedDeck = null;
                     game.broadcastState();
+                    if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                 }
             }
         }
@@ -1032,7 +1040,11 @@ const game = {
             } else {
                 game.state.forcedDeck = game.state.originalDeckIndex === 1 ? 2 : 1;
                 game.state.mustPlaceDrawnCard = true;
-                setTimeout(() => game.broadcastState(), 500);
+                setTimeout(() => {
+                    game.broadcastState();
+                    const p = game.state.players.find(x => x.id === playerId);
+                    if (p && p.isBot) setTimeout(game.playBotTurn, 800);
+                }, 500);
             }
         }
         else if (action === 'PLACE') {
