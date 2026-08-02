@@ -853,9 +853,11 @@ const game = {
         }
         let fullDeck = [];
         for(let i=0; i<8; i++) ANIMALS.forEach(animal => fullDeck.push({...animal}));
-        for (let i = fullDeck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
+        for (let round = 0; round < 3; round++) {
+            for (let i = fullDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
+            }
         }
         
         game.state.deck1 = fullDeck.slice(0, 32);
@@ -1140,11 +1142,11 @@ const game = {
             game.addHistory(`${sourcePlayer.name} défausse la carte.`);
 
             if(game.state.originalDeckIndex === 1) {
-                game.state.deck1.push(game.state.currentDrawnCard);
+                game.state.deck1.unshift(game.state.currentDrawnCard);
                 game.state.deck1Thumbnail = game.state.currentDrawnCard.img;
             }
             else {
-                game.state.deck2.push(game.state.currentDrawnCard);
+                game.state.deck2.unshift(game.state.currentDrawnCard);
                 game.state.deck2Thumbnail = game.state.currentDrawnCard.img;
             }
             
