@@ -370,7 +370,7 @@ const ui = {
                 img.className = 'card';
                 img.id = `card-target-${myId}-${index}`;
                 
-                if (state.crabTargeting === myId) {
+                if (state.crabTargeting === myId && myPlayer.row.length > 1) {
                     img.classList.add('clickable-target');
                     if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === myId && ui.selectedCrabCard.cardIndex === index) {
                         img.style.borderColor = 'var(--primary)';
@@ -428,7 +428,7 @@ const ui = {
                 } else if (state.monkeyTargeting === myId) {
                     img.classList.add('clickable-target');
                     img.onclick = () => game.sendAction('MONKEY_SELECT', { targetPlayerId: p.id, cardIndex: index });
-                } else if (state.crabTargeting === myId) {
+                } else if (state.crabTargeting === myId && p.row.length > 1) {
                     img.classList.add('clickable-target');
                     if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id && ui.selectedCrabCard.cardIndex === index) {
                         img.style.borderColor = 'var(--primary)';
@@ -787,7 +787,7 @@ const game = {
                 game.state.crabTargeting = null;
                 if (!payload.skip && payload.targetPlayerId !== undefined) {
                     const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
-                    if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
+                    if (targetPlayer && targetPlayer.row.length > payload.cardIndex && targetPlayer.row.length > 1) {
                         const targetCard = targetPlayer.row[payload.cardIndex];
                         game.triggerVFX({ action: 'CRAB_MOVE', player: targetPlayer.id, cardImg: targetCard.img, cardIndex: payload.cardIndex, direction: payload.direction });
                         setTimeout(() => {
@@ -1178,7 +1178,7 @@ const game = {
         
         if (game.state.crabTargeting === botId) {
             setTimeout(() => {
-                const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 0);
+                const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 1);
                 if (opponents.length > 0) {
                     const target = opponents[0];
                     game.handlePlayerAction(botId, 'CRAB_SELECT', { targetPlayerId: target.id, cardIndex: 0, direction: 'right' });
