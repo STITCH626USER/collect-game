@@ -3,7 +3,7 @@ const ANIMALS = [
     { id: 'chameleon', name: 'Caméléon', img: 'assets/card_chameleon.jpg?v=4', desc: 'Joker. S\'annule et se défausse si vous en posez un 2ème.' },
     { id: 'monkey', name: 'Singe', img: 'assets/card_monkey.jpg?v=4', desc: 'Échange votre Singe avec la carte d\'un adversaire.' },
     { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg?v=4', desc: 'Déplace votre première carte à la fin de votre rangée.' },
-    { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg?v=4', desc: 'Rejouez un tour si vous avez déjà un Crabe.' },
+    { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg?v=6', desc: 'Rejouez un tour si vous avez déjà un Crabe.' },
     { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg?v=4', desc: 'Gagnez si vous avez 2 paires d\'animaux (4 cartes).' },
     { id: 'lion', name: 'Lion', img: 'assets/card_lion.jpg?v=4', desc: 'Gagnez si vous avez 1 exemplaire de chaque autre animal.' },
     { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=4', desc: 'Devinez votre pioche pour la conserver.' }
@@ -301,6 +301,13 @@ const ui = {
         } else if (state.crabTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crabTargeting);
             ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer.name} hésite à déplacer une carte...`);
+        } else if (state.parrotPredictedAnimal && state.turn !== myId) {
+            const targetingPlayer = state.players.find(p => p.id === state.turn);
+            const animalNameMap = {
+                lion: 'le Lion 🦁', chameleon: 'le Caméléon 🦎', monkey: 'le Singe 🐒',
+                crab: 'le Crabe 🦀', octopus: 'la Pieuvre 🐙', crocodile: 'le Crocodile 🐊', parrot: 'le Perroquet 🦜', 'hermit_crab': 'le Bernard-l\'ermite 🐚'
+            };
+            ui.showOverlay("Prédiction en cours 🦜", `${targetingPlayer.name} a prédit ${animalNameMap[state.parrotPredictedAnimal]} ! Il s'apprête à piocher...`);
         } else {
             ui.selectedCrabCard = null; // Clear if crab is done
             ui.hideOverlay();
