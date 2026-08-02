@@ -189,8 +189,14 @@ const ui = {
         
         if (state.crocodileTargeting === myId) {
             ui.showOverlay("Attaque Crocodile !", "Cliquez sur la carte d'un adversaire à dévorer.");
+            document.getElementById('card-actions').style.display = 'none';
+            document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" onclick="game.sendAction('CROCODILE_SELECT', {skip: true})">Passer</button>`;
+            document.getElementById('placement-actions').style.display = 'flex';
         } else if (state.monkeyTargeting === myId) {
             ui.showOverlay("Pouvoir du Singe !", "Cliquez sur une carte adverse pour l'échanger avec votre Singe.");
+            document.getElementById('card-actions').style.display = 'none';
+            document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" onclick="game.sendAction('MONKEY_SELECT', {skip: true})">Passer</button>`;
+            document.getElementById('placement-actions').style.display = 'flex';
         } else if (state.crabTargeting === myId) {
             ui.showOverlay("Pouvoir du Crabe !", "Cliquez sur votre 1ère carte pour la déplacer à la fin.");
             document.getElementById('card-actions').style.display = 'none';
@@ -445,8 +451,15 @@ const game = {
             return;
         }
         else if (action === 'CROCODILE_SELECT') {
-            const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
+            if (payload.skip) {
+                game.state.crocodileTargeting = null;
+                game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a épargné ses adversaires !` });
+                game.broadcastState();
+                setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
+                return;
+            }
+            const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.crocodileTargeting = null;
                 game.broadcast({ type: 'ALERT', msg: `Le Crocodile de ${sourcePlayer.name} a dévoré une carte de ${targetPlayer.name} !` });
@@ -459,8 +472,15 @@ const game = {
             }
         }
         else if (action === 'MONKEY_SELECT') {
-            const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
+            if (payload.skip) {
+                game.state.monkeyTargeting = null;
+                game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe.` });
+                game.broadcastState();
+                setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
+                return;
+            }
+            const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.monkeyTargeting = null;
                 
