@@ -533,7 +533,10 @@ const ui = {
         
         if (is1v1) {
             oppCarousel.style.display = 'none';
-            if (oppArea1v1) oppArea1v1.style.display = 'block';
+            if (oppArea1v1) {
+                oppArea1v1.style.display = 'flex';
+                oppArea1v1.style.flexDirection = 'column';
+            }
             
             const oppPlayer = state.players.find(p => p.id !== myId);
             if (oppPlayer) {
