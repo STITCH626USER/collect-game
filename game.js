@@ -196,8 +196,22 @@ const ui = {
         });
         
         const rematchBtn = document.getElementById('btn-rematch');
-        if (!game.isHost) rematchBtn.style.display = 'none';
-        else rematchBtn.style.display = 'inline-block';
+        rematchBtn.style.display = 'inline-block';
+        if (game.state.rematchVotes) {
+            if (game.state.rematchVotes.includes(game.myId)) {
+                rematchBtn.innerText = `En attente... (${game.state.rematchVotes.length}/${game.state.players.length})`;
+                rematchBtn.disabled = true;
+                rematchBtn.style.opacity = '0.7';
+            } else {
+                rematchBtn.innerText = `Rejouer une manche (${game.state.rematchVotes.length}/${game.state.players.length} prêts)`;
+                rematchBtn.disabled = false;
+                rematchBtn.style.opacity = '1';
+            }
+        } else {
+            rematchBtn.innerText = "Rejouer une manche";
+            rematchBtn.disabled = false;
+            rematchBtn.style.opacity = '1';
+        }
         
         document.getElementById('victory-modal').style.display = 'flex';
     },
@@ -220,6 +234,22 @@ const ui = {
     },
     
     renderGameState: (state, myId) => {
+        if (!state.started) {
+            if (document.getElementById('victory-modal').style.display === 'flex' && state.rematchVotes) {
+                 const rematchBtn = document.getElementById('btn-rematch');
+                 if (state.rematchVotes.includes(myId)) {
+                     rematchBtn.innerText = `En attente... (${state.rematchVotes.length}/${state.players.length})`;
+                     rematchBtn.disabled = true;
+                     rematchBtn.style.opacity = '0.7';
+                 } else {
+                     rematchBtn.innerText = `Rejouer une manche (${state.rematchVotes.length}/${state.players.length} prêts)`;
+                     rematchBtn.disabled = false;
+                     rematchBtn.style.opacity = '1';
+                 }
+            }
+            return;
+        }
+
         const updateDOM = () => {
         document.getElementById('deck-left-count').innerText = state.deck1Count;
         document.getElementById('deck-right-count').innerText = state.deck2Count;
@@ -513,6 +543,8 @@ const game = {
     },
 
     broadcastState: () => {
+        const state = game.state;
+        
         const safeState = {
             started: game.state.started,
             deck1Count: game.state.deck1.length, deck2Count: game.state.deck2.length,
@@ -558,7 +590,7 @@ const game = {
         game.state.crocTargeting = null;
 
         game.state.players.forEach(p => {
-            p.cards = [];
+            p.row = [];
             if (!p.score) p.score = 0;
         });
 
@@ -615,8 +647,17 @@ const game = {
         if(!game.isHost) return;
         
         if (action === 'REMATCH') {
-            game.state.players.forEach(p => p.row = []);
-            game.startGame();
+            if (!game.state.rematchVotes.includes(playerId)) {
+                game.state.rematchVotes.push(playerId);
+                game.broadcastState();
+            }
+            if (game.state.rematchVotes.length === game.state.players.length) {
+                game.state.players.forEach(p => p.row = []);
+                game.state.rematchVotes = [];
+                ui.hideOverlay();
+                document.getElementById('victory-modal').style.display = 'none';
+                game.startGame();
+            }
             return;
         }
 
@@ -931,6 +972,7 @@ const game = {
 
         if (won) {
             game.state.started = false;
+            game.state.rematchVotes = game.state.players.filter(p => p.isBot).map(p => p.id);
             game.broadcast({ type: 'VICTORY', winner: player, reason: winReason, row: player.row });
             game.broadcastState();
             return;
