@@ -1223,7 +1223,7 @@ const game = {
                 const origCard = document.getElementById('drawn-card-img');
                 if (origCard && data.player === game.myId) origCard.style.opacity = '0';
                 
-                let tRect = { left: window.innerWidth/2, top: window.innerHeight - 50, width: 75, height: 110 };
+                let tRect = { left: window.innerWidth/2, top: data.player === game.myId ? window.innerHeight - 50 : 50, width: 75, height: 110 };
                 if (container) {
                     const placeholder = document.createElement('div');
                     placeholder.style.width = (data.player === game.myId ? 75 : 40) + 'px';
@@ -1233,6 +1233,10 @@ const game = {
                     else container.appendChild(placeholder);
                     
                     tRect = placeholder.getBoundingClientRect();
+                    // Fallback to top if container returned 0/0 because it is hidden
+                    if (tRect.top === 0 && tRect.left === 0 && data.player !== game.myId) {
+                        tRect = { left: window.innerWidth/2, top: 50, width: 40, height: 60 };
+                    }
                     placeholder.remove();
                 }
 
@@ -1306,7 +1310,11 @@ const game = {
                     if (data.direction === 'left') container.prepend(placeholder);
                     else container.appendChild(placeholder);
                     
-                    const tRect = placeholder.getBoundingClientRect();
+                    let tRect = placeholder.getBoundingClientRect();
+                    // Fallback to top if container returned 0/0
+                    if (tRect.top === 0 && tRect.left === 0 && data.player !== game.myId) {
+                        tRect = { left: window.innerWidth/2, top: 50, width: 40, height: 60 };
+                    }
                     placeholder.remove();
                     cardEl.style.opacity = '0';
                     vfx.flyCardToRect(data.cardImg, null, tRect, () => { done(); }, sRect, 'crab-walk');
