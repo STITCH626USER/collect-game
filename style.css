@@ -144,37 +144,49 @@ input::placeholder { color: #a0aec0; }
 }
 .opp-cards-mini::-webkit-scrollbar { display: none; }
 .opp-cards-mini img { 
-    width: 45px; 
-    height: 65px; 
-    border-radius: 6px; 
-    box-shadow: -2px 2px 10px rgba(0,0,0,0.3); 
+    width: 25px; 
+    height: 35px; 
+    border-radius: 4px; 
     border: 1px solid white; 
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
     flex-shrink: 0; 
-    position: relative;
 }
-.opp-cards-mini img:not(:first-child) { margin-left: -5px; }
+.opp-cards-mini img:not(:first-child) { margin-left: -10px; }
 
 .targeting-mode {
     border-color: var(--primary) !important;
     background: rgba(255,255,255,0.9) !important;
+    animation: pulse 1.5s infinite;
 }
-.targeting-mode .opp-cards-mini img {
-    width: 60px;
-    height: 90px;
-}
-.targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -10px; }
 
-/* 1 vs 1 Mode (Bigger Opponent Cards) */
-.opponents-carousel.two-players-mode { padding-bottom: 25px; }
-.two-players-mode .opponent-slot { min-width: 180px; padding: 20px; }
-.two-players-mode .opp-name { font-size: 1.3rem; }
-.two-players-mode .opp-score { font-size: 1.2rem; top: -12px; right: -12px; padding: 6px 12px; }
-.two-players-mode .opp-cards-mini { margin-top: 20px; }
-.two-players-mode .opp-cards-mini img { width: 60px; height: 90px; border-radius: 8px; border-width: 2px; }
-.two-players-mode .opp-cards-mini img:not(:first-child) { margin-left: -10px; }
-.two-players-mode .targeting-mode .opp-cards-mini img { width: 80px; height: 120px; }
-.two-players-mode .targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -15px; }
+/* 1 vs 1 Mode (Full width row, mimicking .my-collection) */
+.opponents-carousel.two-players-mode { padding-bottom: 5px; }
+.two-players-mode .opponent-slot { 
+    min-width: unset; 
+    width: 100vw; 
+    padding: 10px 0; 
+    border-radius: 0; 
+    background: transparent; 
+    box-shadow: none; 
+}
+.two-players-mode .opp-name { font-size: 1.1rem; text-align: center; }
+.two-players-mode .opp-score { position: static; display: inline-block; margin-left: 10px; font-size: 1rem; padding: 2px 8px; }
+.two-players-mode .opp-cards-mini { 
+    gap: 5px; 
+    margin-top: 10px; 
+    padding: 15px 5vw; 
+    overflow-x: auto; 
+}
+.two-players-mode .opp-cards-mini img { 
+    width: clamp(45px, 13vw, 80px); 
+    height: auto; 
+    aspect-ratio: 2/3; 
+    border-radius: 6px; 
+    border-width: 2px; 
+    box-shadow: -2px 5px 10px rgba(0,0,0,0.2);
+}
+.two-players-mode .opp-cards-mini img:not(:first-child) { margin-left: 0; }
+.two-players-mode .targeting-mode .opp-cards-mini img { border-color: var(--primary); }
+
 
 
 /* Center Board */
@@ -226,7 +238,7 @@ input::placeholder { color: #a0aec0; }
 
 .my-collection { 
     display: flex; 
-    gap: 0; 
+    gap: 5px; 
     min-height: clamp(100px, 18vh, 180px); 
     height: auto;
     overflow-x: auto; 
@@ -241,18 +253,37 @@ input::placeholder { color: #a0aec0; }
 .my-collection::-webkit-scrollbar { display: none; }
 
 .my-collection .card { 
-    width: clamp(65px, calc(16vw), 110px); 
+    width: clamp(45px, 13vw, 80px); 
     height: auto;
     aspect-ratio: 2/3;
-    border-radius: 8px; 
+    border-radius: 6px; 
     flex-shrink: 0; 
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    box-shadow: -5px 10px 20px rgba(0,0,0,0.3); 
+    transition: transform 0.2s ease; 
+    box-shadow: -2px 5px 10px rgba(0,0,0,0.2); 
     border: 3px solid white; 
     position: relative; 
     background: white;
 }
-.my-collection .card:not(:first-child) { margin-left: -15px; }
+.my-collection .card:not(:first-child) { margin-left: 0; }
+
+/* Force Portrait / Orientation Lock Message */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+    body::before {
+        content: "Veuillez tourner votre appareil en mode portrait pour jouer.";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: var(--bg-color);
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        z-index: 99999;
+    }
+}
 
 /* Desktop adaptations */
 @media (min-width: 768px) {
