@@ -1,21 +1,21 @@
 /* ================= CSS VARIABLES & RESET ================= */
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
 
 :root {
-    --primary: #FF6B6B;
-    --secondary: #FCC419;
-    --bg-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
-    --glass-bg: rgba(255, 255, 255, 0.4);
-    --glass-border: rgba(255, 255, 255, 0.8);
-    --text-main: #2c3e50;
-    --text-dim: #5c7287;
-    --font-main: 'Quicksand', sans-serif;
+    --primary: #FF3366;
+    --secondary: #00E5FF;
+    --bg-gradient: radial-gradient(circle at center, #2a2a40 0%, #0f0f1a 100%);
+    --glass-bg: rgba(30, 30, 50, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #FFFFFF;
+    --text-dim: #A0A0C0;
+    --font-main: 'Outfit', sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: var(--font-main);
-    background: #c2e9fb;
+    background: #0f0f1a;
     color: var(--text-main);
     height: 100vh;
     height: 100dvh;
@@ -35,14 +35,14 @@ body {
     flex-direction: column;
 }
 
-/* Glassmorphism - Bubbly Light Style */
+/* Glassmorphism - Premium Dark Style */
 .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 2px solid var(--glass-border);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    border-radius: 30px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255,255,255,0.05);
+    border-radius: 20px;
 }
 
 .screen { display: none; flex-direction: column; width: 100%; height: 100%; padding: 4vh 5vw; }
@@ -158,34 +158,7 @@ input::placeholder { color: #a0aec0; }
     animation: pulse 1.5s infinite;
 }
 
-/* 1 vs 1 Mode (Full width row, mimicking .my-collection) */
-.opponents-carousel.two-players-mode { padding-bottom: 5px; }
-.two-players-mode .opponent-slot { 
-    min-width: unset; 
-    width: 100vw; 
-    padding: 10px 0; 
-    border-radius: 0; 
-    background: transparent; 
-    box-shadow: none; 
-}
-.two-players-mode .opp-name { font-size: 1.1rem; text-align: center; }
-.two-players-mode .opp-score { position: static; display: inline-block; margin-left: 10px; font-size: 1rem; padding: 2px 8px; }
-.two-players-mode .opp-cards-mini { 
-    gap: 5px; 
-    margin-top: 10px; 
-    padding: 15px 5vw; 
-    overflow-x: auto; 
-}
-.two-players-mode .opp-cards-mini img { 
-    width: clamp(45px, 13vw, 80px); 
-    height: auto; 
-    aspect-ratio: 2/3; 
-    border-radius: 6px; 
-    border-width: 2px; 
-    box-shadow: -2px 5px 10px rgba(0,0,0,0.2);
-}
-.two-players-mode .opp-cards-mini img:not(:first-child) { margin-left: 0; }
-.two-players-mode .targeting-mode .opp-cards-mini img { border-color: var(--primary); }
+/* Removed two-players-mode as 1v1 now uses dedicated local-player-area */
 
 
 
@@ -230,15 +203,15 @@ input::placeholder { color: #a0aec0; }
 .btn-keep { background: #2ed573; }
 .btn-place { background: #1e90ff; }
 
-/* Local Player Area - Apple Horizontal Scroll */
-.local-player-area { background: rgba(255,255,255,0.4); border-top: 2px solid white; padding: 20px 5vw; padding-bottom: max(20px, env(safe-area-inset-bottom)); position: relative; z-index: 10; backdrop-filter: blur(20px); box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
-.player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 10px 25px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-.player-header .player-name { font-size: 1.3rem; font-weight: 900; color: var(--text-main); }
-.player-header #my-score { font-size: 1.4rem; color: var(--primary); font-weight: 900; background: rgba(255,107,107,0.1); padding: 5px 15px; border-radius: 20px; }
+/* Local Player & 1v1 Opponent Area - Premium Dark Glass */
+.local-player-area { background: rgba(15, 15, 26, 0.8); border-top: 1px solid rgba(255,255,255,0.05); padding: 20px 5vw; padding-bottom: max(20px, env(safe-area-inset-bottom)); position: relative; z-index: 10; backdrop-filter: blur(25px); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
+.player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 10px 25px; border-radius: 30px; box-shadow: inset 0 0 10px rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); }
+.player-header .player-name { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+.player-header #my-score, .player-header #opp-1v1-score { font-size: 1.3rem; color: var(--secondary); font-weight: 900; background: rgba(0, 229, 255, 0.1); padding: 5px 15px; border-radius: 20px; text-shadow: 0 0 10px rgba(0,229,255,0.5); border: 1px solid rgba(0,229,255,0.3); }
 
 .my-collection { 
     display: flex; 
-    gap: 5px; 
+    gap: 0; 
     min-height: clamp(100px, 18vh, 180px); 
     height: auto;
     overflow-x: auto; 
@@ -253,18 +226,18 @@ input::placeholder { color: #a0aec0; }
 .my-collection::-webkit-scrollbar { display: none; }
 
 .my-collection .card { 
-    width: clamp(45px, 13vw, 80px); 
+    width: clamp(50px, 14vw, 85px); 
     height: auto;
-    aspect-ratio: 2/3;
-    border-radius: 6px; 
+    aspect-ratio: 2.5/3.5;
+    border-radius: 8px; 
     flex-shrink: 0; 
-    transition: transform 0.2s ease; 
-    box-shadow: -2px 5px 10px rgba(0,0,0,0.2); 
-    border: 3px solid white; 
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease; 
+    box-shadow: -5px 10px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.2); 
     position: relative; 
-    background: white;
+    background: #1a1a2e;
 }
-.my-collection .card:not(:first-child) { margin-left: 0; }
+.my-collection .card:not(:first-child) { margin-left: -10px; }
+.my-collection .card:hover { transform: translateY(-10px) scale(1.05); z-index: 10; box-shadow: -5px 15px 30px rgba(0,0,0,0.8), inset 0 0 0 1px var(--secondary); }
 
 /* Force Portrait / Orientation Lock Message */
 @media screen and (orientation: landscape) and (max-height: 500px) {

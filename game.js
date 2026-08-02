@@ -474,81 +474,100 @@ const ui = {
         }
 
         const oppCarousel = document.getElementById('opponents-carousel');
+        const oppArea1v1 = document.getElementById('opponent-area-1v1');
         const is1v1 = (state.players.length === 2);
-        if (is1v1) oppCarousel.classList.add('two-players-mode');
-        else oppCarousel.classList.remove('two-players-mode');
         
-        oppCarousel.innerHTML = '';
-        state.players.forEach(p => {
-            if (p.id === myId) return;
-            const div = document.createElement('div');
-            div.className = `opponent-slot ${state.turn === p.id ? 'active-turn' : ''}`;
+        if (is1v1) {
+            oppCarousel.style.display = 'none';
+            oppArea1v1.style.display = 'block';
             
-            if (is1v1 && (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && p.row.length > 1))) {
-                div.classList.add('targeting-mode');
-            }
-            if (!is1v1 && (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && p.row.length > 1))) {
-                div.classList.add('targeting-mode');
-            }
-
-            div.id = `opp-slot-${p.id}`;
-            
-            if (!is1v1) {
-                div.onclick = () => ui.openOpponentZoom(p.id);
-                div.style.cursor = 'pointer';
-            }
-            
-            const oppCardsMini = document.createElement('div');
-            oppCardsMini.className = 'opp-cards-mini';
-            oppCardsMini.id = `opp-cards-${p.id}`;
-            
-            if (is1v1 && state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id) {
-                const leftGhost = document.createElement('div');
-                leftGhost.className = 'crab-ghost bounce-in';
-                leftGhost.innerHTML = '⬅️';
-                leftGhost.onclick = () => { const payload = { targetPlayerId: p.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'left' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', payload); };
-                oppCardsMini.appendChild(leftGhost);
-            }
-            
-            p.row.forEach((c, index) => {
-                const img = document.createElement('img');
-                img.src = c.img;
-                img.id = `card-target-${p.id}-${index}`;
+            const oppPlayer = state.players.find(p => p.id !== myId);
+            if (oppPlayer) {
+                const isTargeting = (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && oppPlayer.row.length > 1));
                 
-                if (is1v1) {
-                    if (state.crabTargeting === myId && p.row.length > 1) {
+                document.getElementById('opp-1v1-name').innerText = `${oppPlayer.name} ${oppPlayer.isBot ? '🤖' : ''} ${state.parrotPredicting === oppPlayer.id ? '🦜' : ''} (${oppPlayer.score} 👑)`;
+                document.getElementById('opp-1v1-name').parentElement.style.border = (state.turn === oppPlayer.id) ? '2px solid var(--secondary)' : '1px solid rgba(255,255,255,0.1)';
+                if (isTargeting) document.getElementById('opp-1v1-name').parentElement.classList.add('targeting-mode');
+                else document.getElementById('opp-1v1-name').parentElement.classList.remove('targeting-mode');
+                
+                const oppRowEl = document.getElementById('opp-1v1-row');
+                oppRowEl.innerHTML = '';
+                
+                if (state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === oppPlayer.id) {
+                    const leftGhost = document.createElement('div');
+                    leftGhost.className = 'crab-ghost bounce-in';
+                    leftGhost.innerHTML = '⬅️';
+                    leftGhost.onclick = () => { const payload = { targetPlayerId: oppPlayer.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'left' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', payload); };
+                    oppRowEl.appendChild(leftGhost);
+                }
+
+                oppPlayer.row.forEach((c, index) => {
+                    const img = document.createElement('img');
+                    img.src = c.img;
+                    img.className = 'card';
+                    img.id = `card-target-${oppPlayer.id}-${index}`;
+                    
+                    if (state.crabTargeting === myId && oppPlayer.row.length > 1) {
                         img.classList.add('clickable-target');
-                        if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id && ui.selectedCrabCard.cardIndex === index) {
+                        if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === oppPlayer.id && ui.selectedCrabCard.cardIndex === index) {
                             img.style.borderColor = 'var(--primary)';
                         }
-                        img.onclick = () => { ui.selectedCrabCard = { playerId: p.id, cardIndex: index }; ui.renderGameState(state, myId); };
+                        img.onclick = () => { ui.selectedCrabCard = { playerId: oppPlayer.id, cardIndex: index }; ui.renderGameState(state, myId); };
                     } else if (state.crocodileTargeting === myId) {
                         img.classList.add('clickable-target');
-                        img.onclick = () => game.sendAction('CROCODILE_SELECT', { targetPlayerId: p.id, cardIndex: index });
+                        img.onclick = () => game.sendAction('CROCODILE_SELECT', { targetPlayerId: oppPlayer.id, cardIndex: index });
                     } else if (state.monkeyTargeting === myId) {
                         img.classList.add('clickable-target');
-                        img.onclick = () => game.sendAction('MONKEY_SELECT', { targetPlayerId: p.id, cardIndex: index });
+                        img.onclick = () => game.sendAction('MONKEY_SELECT', { targetPlayerId: oppPlayer.id, cardIndex: index });
                     }
-                }
+                    
+                    oppRowEl.appendChild(img);
+                });
                 
-                oppCardsMini.appendChild(img);
-            });
-            
-            if (is1v1 && state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id) {
-                const rightGhost = document.createElement('div');
-                rightGhost.className = 'crab-ghost opp-ghost bounce-in';
-                rightGhost.innerHTML = '➡️';
-                rightGhost.onclick = () => { const payload = { targetPlayerId: p.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'right' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', payload); };
-                oppCardsMini.appendChild(rightGhost);
+                if (state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === oppPlayer.id) {
+                    const rightGhost = document.createElement('div');
+                    rightGhost.className = 'crab-ghost opp-ghost bounce-in';
+                    rightGhost.innerHTML = '➡️';
+                    rightGhost.onclick = () => { const payload = { targetPlayerId: oppPlayer.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'right' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', payload); };
+                    oppRowEl.appendChild(rightGhost);
+                }
             }
+        } else {
+            oppCarousel.style.display = 'flex';
+            oppArea1v1.style.display = 'none';
+            oppCarousel.innerHTML = '';
+            
+            state.players.forEach(p => {
+                if (p.id === myId) return;
+                const div = document.createElement('div');
+                div.className = `opponent-slot ${state.turn === p.id ? 'active-turn' : ''}`;
+                
+                if (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && p.row.length > 1)) {
+                    div.classList.add('targeting-mode');
+                }
 
-            div.innerHTML = `
-                <div class="opp-name">${p.name} ${p.isBot?'🤖':''} ${state.parrotPredicting === p.id ? '🦜' : ''}</div>
-                <div class="opp-score">${p.score} 👑</div>
-            `;
-            div.appendChild(oppCardsMini);
-            oppCarousel.appendChild(div);
-        });
+                div.id = `opp-slot-${p.id}`;
+                div.onclick = () => ui.openOpponentZoom(p.id);
+                div.style.cursor = 'pointer';
+                
+                const oppCardsMini = document.createElement('div');
+                oppCardsMini.className = 'opp-cards-mini';
+                oppCardsMini.id = `opp-cards-${p.id}`;
+                
+                p.row.forEach((c, index) => {
+                    const img = document.createElement('img');
+                    img.src = c.img;
+                    oppCardsMini.appendChild(img);
+                });
+
+                div.innerHTML = `
+                    <div class="opp-name">${p.name} ${p.isBot?'🤖':''} ${state.parrotPredicting === p.id ? '🦜' : ''}</div>
+                    <div class="opp-score">${p.score} 👑</div>
+                `;
+                div.appendChild(oppCardsMini);
+                oppCarousel.appendChild(div);
+            });
+        }
         
         if (!is1v1 && ui.zoomedOpponentId) {
             ui.renderZoomModal(ui.zoomedOpponentId);

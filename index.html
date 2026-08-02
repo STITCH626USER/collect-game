@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Collect! - The Wild Card Game</title>
+    <title>Collect - Jeu de Cartes</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -47,7 +47,7 @@
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
                 <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 10px; background: white; color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
-            <div class="version-badge">v3.35</div>
+            <div class="version-badge">v4.0 (Premium UI)</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -88,8 +88,20 @@
         <!-- ================= GAME BOARD ================= -->
         <div id="screen-game" class="screen">
             
-            <!-- Bandeau haut : Adversaires -->
-            <div class="opponents-carousel" id="opponents-carousel">
+            <!-- Haut : Adversaire (1v1) -->
+            <div class="local-player-area" id="opponent-area-1v1" style="display:none; transform: rotate(180deg);">
+                <div style="transform: rotate(180deg);">
+                    <div class="player-header">
+                        <span class="player-name" id="opp-1v1-name">Adversaire (<span id="opp-1v1-score">0</span> 👑)</span>
+                    </div>
+                    <div class="my-collection row" id="opp-1v1-row">
+                        <!-- Cartes adverses -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bandeau haut : Adversaires (Multiplayer) -->
+            <div class="opponents-carousel" id="opponents-carousel" style="display:none;">
                 <!-- Les adversaires seront injectés ici -->
             </div>
 
