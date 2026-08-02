@@ -1060,14 +1060,7 @@ const game = {
             return;
         }
 
-        if (card.id === 'chameleon') {
-            const chameleons = player.row.filter(c => c.id === 'chameleon');
-            if (chameleons.length >= 2) {
-                game.broadcast({ type: 'ALERT', msg: `Les deux Caméléons de ${player.name} s'annulent !` });
-                player.row = player.row.filter(c => c.id !== 'chameleon');
-            }
-        }
-        
+        // Chameleon cancellation moved to finalizeTurn
         if (card.id === 'parrot') {
             game.state.parrotPredicting = player.id;
             game.broadcastState();
@@ -1083,6 +1076,14 @@ const game = {
     },
 
     finalizeTurn: (player, getsExtraTurn = false) => {
+        // Règle passive : 2 Caméléons s'annulent toujours
+        const chameleons = player.row.filter(c => c.id === 'chameleon');
+        if (chameleons.length >= 2) {
+            game.broadcast({ type: 'ALERT', msg: `Les Caméléons de ${player.name} s'annulent !` });
+            player.row = player.row.filter(c => c.id !== 'chameleon');
+            game.triggerVFX({ action: 'REJECT', player: player.id }); // Trigger a visual discard
+        }
+
         let won = false;
         let winReason = '';
         
