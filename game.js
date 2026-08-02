@@ -840,13 +840,13 @@ const game = {
                     game.state.originalDeckIndex = payload.deckIndex;
                     game.state.forcedDeck = null;
                     game.state.mustPlaceDrawnCard = false;
-                    game.broadcastState(); 
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
                         game.broadcast({ type: 'ALERT', msg: "Prédiction réussie !" });
                         game.state.parrotPredictedAnimal = null;
                         game.broadcastState();
                     } else {
+                        game.broadcastState(); // Broadcast to show the wrong card
                         game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Le Perroquet reste, mais la pioche est défaussée." });
                         setTimeout(() => {
                             game.state.parrotPredictedAnimal = null;
