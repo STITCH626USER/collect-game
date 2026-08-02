@@ -124,13 +124,19 @@ const ui = {
         
         if (!state.currentDrawnCard) {
             document.getElementById('drawn-card-zone').style.display = 'none';
-            document.getElementById('decks-area').style.pointerEvents = isMyTurn ? 'auto' : 'none';
+            // Enable/disable individual decks, NOT the parent container
+            document.getElementById('deck-left').classList.toggle('disabled', !isMyTurn);
+            document.getElementById('deck-right').classList.toggle('disabled', !isMyTurn);
             document.getElementById('deck-left').style.opacity = '1';
             document.getElementById('deck-right').style.opacity = '1';
         } else {
             document.getElementById('drawn-card-zone').style.display = 'flex';
             document.getElementById('drawn-card-img').src = state.currentDrawnCard.img;
-            document.getElementById('decks-area').style.pointerEvents = 'none';
+            
+            // Disable both decks while deciding
+            document.getElementById('deck-left').classList.add('disabled');
+            document.getElementById('deck-right').classList.add('disabled');
+
             if(isMyTurn) {
                 document.getElementById('card-actions').style.display = 'flex';
                 document.getElementById('placement-actions').style.display = 'none';
