@@ -1140,6 +1140,7 @@ const game = {
 
     // --- BOTS ---
     playBotTurn: () => {
+        if (!game.state.started) return;
         const botId = game.state.turn;
         const bot = game.state.players.find(p => p.id === botId);
         if(!bot || !bot.isBot) return;
