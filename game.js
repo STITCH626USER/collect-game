@@ -1145,12 +1145,27 @@ const game = {
                         game.broadcastState();
                         if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                     } else {
+                        game.broadcast({ type: 'ALERT', msg: "❌ Prédiction ratée ! Carte défaussée, placez votre Perroquet 🦜 !" });
+                        game.state.currentDrawnCard = card;
                         game.broadcastState();
-                        game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Les deux cartes sont défaussées." });
+
                         setTimeout(() => {
+                            if (payload.deckIndex === 1) {
+                                game.state.deck1.push(card);
+                                game.state.deck1Thumbnail = card.img;
+                            } else {
+                                game.state.deck2.push(card);
+                                game.state.deck2Thumbnail = card.img;
+                            }
+                            
+                            const parrotCard = ANIMALS.find(a => a.id === 'parrot');
                             game.state.parrotPredictedAnimal = null;
-                            game.handlePlayerAction(playerId, 'REJECT', { endTurn: true });
-                        }, 1500);
+                            game.state.currentDrawnCard = { ...parrotCard, img: 'assets/card_parrot.jpg?v=4' };
+                            game.state.mustPlaceDrawnCard = true;
+                            game.state.disablePower = true;
+                            game.broadcastState();
+                            if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
+                        }, 400);
                     }
                 } else {
                     game.state.currentDrawnCard = card;
