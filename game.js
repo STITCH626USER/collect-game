@@ -392,7 +392,7 @@ const ui = {
                 if (state.forcedDeck === 1) document.getElementById('deck-right').style.opacity = '0.3';
                 if (state.forcedDeck === 2) document.getElementById('deck-left').style.opacity = '0.3';
 
-                if (state.mustPlaceDrawnCard && state.disablePower) {
+                if (state.mustPlaceDrawnCard && (state.disablePower || !activePowers.includes(state.currentDrawnCard.id))) {
                     ui.showPlacement(false);
                 }
             } else {
