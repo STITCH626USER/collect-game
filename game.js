@@ -1167,7 +1167,8 @@ const game = {
         const data = event.data || event; 
         if(data.action === 'PLACE') {
             vfx.push((done) => {
-                const containerId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
+                const is1v1 = game.state.players.length === 2;
+                const containerId = data.player === game.myId ? 'my-row' : (is1v1 ? 'opp-1v1-row' : `opp-cards-${data.player}`);
                 const container = document.getElementById(containerId);
                 
                 const origCard = document.getElementById('drawn-card-img');
@@ -1243,7 +1244,8 @@ const game = {
         else if (data.action === 'CRAB_MOVE') {
             vfx.push((done) => {
                 const cardEl = document.getElementById(`card-target-${data.player}-${data.cardIndex}`);
-                const containerId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
+                const is1v1 = game.state.players.length === 2;
+                const containerId = data.player === game.myId ? 'my-row' : (is1v1 ? 'opp-1v1-row' : `opp-cards-${data.player}`);
                 const container = document.getElementById(containerId);
                 if (cardEl && container) {
                     const sRect = cardEl.getBoundingClientRect();
