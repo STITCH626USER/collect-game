@@ -118,7 +118,7 @@ const ui = {
     showOverlay: (title, desc) => {
         document.getElementById('overlay-title').innerText = title;
         document.getElementById('overlay-desc').innerText = desc;
-        document.getElementById('overlay-msg').style.display = 'flex';
+        document.getElementById('overlay-msg').style.display = 'block';
     },
     hideOverlay: () => {
         document.getElementById('overlay-msg').style.display = 'none';
