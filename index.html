@@ -11,6 +11,7 @@
 </head>
 <body>
     <div id="app-container">
+        <button id="btn-history" class="btn-history" onclick="document.getElementById('history-modal').style.display='flex'">📖</button>
         <button id="btn-help" class="btn-help" onclick="ui.showHelpModal()">❓</button>
         
         <!-- ================= HELP MODAL ================= -->
@@ -24,6 +25,17 @@
             </div>
         </div>
         
+        <!-- ================= HISTORY MODAL ================= -->
+        <div id="history-modal" class="overlay" style="display:none;">
+            <div class="overlay-content bounce-in">
+                <h2>Historique 📖</h2>
+                <div class="history-list" id="history-list">
+                    <!-- Rempli dynamiquement -->
+                </div>
+                <button class="btn btn-main" style="margin-top: 20px;" onclick="document.getElementById('history-modal').style.display='none'">Fermer</button>
+            </div>
+        </div>
+        
         <!-- ================= HOME SCREEN ================= -->
         <div id="screen-home" class="screen active">
             <div class="logo-container bounce-in">
@@ -34,7 +46,7 @@
                 <button class="btn btn-main" onclick="ui.showScreen('screen-host')">Créer un Salon</button>
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
             </div>
-            <div class="version-badge">v3.10</div>
+            <div class="version-badge">v3.11</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->

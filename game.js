@@ -233,6 +233,22 @@ const ui = {
         document.getElementById('help-modal').style.display = 'flex';
     },
     
+    renderHistory: (history) => {
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+        if (!history || history.length === 0) {
+            list.innerHTML = '<p style="text-align:center; color:#999;">Aucune action pour le moment.</p>';
+            return;
+        }
+        history.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerText = msg;
+            list.appendChild(div);
+        });
+        list.scrollTop = list.scrollHeight;
+    },
+
     renderGameState: (state, myId) => {
         if (!state.started) {
             if (document.getElementById('victory-modal').style.display === 'flex' && state.rematchVotes) {
@@ -484,7 +500,14 @@ const game = {
         parrotPredictedAnimal: null,
         crocodileTargeting: null,
         monkeyTargeting: null,
-        crabTargeting: null
+        crabTargeting: null,
+        history: []
+    },
+
+    addHistory: (msg) => {
+        game.state.history.push(msg);
+        game.broadcast({ type: 'HISTORY_UPDATE', history: game.state.history });
+        ui.renderHistory(game.state.history);
     },
 
     init: () => { ui.showScreen('screen-home'); },
@@ -518,6 +541,7 @@ const game = {
                     game.state.players.push({ id: conn.peer, name: data.name, isBot: false, row: [], score: 0 });
                     ui.updateWaitingPlayers(game.state.players);
                     game.broadcast({ type: 'PLAYERS_UPDATE', players: game.state.players });
+                    conn.send({ type: 'HISTORY_UPDATE', history: game.state.history });
                 }
                 else if (data.type === 'ACTION') {
                     game.handlePlayerAction(conn.peer, data.action, data.payload);
@@ -627,6 +651,7 @@ const game = {
                 else if(data.type === 'ALERT') ui.showOverlay("Info", data.msg);
                 else if(data.type === 'VFX') game.handleVFX(data);
                 else if(data.type === 'VICTORY') ui.showVictoryModal(data.winner, data.reason, data.row);
+                else if(data.type === 'HISTORY_UPDATE') ui.renderHistory(data.history);
             });
             game.connections = [conn];
         });
@@ -664,7 +689,10 @@ const game = {
         if (action === 'PARROT_PREDICT') {
             game.state.parrotPredicting = null;
             game.state.parrotPredictedAnimal = payload.animalId;
-            game.broadcast({ type: 'ALERT', msg: `${game.state.players.find(p=>p.id===playerId).name} prédit un(e) ${ANIMALS.find(a=>a.id===payload.animalId).name} !` });
+            const sourcePlayer = game.state.players.find(p=>p.id===playerId);
+            const animalObj = ANIMALS.find(a=>a.id===payload.animalId);
+            game.addHistory(`${sourcePlayer.name} prédit un(e) ${animalObj.name} ${animalObj.icon}.`);
+            game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} prédit un(e) ${animalObj.name} !` });
             game.broadcastState();
             return;
         }
@@ -672,6 +700,7 @@ const game = {
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             if (payload.skip) {
                 game.state.crocodileTargeting = null;
+                game.addHistory(`${sourcePlayer.name} n'utilise pas le pouvoir du Crocodile.`);
                 game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a épargné ses adversaires !` });
                 game.broadcastState();
                 setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
@@ -680,6 +709,7 @@ const game = {
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.crocodileTargeting = null;
+                game.addHistory(`${sourcePlayer.name} détruit la carte de ${targetPlayer.name} avec son Crocodile.`);
                 
                 let crocIndex = -1;
                 for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
@@ -708,7 +738,8 @@ const game = {
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             if (payload.skip) {
                 game.state.monkeyTargeting = null;
-                game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe.` });
+                game.addHistory(`${sourcePlayer.name} n'utilise pas le pouvoir du Singe.`);
+                game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe !` });
                 game.broadcastState();
                 setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
                 return;
@@ -716,6 +747,7 @@ const game = {
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.monkeyTargeting = null;
+                game.addHistory(`${sourcePlayer.name} échange son Singe avec une carte de ${targetPlayer.name}.`);
                 
                 let monkeyIndex = -1;
                 for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
@@ -759,6 +791,7 @@ const game = {
                             if (payload.direction === 'left') targetPlayer.row.unshift(cardToMove);
                             else targetPlayer.row.push(cardToMove);
                             
+                            game.addHistory(`${player.name} déplace une carte de ${targetPlayer.name} avec son Crabe.`);
                             game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} a déplacé une carte de ${targetPlayer.name} vers la ${payload.direction === 'left' ? 'gauche' : 'droite'} !` });
                             game.broadcastState();
                             setTimeout(() => { game.finalizeTurn(player); }, 800);
@@ -766,6 +799,7 @@ const game = {
                         return;
                     }
                 }
+                game.addHistory(`${player.name} n'utilise pas le pouvoir de son Crabe.`);
                 game.broadcast({ type: 'ALERT', msg: `${player.name} passe le pouvoir de son Crabe.` });
                 game.broadcastState();
                 setTimeout(() => { game.finalizeTurn(player); }, 800);
@@ -791,6 +825,9 @@ const game = {
             }
 
             if (card) {
+                const sourcePlayer = game.state.players.find(p => p.id === playerId);
+                game.addHistory(`${sourcePlayer.name} pioche ${card.name} ${card.icon}.`);
+
                 if (game.state.parrotPredictedAnimal) {
                     game.state.currentDrawnCard = card;
                     game.state.originalDeckIndex = payload.deckIndex;
@@ -822,6 +859,9 @@ const game = {
         }
         else if (action === 'REJECT') {
             if(!game.state.currentDrawnCard) return;
+            const sourcePlayer = game.state.players.find(p => p.id === playerId);
+            game.addHistory(`${sourcePlayer.name} remet la carte sur la pioche.`);
+
             if(game.state.originalDeckIndex === 1) {
                 game.state.deck1.push(game.state.currentDrawnCard);
                 game.state.deck1Thumbnail = game.state.currentDrawnCard.img;
@@ -852,6 +892,8 @@ const game = {
             const player = game.state.players.find(p => p.id === playerId);
             const card = game.state.currentDrawnCard;
             
+            game.addHistory(`${player.name} pose ${card.name} ${card.icon}.`);
+
             if(payload.side === 'left') player.row.unshift(card);
             else player.row.push(card);
             
@@ -971,6 +1013,7 @@ const game = {
         }
 
         if (won) {
+            game.addHistory(`${player.name} GAGNE LA PARTIE ! 🎉`);
             game.state.started = false;
             game.state.rematchVotes = game.state.players.filter(p => p.isBot).map(p => p.id);
             game.broadcast({ type: 'VICTORY', winner: player, reason: winReason, row: player.row });
@@ -980,6 +1023,7 @@ const game = {
 
 
         if (getsExtraTurn) {
+            game.addHistory(`Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !`);
             game.broadcast({ type: 'ALERT', msg: `Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !` });
         } else {
             game.state.turnIndex = (game.state.turnIndex + 1) % game.state.players.length;
