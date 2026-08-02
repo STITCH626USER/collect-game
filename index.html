@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Collect - v1.5</title>
+    <title>Collect - v1.6</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.5">
+    <link rel="stylesheet" href="style.css?v=1.6">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -88,24 +88,23 @@
         <!-- ================= GAME BOARD ================= -->
         <div id="screen-game" class="screen">
             
-            <!-- Haut : Adversaire (1v1) -->
-            <div class="local-player-area" id="opponent-area-1v1" style="display:none; flex-direction: column;">
-                <div style="display:flex; flex-direction: column;">
-                    <div class="player-header">
-                        <span class="player-name" id="opp-1v1-name">Adversaire</span>
-                        <div class="score-badge">
-                            <span id="opp-1v1-score">0</span> 👑
-                        </div>
-                    </div>
-                    <div class="my-collection row" id="opp-1v1-row">
-                        <!-- Cartes Adversaire 1v1 -->
+            <!-- Haut : Section Adversaire(s) -->
+            <div class="opponent-section" id="opponent-section">
+                <!-- Zone 1v1 -->
+                <div class="player-header" id="opp-1v1-header" style="display:none;">
+                    <span class="player-name" id="opp-1v1-name">Adversaire</span>
+                    <div class="score-badge opp-score-badge">
+                        <span id="opp-1v1-score">0</span> 👑
                     </div>
                 </div>
-            </div>
+                <div class="my-collection row opp-collection" id="opp-1v1-row" style="display:none;">
+                    <!-- Cartes Adversaire 1v1 -->
+                </div>
 
-            <!-- Bandeau haut : Adversaires (Multiplayer) -->
-            <div class="opponents-carousel" id="opponents-carousel" style="display:none;">
-                <!-- Les adversaires seront injectés ici -->
+                <!-- Zone Multi -->
+                <div class="opponents-carousel" id="opponents-carousel" style="display:none;">
+                    <!-- Les adversaires seront injectés ici -->
+                </div>
             </div>
 
             <!-- Centre : Pioche et Action -->
@@ -212,6 +211,6 @@
         </div>
     </div>
     
-    <script src="game.js?v=1.5"></script>
+    <script src="game.js?v=1.6"></script>
 </body>
 </html>
