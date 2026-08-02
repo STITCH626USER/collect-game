@@ -986,12 +986,21 @@ const game = {
         if (action === 'PARROT_PREDICT') {
             game.state.parrotPredicting = null;
             game.state.parrotPredictedAnimal = payload.animalId;
-            const sourcePlayer = game.state.players.find(p=>p.id===playerId);
-            const animalObj = ANIMALS.find(a=>a.id===payload.animalId);
+            const sourcePlayer = game.state.players.find(p => p.id === playerId);
+            const animalObj = ANIMALS.find(a => a.id === payload.animalId);
             game.addHistory(`${sourcePlayer.name} prédit : ${animalObj.name}.`);
-            game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} prédit un(e) ${animalObj.name} !` });
+            game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a prédit : ${animalObj ? animalObj.name : ''} ! Pioche automatique...` });
             game.broadcastState();
-            if (sourcePlayer && sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
+
+            setTimeout(() => {
+                let availableDecks = [];
+                if (game.state.deck1.length > 0) availableDecks.push(1);
+                if (game.state.deck2.length > 0) availableDecks.push(2);
+                if (availableDecks.length === 0) return;
+                
+                const chosenDeckIndex = availableDecks[Math.floor(Math.random() * availableDecks.length)];
+                game.handlePlayerAction(playerId, 'DRAW', { deckIndex: chosenDeckIndex });
+            }, 600);
             return;
         }
         else if (action === 'CROCODILE_SELECT') {
