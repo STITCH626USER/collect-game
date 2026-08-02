@@ -362,20 +362,25 @@ const ui = {
         if (isMyTurn) turnIndicator.classList.remove('opp-turn');
         else turnIndicator.classList.add('opp-turn');
         
-        if (!state.currentDrawnCard) {
-            document.getElementById('action-modal').style.display = 'none';
-            document.getElementById('deck-left').classList.toggle('disabled', !isMyTurn);
-            document.getElementById('deck-right').classList.toggle('disabled', !isMyTurn);
-            document.getElementById('deck-left').style.opacity = '1';
-            document.getElementById('deck-right').style.opacity = '1';
+        const canDraw = isMyTurn && (!state.currentDrawnCard || state.parrotPredictedAnimal);
+        document.getElementById('deck-left').classList.toggle('disabled', !canDraw);
+        document.getElementById('deck-right').classList.toggle('disabled', !canDraw);
+        document.getElementById('deck-left').style.opacity = (canDraw && state.forcedDeck === 2) ? '0.3' : '1';
+        document.getElementById('deck-right').style.opacity = (canDraw && state.forcedDeck === 1) ? '0.3' : '1';
+
+        if (!state.currentDrawnCard || state.parrotPredictedAnimal) {
+            if (state.parrotPredictedAnimal && isMyTurn) {
+                document.getElementById('action-modal').style.display = 'none';
+                const animalObj = ANIMALS.find(a => a.id === state.parrotPredictedAnimal);
+                ui.showOverlay("Prédiction Perroquet 🦜", `Vous avez prédit : ${animalObj ? animalObj.name : ''} ! Piochez une carte dans un des decks pour vérifier !`);
+            } else if (!state.currentDrawnCard) {
+                document.getElementById('action-modal').style.display = 'none';
+            }
         } else {
             document.getElementById('action-modal').style.display = 'flex';
             const drawnCardImg = document.getElementById('drawn-card-img');
             drawnCardImg.src = state.currentDrawnCard.img;
-            drawnCardImg.style.opacity = '1'; 
-            
-            document.getElementById('deck-left').classList.add('disabled');
-            document.getElementById('deck-right').classList.add('disabled');
+            drawnCardImg.style.opacity = '1';
 
             if(isMyTurn) {
                 const activePowers = ['crocodile', 'monkey', 'crab', 'parrot'];
@@ -1127,6 +1132,7 @@ const game = {
                         game.triggerVFX({ action: 'PARROT_FLY', player: playerId });
                         game.broadcast({ type: 'ALERT', msg: "🎉 Prédiction réussie ! Le Perroquet s'envole 🦜 !" });
                         game.state.parrotPredictedAnimal = null;
+                        game.state.disablePower = true;
                         game.broadcastState();
                         if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                     } else {
