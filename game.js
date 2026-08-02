@@ -339,7 +339,10 @@ const ui = {
         
         const turnPlayer = state.players.find(p => p.id === state.turn);
         const isMyTurn = (state.turn === myId);
-        document.getElementById('turn-indicator').innerText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
+        const turnIndicator = document.getElementById('turn-indicator');
+        turnIndicator.innerText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
+        if (isMyTurn) turnIndicator.classList.remove('opp-turn');
+        else turnIndicator.classList.add('opp-turn');
         
         if (!state.currentDrawnCard) {
             document.getElementById('action-modal').style.display = 'none';
@@ -485,7 +488,8 @@ const ui = {
             if (oppPlayer) {
                 const isTargeting = (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && oppPlayer.row.length > 1));
                 
-                document.getElementById('opp-1v1-name').innerText = `${oppPlayer.name} ${oppPlayer.isBot ? '🤖' : ''} ${state.parrotPredicting === oppPlayer.id ? '🦜' : ''} (${oppPlayer.score} 👑)`;
+                document.getElementById('opp-1v1-name').innerText = `${oppPlayer.name} ${oppPlayer.isBot ? '🤖' : ''} ${state.parrotPredicting === oppPlayer.id ? '🦜' : ''}`;
+                document.getElementById('opp-1v1-score').innerText = oppPlayer.score;
                 document.getElementById('opp-1v1-name').parentElement.style.border = (state.turn === oppPlayer.id) ? '2px solid var(--secondary)' : '1px solid rgba(255,255,255,0.1)';
                 if (isTargeting) document.getElementById('opp-1v1-name').parentElement.classList.add('targeting-mode');
                 else document.getElementById('opp-1v1-name').parentElement.classList.remove('targeting-mode');

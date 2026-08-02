@@ -47,7 +47,7 @@
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
                 <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
-            <div class="version-badge">v4.5.2</div>
+            <div class="version-badge">v0.5</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -92,10 +92,13 @@
             <div class="local-player-area" id="opponent-area-1v1" style="display:none; flex-direction: column;">
                 <div style="display:flex; flex-direction: column;">
                     <div class="player-header">
-                        <span class="player-name" id="opp-1v1-name">Adversaire (<span id="opp-1v1-score">0</span> 👑)</span>
+                        <span class="player-name" id="opp-1v1-name">Adversaire</span>
+                        <div class="score-badge">
+                            <span id="opp-1v1-score">0</span> 👑
+                        </div>
                     </div>
                     <div class="my-collection row" id="opp-1v1-row">
-                        <!-- Cartes adverses -->
+                        <!-- Cartes Adversaire 1v1 -->
                     </div>
                 </div>
             </div>
@@ -143,10 +146,15 @@
             <!-- Bas : Joueur Local -->
             <div class="local-player-area">
                 <div class="player-header">
-                    <span class="player-name">Vous (<span id="my-score">0</span> 👑)</span>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-history-inline" onclick="document.getElementById('history-modal').style.display='flex'">📖</button>
-                        <button class="btn-help-inline" onclick="ui.showHelpModal()">❓</button>
+                    <span class="player-name" id="my-name-display">Vous</span>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div class="score-badge">
+                            <span id="my-score">0</span> 👑
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-history-inline" onclick="document.getElementById('history-modal').style.display='flex'">📖</button>
+                            <button class="btn-help-inline" onclick="ui.showHelpModal()">❓</button>
+                        </div>
                     </div>
                 </div>
                 <div class="my-collection row" id="my-row">
