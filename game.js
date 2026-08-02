@@ -144,20 +144,24 @@ const ui = {
     },
     
     updateDock: () => {
-        document.querySelectorAll('.opp-cards-mini').forEach(container => {
-            if (!container.parentElement.classList.contains('targeting-mode')) return;
+        document.querySelectorAll('.opp-cards-mini, .my-collection').forEach(container => {
+            const cards = container.querySelectorAll('img:not(.deck-thumbnail), .card:not(.drawn-card)');
+            if (cards.length === 0) return;
             
-            const containerCenter = container.getBoundingClientRect().left + container.offsetWidth / 2;
-            const maxDist = container.offsetWidth / 2;
+            const containerRect = container.getBoundingClientRect();
+            const containerCenter = containerRect.left + containerRect.width / 2;
+            const maxDist = containerRect.width / 2;
             
-            container.querySelectorAll('img').forEach(card => {
+            cards.forEach(card => {
+                if (card.classList.contains('crab-ghost')) return;
+                
                 const rect = card.getBoundingClientRect();
                 const cardCenter = rect.left + rect.width / 2;
                 const dist = Math.abs(containerCenter - cardCenter);
                 
-                let scale = 1.2 - (dist / maxDist) * 0.5; // 1.2 in middle, 0.7 at edges
-                if (scale < 0.7) scale = 0.7;
-                if (scale > 1.2) scale = 1.2;
+                let scale = 1.3 - (dist / maxDist) * 0.5; // 1.3 in middle, 0.8 at edges
+                if (scale < 0.8) scale = 0.8;
+                if (scale > 1.3) scale = 1.3;
                 
                 card.style.transform = `scale(${scale})`;
                 card.style.zIndex = Math.floor(scale * 100);
@@ -432,6 +436,9 @@ const ui = {
                 rightGhost.onclick = () => { const p = { targetPlayerId: myId, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'right' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', p); };
                 myRowEl.appendChild(rightGhost);
             }
+            
+            // Add scroll listener for dock effect
+            myRowEl.addEventListener('scroll', () => requestAnimationFrame(ui.updateDock));
         }
 
         const oppCarousel = document.getElementById('opponents-carousel');

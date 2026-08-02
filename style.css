@@ -133,18 +133,27 @@ input::placeholder { color: #a0aec0; }
     display: flex; 
     flex-wrap: nowrap; 
     justify-content: flex-start; 
-    gap: 5px; 
+    gap: 0; 
     margin-top: 15px; 
     position: relative; 
     width: 100%; 
     overflow-x: auto; 
-    padding: 10px 5px; 
+    padding: 15px 5px; 
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 }
 .opp-cards-mini::-webkit-scrollbar { display: none; }
-.opp-cards-mini img { width: 45px; height: 65px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1px solid white; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; }
-.opp-cards-mini img:hover { transform: translateY(-5px); }
+.opp-cards-mini img { 
+    width: 45px; 
+    height: 65px; 
+    border-radius: 6px; 
+    box-shadow: -2px 2px 10px rgba(0,0,0,0.3); 
+    border: 1px solid white; 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    flex-shrink: 0; 
+    position: relative;
+}
+.opp-cards-mini img:not(:first-child) { margin-left: -15px; }
 
 .targeting-mode {
     border-color: var(--primary) !important;
@@ -153,17 +162,19 @@ input::placeholder { color: #a0aec0; }
 .targeting-mode .opp-cards-mini img {
     width: 60px;
     height: 90px;
-    margin: 0 10px;
 }
+.targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -20px; }
 
 /* 1 vs 1 Mode (Bigger Opponent Cards) */
 .opponents-carousel.two-players-mode { padding-bottom: 25px; }
 .two-players-mode .opponent-slot { min-width: 180px; padding: 20px; }
 .two-players-mode .opp-name { font-size: 1.3rem; }
 .two-players-mode .opp-score { font-size: 1.2rem; top: -12px; right: -12px; padding: 6px 12px; }
-.two-players-mode .opp-cards-mini { gap: 10px; margin-top: 20px; }
+.two-players-mode .opp-cards-mini { margin-top: 20px; }
 .two-players-mode .opp-cards-mini img { width: 60px; height: 90px; border-radius: 8px; border-width: 2px; }
-.two-players-mode .targeting-mode .opp-cards-mini img { width: 80px; height: 120px; margin: 0 15px; }
+.two-players-mode .opp-cards-mini img:not(:first-child) { margin-left: -20px; }
+.two-players-mode .targeting-mode .opp-cards-mini img { width: 80px; height: 120px; }
+.two-players-mode .targeting-mode .opp-cards-mini img:not(:first-child) { margin-left: -30px; }
 
 
 /* Center Board */
@@ -215,14 +226,13 @@ input::placeholder { color: #a0aec0; }
 
 .my-collection { 
     display: flex; 
-    gap: clamp(5px, 1vw, 12px); 
+    gap: 0; 
     min-height: clamp(100px, 18vh, 180px); 
     height: auto;
     overflow-x: auto; 
     align-items: center; 
-    padding: 15px 5vw; 
+    padding: 25px 5vw; 
     scrollbar-width: none; 
-    scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
 }
@@ -231,19 +241,18 @@ input::placeholder { color: #a0aec0; }
 .my-collection::-webkit-scrollbar { display: none; }
 
 .my-collection .card { 
-    width: clamp(45px, calc(14.2vw - 8px), 110px); 
+    width: clamp(65px, calc(16vw), 110px); 
     height: auto;
     aspect-ratio: 2/3;
     border-radius: 8px; 
     flex-shrink: 0; 
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    box-shadow: -5px 10px 20px rgba(0,0,0,0.3); 
     border: 3px solid white; 
     position: relative; 
-    scroll-snap-align: center;
     background: white;
 }
-.my-collection .card:hover { transform: translateY(-15px) scale(1.05); z-index: 10; box-shadow: 0 20px 40px rgba(0,0,0,0.25); border-color: var(--secondary); }
+.my-collection .card:not(:first-child) { margin-left: -25px; }
 
 /* Desktop adaptations */
 @media (min-width: 768px) {
