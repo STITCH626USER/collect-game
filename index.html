@@ -90,20 +90,6 @@
                         <img src="" id="deck-left-thumbnail" class="deck-thumbnail" style="display:none;" alt="Rejected Card">
                         <span class="deck-count" id="deck-left-count">32</span>
                     </div>
-                    
-                    <div class="drawn-card-zone" id="drawn-card-zone">
-                        <div class="card drawn-card shadow-pop" id="drawn-card">
-                            <img src="" id="drawn-card-img" alt="Card">
-                        </div>
-                        <div class="card-actions" id="card-actions">
-                            <button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>
-                            <button class="btn-action btn-keep" onclick="ui.showPlacement()">✅ Garder</button>
-                        </div>
-                        <div class="placement-actions" id="placement-actions" style="display:none;">
-                            <button class="btn-action btn-place" onclick="game.placeCard('left')">⬅ Gauche</button>
-                            <button class="btn-action btn-place" onclick="game.placeCard('right')">Droite ➡</button>
-                        </div>
-                    </div>
 
                     <div class="deck" id="deck-right" onclick="game.drawCard(2)">
                         <img src="assets/card_back.jpg" alt="Deck 2">
@@ -135,11 +121,27 @@
             </div>
         </div>
 
+        <!-- ================= ACTION MODAL ================= -->
+        <div id="action-modal" class="overlay">
+            <div class="overlay-content bounce-in" style="background: transparent; border: none; box-shadow: none; display: flex; flex-direction: column; align-items: center; gap: 20px; max-width: 100%;">
+                <div class="card drawn-card shadow-pop" id="drawn-card" style="width: clamp(140px, 40vw, 220px); aspect-ratio: 2/3; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); border: 4px solid white;">
+                    <img src="" id="drawn-card-img" alt="Card" style="width: 100%; height: 100%; border-radius: inherit;">
+                </div>
+                <div class="card-actions" id="card-actions" style="display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 280px; margin-top: 0;">
+                    <!-- Actions will be injected here by JS -->
+                </div>
+                <div class="placement-actions" id="placement-actions" style="display:none; flex-direction: column; gap: 15px; width: 100%; max-width: 280px;">
+                    <!-- Placements injected here -->
+                </div>
+            </div>
+        </div>
+
         <!-- ================= TOAST BANNER ================= -->
         <div id="overlay-msg" class="toast-banner">
             <div id="overlay-content">
-                <h3 id="overlay-title">Titre</h3>
-                <p id="overlay-desc">Description</p>
+                <h3 id="overlay-title"></h3>
+                <p id="overlay-desc"></p>
+                <div id="overlay-btn-container" style="margin-top: 15px;"></div>
             </div>
         </div>
 

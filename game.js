@@ -119,9 +119,14 @@ const ui = {
             if(vic) vic.style.display = 'none';
         }
     },
-    showOverlay: (title, desc) => {
+    showOverlay: (title, desc, btnHtml = '') => {
         document.getElementById('overlay-title').innerText = title;
         document.getElementById('overlay-desc').innerText = desc;
+        const btnContainer = document.getElementById('overlay-btn-container');
+        if (btnContainer) {
+            btnContainer.innerHTML = btnHtml;
+            btnContainer.style.display = btnHtml ? 'block' : 'none';
+        }
         document.getElementById('overlay-msg').style.display = 'block';
     },
     hideOverlay: () => {
@@ -232,13 +237,13 @@ const ui = {
         document.getElementById('turn-indicator').innerText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
         
         if (!state.currentDrawnCard) {
-            document.getElementById('drawn-card-zone').style.display = 'none';
+            document.getElementById('action-modal').style.display = 'none';
             document.getElementById('deck-left').classList.toggle('disabled', !isMyTurn);
             document.getElementById('deck-right').classList.toggle('disabled', !isMyTurn);
             document.getElementById('deck-left').style.opacity = '1';
             document.getElementById('deck-right').style.opacity = '1';
         } else {
-            document.getElementById('drawn-card-zone').style.display = 'flex';
+            document.getElementById('action-modal').style.display = 'flex';
             const drawnCardImg = document.getElementById('drawn-card-img');
             drawnCardImg.src = state.currentDrawnCard.img;
             drawnCardImg.style.opacity = '1'; 
@@ -277,26 +282,16 @@ const ui = {
         }
         
         if (state.crocodileTargeting === myId) {
-            ui.showOverlay("Attaque Crocodile 🐊", "Cliquez sur une carte à dévorer, ou passez si vous ne voulez pas utiliser le pouvoir.");
-            document.getElementById('card-actions').style.display = 'none';
-            document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('CROCODILE_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`;
-            document.getElementById('placement-actions').style.display = 'flex';
+            ui.showOverlay("Attaque Crocodile 🐊", "Cliquez sur une carte à dévorer, ou passez si vous ne voulez pas utiliser le pouvoir.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('CROCODILE_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
         } else if (state.monkeyTargeting === myId) {
-            ui.showOverlay("Pouvoir du Singe 🐒", "Cliquez sur la carte avec laquelle échanger, ou passez.");
-            document.getElementById('card-actions').style.display = 'none';
-            document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('MONKEY_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`;
-            document.getElementById('placement-actions').style.display = 'flex';
+            ui.showOverlay("Pouvoir du Singe 🐒", "Cliquez sur la carte avec laquelle échanger, ou passez.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('MONKEY_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
         } else if (state.crabTargeting === myId) {
             if (ui.selectedCrabCard) {
-                ui.showOverlay("Pouvoir du Crabe 🦀", "Cliquez sur ⬅️ ou ➡️ de chaque côté de sa ligne, ou annulez.");
-                document.getElementById('card-actions').style.display = 'none';
-                document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" style="width: 100%;" onclick="ui.selectedCrabCard = null; ui.renderGameState(game.state, game.myId);">Annuler la sélection</button>`;
+                ui.showOverlay("Pouvoir du Crabe 🦀", "Cliquez sur ⬅️ ou ➡️ de chaque côté de sa ligne, ou annulez.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="ui.selectedCrabCard = null; ui.renderGameState(game.state, game.myId);">Annuler la sélection</button>`);
             } else {
-                ui.showOverlay("Pouvoir du Crabe 🦀", "Cliquez sur une carte à déplacer, ou passez.");
-                document.getElementById('card-actions').style.display = 'none';
-                document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('CRAB_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`;
+                ui.showOverlay("Pouvoir du Crabe 🦀", "Cliquez sur une carte à déplacer, ou passez.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('CRAB_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
             }
-            document.getElementById('placement-actions').style.display = 'flex';
+
         } else if (state.crocodileTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crocodileTargeting);
             ui.showOverlay("Attaque Crocodile...", `${targetingPlayer.name} choisit sa cible...`);
@@ -984,7 +979,7 @@ const game = {
         }
         else if (data.action === 'REJECT') {
              vfx.push((done) => {
-                const c = document.getElementById('drawn-card-zone');
+                const c = document.getElementById('drawn-card');
                 if(c) {
                     c.style.transform = 'scale(0)';
                     c.style.transition = 'transform 0.3s';
