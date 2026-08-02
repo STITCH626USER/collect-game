@@ -892,6 +892,7 @@ const game = {
             }
         }
         else if (action === 'PLACE') {
+            if(!game.state.currentDrawnCard) return;
             if (game.state.parrotPredictedAnimal) return; // Block cheating
             const player = game.state.players.find(p => p.id === playerId);
             const card = game.state.currentDrawnCard;
