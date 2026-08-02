@@ -574,10 +574,10 @@ const game = {
                         game.broadcast({ type: 'ALERT', msg: "Prédiction réussie !" });
                         game.state.parrotPredictedAnimal = null;
                     } else {
-                        game.broadcast({ type: 'ALERT', msg: "Prédiction ratée !" });
+                        game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Le Perroquet reste, mais la pioche est défaussée." });
                         setTimeout(() => {
                             game.state.parrotPredictedAnimal = null;
-                            game.handlePlayerAction(playerId, 'REJECT', {});
+                            game.handlePlayerAction(playerId, 'REJECT', { endTurn: true });
                         }, 1500);
                     }
                 } else {
@@ -593,11 +593,19 @@ const game = {
             if(game.state.originalDeckIndex === 1) game.state.deck1.push(game.state.currentDrawnCard);
             else game.state.deck2.push(game.state.currentDrawnCard);
             
-            game.state.forcedDeck = game.state.originalDeckIndex === 1 ? 2 : 1;
             game.state.currentDrawnCard = null;
-            
             game.triggerVFX({ action: 'REJECT', player: playerId });
-            setTimeout(() => game.broadcastState(), 500);
+
+            if (payload && payload.endTurn) {
+                game.state.forcedDeck = null;
+                setTimeout(() => {
+                    const p = game.state.players.find(x => x.id === playerId);
+                    if (p) game.finalizeTurn(p);
+                }, 500);
+            } else {
+                game.state.forcedDeck = game.state.originalDeckIndex === 1 ? 2 : 1;
+                setTimeout(() => game.broadcastState(), 500);
+            }
         }
         else if (action === 'PLACE') {
             if (game.state.parrotPredictedAnimal) return; // Block cheating
