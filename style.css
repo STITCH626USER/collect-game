@@ -133,6 +133,15 @@ input::placeholder { color: #a0aec0; }
 .opp-cards-mini img { width: 35px; height: 50px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1px solid white; transition: transform 0.3s; }
 .opp-cards-mini img:hover { transform: translateY(-5px); }
 
+/* 1 vs 1 Mode (Bigger Opponent Cards) */
+.opponents-carousel.two-players-mode { padding-bottom: 25px; }
+.two-players-mode .opponent-slot { min-width: 180px; padding: 20px; }
+.two-players-mode .opp-name { font-size: 1.3rem; }
+.two-players-mode .opp-score { font-size: 1.2rem; top: -12px; right: -12px; padding: 6px 12px; }
+.two-players-mode .opp-cards-mini { gap: 8px; margin-top: 20px; }
+.two-players-mode .opp-cards-mini img { width: 50px; height: 75px; border-radius: 8px; border-width: 2px; }
+
+
 /* Center Board */
 .center-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; position: relative; }
 .turn-indicator { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 900; color: white; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 4px 15px rgba(0,0,0,0.2); background: rgba(255,255,255,0.3); padding: 10px 30px; border-radius: 30px; backdrop-filter: blur(10px); }
