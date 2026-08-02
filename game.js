@@ -756,7 +756,11 @@ const game = {
             p.row.push(game.state.deck1.pop());
             p.row.push(game.state.deck2.pop());
             p.row.push(game.state.deck1.pop());
-        });ui.hideOverlay();
+        });
+        
+        game.broadcast({ type: 'START_GAME' });
+        ui.showScreen('screen-game');
+        ui.hideOverlay();
         document.getElementById('victory-modal').style.display = 'none';
         game.broadcastState();
     },
