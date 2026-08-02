@@ -634,6 +634,7 @@ const game = {
                     if (card.id === game.state.parrotPredictedAnimal) {
                         game.broadcast({ type: 'ALERT', msg: "Prédiction réussie !" });
                         game.state.parrotPredictedAnimal = null;
+                        game.broadcastState();
                     } else {
                         game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Le Perroquet reste, mais la pioche est défaussée." });
                         setTimeout(() => {
