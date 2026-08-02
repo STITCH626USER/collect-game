@@ -1239,9 +1239,7 @@ const game = {
 
     applyAnimalEffects: (player, card, side, skipPower = false) => {
         if (skipPower) {
-            let getsExtraTurn = false;
-            if (card.id === 'hermit_crab' && player.row.find(c => c.id === 'crab' || c.id === 'chameleon')) getsExtraTurn = true;
-            game.finalizeTurn(player, getsExtraTurn);
+            game.finalizeTurn(player, false);
             return;
         }
 
