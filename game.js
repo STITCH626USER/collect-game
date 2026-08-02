@@ -625,6 +625,8 @@ const game = {
         
         game.broadcast({ type: 'START_GAME' });
         ui.showScreen('screen-game');
+        ui.hideOverlay();
+        document.getElementById('victory-modal').style.display = 'none';
         game.broadcastState();
     },
 
@@ -650,7 +652,11 @@ const game = {
                     document.querySelector('.host-actions').style.display = 'none';
                     ui.updateWaitingPlayers(data.players);
                 } 
-                else if(data.type === 'START_GAME') ui.showScreen('screen-game');
+                else if(data.type === 'START_GAME') { 
+                    ui.showScreen('screen-game'); 
+                    ui.hideOverlay();
+                    document.getElementById('victory-modal').style.display = 'none'; 
+                }
                 else if(data.type === 'STATE_UPDATE') ui.renderGameState(data.state, game.myId);
                 else if(data.type === 'ALERT') ui.showOverlay("Info", data.msg);
                 else if(data.type === 'VFX') game.handleVFX(data);
