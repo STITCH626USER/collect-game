@@ -528,30 +528,30 @@ const ui = {
         }
 
         const oppCarousel = document.getElementById('opponents-carousel');
-        const oppHeader1v1 = document.getElementById('opp-1v1-header');
-        const oppRowEl = document.getElementById('opp-1v1-row');
+        const oppArea1v1 = document.getElementById('opponent-area-1v1');
         const is1v1 = (state.players.length === 2);
         
         if (is1v1) {
             oppCarousel.style.display = 'none';
-            if (oppHeader1v1) oppHeader1v1.style.display = 'flex';
-            if (oppRowEl) oppRowEl.style.display = 'flex';
+            if (oppArea1v1) oppArea1v1.style.display = 'block';
             
             const oppPlayer = state.players.find(p => p.id !== myId);
             if (oppPlayer) {
                 const isTargeting = (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && oppPlayer.row.length > 1));
                 
                 const oppNameEl = document.getElementById('opp-1v1-name');
-                const oppScoreEl = document.getElementById('opp-1v1-score');
-                if (oppNameEl) oppNameEl.innerText = `${oppPlayer.name} ${oppPlayer.isBot ? '🤖' : ''} ${state.parrotPredicting === oppPlayer.id ? '🦜' : ''}`;
-                if (oppScoreEl) oppScoreEl.innerText = oppPlayer.score;
-                
-                if (oppHeader1v1) {
-                    oppHeader1v1.style.border = (state.turn === oppPlayer.id) ? '2px solid var(--secondary)' : '1px solid rgba(255,255,255,0.1)';
-                    if (isTargeting) oppHeader1v1.classList.add('targeting-mode');
-                    else oppHeader1v1.classList.remove('targeting-mode');
+                if (oppNameEl) {
+                    oppNameEl.innerHTML = `${oppPlayer.name} ${oppPlayer.isBot ? '🤖' : ''} ${state.parrotPredicting === oppPlayer.id ? '🦜' : ''} (<span id="opp-1v1-score">${oppPlayer.score}</span> 👑)`;
                 }
                 
+                const headerEl = oppArea1v1 ? oppArea1v1.querySelector('.player-header') : null;
+                if (headerEl) {
+                    headerEl.style.border = (state.turn === oppPlayer.id) ? '2px solid var(--secondary)' : '1px solid rgba(255,255,255,0.1)';
+                    if (isTargeting) headerEl.classList.add('targeting-mode');
+                    else headerEl.classList.remove('targeting-mode');
+                }
+                
+                const oppRowEl = document.getElementById('opp-1v1-row');
                 if (oppRowEl) {
                     oppRowEl.innerHTML = '';
                     

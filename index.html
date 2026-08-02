@@ -6,7 +6,7 @@
     <title>Collect - v1.7</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.7.1">
+    <link rel="stylesheet" href="style.css?v=1.7.2">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -88,23 +88,19 @@
         <!-- ================= GAME BOARD ================= -->
         <div id="screen-game" class="screen">
             
-            <!-- Haut : Section Adversaire(s) -->
-            <div class="opponent-section" id="opponent-section">
-                <!-- Zone 1v1 -->
-                <div class="player-header" id="opp-1v1-header" style="display:none;">
-                    <span class="player-name" id="opp-1v1-name">Adversaire</span>
-                    <div class="score-badge opp-score-badge">
-                        <span id="opp-1v1-score">0</span> 👑
-                    </div>
+            <!-- Haut : Adversaire (1v1) -->
+            <div class="local-player-area" id="opponent-area-1v1" style="display:none;">
+                <div class="player-header">
+                    <span class="player-name" id="opp-1v1-name">Adversaire (<span id="opp-1v1-score">0</span> 👑)</span>
                 </div>
-                <div class="my-collection row opp-collection" id="opp-1v1-row" style="display:none;">
-                    <!-- Cartes Adversaire 1v1 -->
+                <div class="my-collection row" id="opp-1v1-row">
+                    <!-- Cartes adverses 1v1 -->
                 </div>
+            </div>
 
-                <!-- Zone Multi -->
-                <div class="opponents-carousel" id="opponents-carousel" style="display:none;">
-                    <!-- Les adversaires seront injectés ici -->
-                </div>
+            <!-- Bandeau haut : Adversaires (Multiplayer) -->
+            <div class="opponents-carousel" id="opponents-carousel" style="display:none;">
+                <!-- Les adversaires seront injectés ici -->
             </div>
 
             <!-- Centre : Pioche et Action -->
@@ -212,6 +208,6 @@
         <div class="version-badge">v1.7</div>
     </div>
     
-    <script src="game.js?v=1.7.1"></script>
+    <script src="game.js?v=1.7.2"></script>
 </body>
 </html>
