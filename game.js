@@ -590,7 +590,7 @@ const game = {
             deck1Count: game.state.deck1.length, deck2Count: game.state.deck2.length,
             deck1Thumbnail: game.state.deck1Thumbnail, deck2Thumbnail: game.state.deck2Thumbnail,
             turn: game.state.turn,
-            currentDrawnCard: game.state.currentDrawnCard, forcedDeck: game.state.forcedDeck, mustPlaceDrawnCard: game.state.mustPlaceDrawnCard,
+            currentDrawnCard: game.state.currentDrawnCard, forcedDeck: game.state.forcedDeck, mustPlaceDrawnCard: game.state.mustPlaceDrawnCard, disablePower: game.state.disablePower,
             parrotPredicting: game.state.parrotPredicting,
             parrotPredictedAnimal: game.state.parrotPredictedAnimal,
             crocodileTargeting: game.state.crocodileTargeting,
