@@ -600,7 +600,7 @@ const game = {
         const activePlayer = game.state.players.find(p => p.id === game.state.turn);
         if(activePlayer && activePlayer.isBot) {
             if (game.botTimer) clearTimeout(game.botTimer);
-            game.botTimer = setTimeout(game.playBotTurn, 2000);
+            game.botTimer = setTimeout(game.playBotTurn, 600);
         }
     },
 
@@ -1173,7 +1173,7 @@ const game = {
                 } else {
                     game.handlePlayerAction(botId, 'CROCODILE_SELECT', { skip: true });
                 }
-            }, 1500);
+            }, 800);
             return;
         }
         
@@ -1188,7 +1188,7 @@ const game = {
                 } else {
                     game.handlePlayerAction(botId, 'MONKEY_SELECT', { skip: true });
                 }
-            }, 1500);
+            }, 800);
             return;
         }
         
@@ -1214,7 +1214,7 @@ const game = {
                 } else {
                     game.handlePlayerAction(botId, 'CRAB_SELECT', { skip: true });
                 }
-            }, 1500);
+            }, 800);
             return;
         }
 
@@ -1229,13 +1229,13 @@ const game = {
                     animalIdToPredict = randomAnimal.id;
                 }
                 game.handlePlayerAction(botId, 'PARROT_PREDICT', { animalId: animalIdToPredict });
-            }, 1000);
+            }, 600);
             return;
         }
 
         if(!game.state.currentDrawnCard) {
-            let delay = 1000;
-            if (game.state.parrotPredictedAnimal) delay = 2500;
+            let delay = 500;
+            if (game.state.parrotPredictedAnimal) delay = 2000;
 
             setTimeout(() => {
                 if(game.state.turn !== botId || game.state.currentDrawnCard) return;
@@ -1303,7 +1303,7 @@ const game = {
                     game.handlePlayerAction(botId, 'PLACE', { side: bestSide, skipPower: skipPower });
                 }
             }
-        }, 1500);
+        }, 800);
     }
 };
 
