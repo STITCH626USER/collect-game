@@ -960,8 +960,15 @@ const game = {
         }
 
         if(!game.state.currentDrawnCard) {
-            const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
-            game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
+            let delay = 1000;
+            if (game.state.parrotPredictedAnimal) delay = 2500; // Let human read the prediction alert
+
+            setTimeout(() => {
+                // Ensure state hasn't radically changed during timeout
+                if(game.state.turn !== botId || game.state.currentDrawnCard) return;
+                const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
+                game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
+            }, delay);
             return;
         }
 
