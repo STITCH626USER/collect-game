@@ -508,7 +508,10 @@ const game = {
     startGame: () => {
         let fullDeck = [];
         for(let i=0; i<8; i++) ANIMALS.forEach(animal => fullDeck.push({...animal}));
-        fullDeck.sort(() => Math.random() - 0.5);
+        for (let i = fullDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
+        }
         
         game.state.deck1 = fullDeck.slice(0, 32);
         game.state.deck2 = fullDeck.slice(32);

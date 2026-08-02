@@ -155,16 +155,17 @@ input:focus { border-color: var(--secondary); }
 .player-header .player-name { font-size: 1.2rem; font-weight: 700; color: var(--text-light); }
 .player-header #my-score { font-size: 1.5rem; color: var(--secondary); font-weight: 900; }
 
-.my-collection { display: flex; gap: 10px; height: 140px; overflow-x: auto; align-items: center; padding: 10px; scrollbar-width: none; }
+.my-collection { display: flex; gap: -40px; height: 140px; overflow-x: auto; align-items: center; padding: 10px 40px; scrollbar-width: none; }
 .my-collection::-webkit-scrollbar { display: none; }
-.my-collection .card { width: 90px; height: 135px; border-radius: 10px; flex-shrink: 0; transition: transform 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); }
-.my-collection .card:hover { transform: translateY(-10px); }
+.my-collection .card { width: 90px; height: 135px; border-radius: 10px; flex-shrink: 0; transition: transform 0.2s, margin 0.2s; box-shadow: -5px 0 15px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); position: relative; }
+.my-collection .card:hover { transform: translateY(-15px); z-index: 10; margin-right: 40px; }
 
 /* Desktop adaptation for Player Area */
 @media (min-width: 768px) {
     .local-player-area { padding: 40px 10vw; }
-    .my-collection { height: 180px; gap: 15px; justify-content: center; }
+    .my-collection { height: 180px; gap: -60px; justify-content: center; }
     .my-collection .card { width: 120px; height: 180px; border-radius: 12px; }
+    .my-collection .card:hover { margin-right: 60px; }
 }
 
 /* ================= OVERLAYS ================= */
