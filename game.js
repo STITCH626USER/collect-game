@@ -570,10 +570,10 @@ const game = {
                     });
 
                     setTimeout(() => {
-                        const myMonkey = sourcePlayer.row.splice(monkeyIndex, 1)[0];
-                        const oppCard = targetPlayer.row.splice(payload.cardIndex, 1)[0];
-                        sourcePlayer.row.push(oppCard);
-                        targetPlayer.row.push(myMonkey);
+                        const myMonkey = sourcePlayer.row[monkeyIndex];
+                        const oppCard = targetPlayer.row[payload.cardIndex];
+                        sourcePlayer.row[monkeyIndex] = oppCard;
+                        targetPlayer.row[payload.cardIndex] = myMonkey;
                         game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a échangé son Singe avec ${targetPlayer.name} !` });
                         game.broadcastState();
                         setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
@@ -651,8 +651,8 @@ const game = {
         }
         else if (action === 'REJECT') {
             if(!game.state.currentDrawnCard) return;
-            if(game.state.originalDeckIndex === 1) game.state.deck1.push(game.state.currentDrawnCard);
-            else game.state.deck2.push(game.state.currentDrawnCard);
+            if(game.state.originalDeckIndex === 1) game.state.deck1.unshift(game.state.currentDrawnCard);
+            else game.state.deck2.unshift(game.state.currentDrawnCard);
             
             game.state.currentDrawnCard = null;
             game.triggerVFX({ action: 'REJECT', player: playerId });
@@ -690,21 +690,15 @@ const game = {
 
     applyAnimalEffects: (player, card, side) => {
         if (card.id === 'crocodile') {
-            const opponents = game.state.players.filter(p => p.id !== player.id && p.row.length > 0);
-            if (opponents.length > 0) {
-                game.state.crocodileTargeting = player.id;
-                game.broadcastState();
-                return; 
-            }
+            game.state.crocodileTargeting = player.id;
+            game.broadcastState();
+            return; 
         }
         
-        if (card.id === 'monkey' && player.row.length > 1) {
-            const opponents = game.state.players.filter(p => p.id !== player.id && p.row.length > 0);
-            if (opponents.length > 0) {
-                game.state.monkeyTargeting = player.id;
-                game.broadcastState();
-                return;
-            }
+        if (card.id === 'monkey') {
+            game.state.monkeyTargeting = player.id;
+            game.broadcastState();
+            return;
         }
 
         if (card.id === 'crab') {
@@ -727,10 +721,15 @@ const game = {
             return;
         }
         
-        game.finalizeTurn(player);
+        let getsExtraTurn = false;
+        if (card.id === 'hermit_crab' && player.row.find(c => c.id === 'crab' || c.id === 'chameleon')) {
+            getsExtraTurn = true;
+        }
+        
+        game.finalizeTurn(player, getsExtraTurn);
     },
 
-    finalizeTurn: (player) => {
+    finalizeTurn: (player, getsExtraTurn = false) => {
         let won = false;
         
         const uniqueAnimals = new Set(player.row.filter(c => c.id !== 'lion').map(c => c.id));
@@ -784,7 +783,7 @@ const game = {
             return;
         }
 
-        if (player.row.length > 0 && player.row[player.row.length - 1].id === 'hermit_crab' && player.row.find(c => c.id === 'crab' || c.id === 'chameleon')) {
+        if (getsExtraTurn) {
             game.broadcast({ type: 'ALERT', msg: `Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !` });
         } else {
             game.state.turnIndex = (game.state.turnIndex + 1) % game.state.players.length;
