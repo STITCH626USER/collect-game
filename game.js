@@ -109,8 +109,13 @@ const ui = {
         document.getElementById('player-count').innerText = players.length;
     },
     showPlacement: () => {
-        document.getElementById('card-actions').style.display = 'none';
-        document.getElementById('placement-actions').style.display = 'flex';
+        const myPlayer = game.state.players.find(p => p.id === game.myId);
+        if (myPlayer && myPlayer.row.length === 0) {
+            game.placeCard('right'); // Pas de choix nécessaire si la main est vide
+        } else {
+            document.getElementById('card-actions').style.display = 'none';
+            document.getElementById('placement-actions').style.display = 'flex';
+        }
     },
     
     // Le rendu "silencieux" qui met à jour le DOM sans animer (car l'animation a déjà eu lieu)
