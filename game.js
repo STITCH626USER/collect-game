@@ -539,7 +539,7 @@ const ui = {
         
         if (is1v1) {
             oppCarousel.style.display = 'none';
-            oppArea1v1.style.display = 'block';
+            oppArea1v1.style.display = 'flex';
             
             const oppPlayer = state.players.find(p => p.id !== myId);
             if (oppPlayer) {
@@ -834,6 +834,11 @@ const game = {
     },
 
     startGame: () => {
+        if (game.state.players.length < 2) {
+            ui.showOverlay("Action impossible", "Il faut au moins 2 joueurs pour démarrer la partie !");
+            setTimeout(ui.hideOverlay, 3000);
+            return;
+        }
         let fullDeck = [];
         for(let i=0; i<8; i++) ANIMALS.forEach(animal => fullDeck.push({...animal}));
         for (let i = fullDeck.length - 1; i > 0; i--) {
