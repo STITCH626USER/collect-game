@@ -77,7 +77,7 @@ h1, h2, h3 { text-transform: uppercase; letter-spacing: 1px; font-weight: 900; }
 /* ================= LOBBY SCREENS ================= */
 #screen-home { justify-content: center; align-items: center; text-align: center; }
 .logo-container h1 { font-size: clamp(3rem, 10vw, 6rem); font-weight: 900; color: white; text-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); line-height: 1.1; margin: 0; }
-.crowned-r { position: relative; display: inline-block; color: var(--secondary); text-shadow: 0 5px 15px rgba(252, 196, 25, 0.4); }
+.crowned-r { position: relative; display: inline-block; }
 .crown-icon { position: absolute; top: -0.6em; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 0.7em; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); }
 .subtitle { font-size: clamp(1rem, 4vw, 1.8rem); color: var(--text-main); margin-top: 15px; font-weight: 700; background: rgba(255,255,255,0.5); padding: 5px 20px; border-radius: 20px; display: inline-block; }
 .menu-actions { margin-top: 8vh; width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 25px; }
