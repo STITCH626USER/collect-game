@@ -10,6 +10,18 @@
 </head>
 <body>
     <div id="app-container">
+        <button id="btn-help" class="btn-help" onclick="ui.showHelpModal()">❓</button>
+        
+        <!-- ================= HELP MODAL ================= -->
+        <div id="help-modal" class="overlay">
+            <div class="overlay-content bounce-in">
+                <h2>Règles & Pouvoirs</h2>
+                <div class="help-grid" id="help-grid">
+                    <!-- Rempli dynamiquement -->
+                </div>
+                <button class="btn btn-main" style="margin-top: 20px;" onclick="document.getElementById('help-modal').style.display='none'">Fermer</button>
+            </div>
+        </div>
         
         <!-- ================= LOBBY ================= -->
         <div id="screen-home" class="screen active">

@@ -1,12 +1,12 @@
 const ANIMALS = [
-    { id: 'crocodile', name: 'Crocodile', img: 'assets/card_crocodile.jpg' },
-    { id: 'chameleon', name: 'Caméléon', img: 'assets/card_chameleon.jpg' },
-    { id: 'monkey', name: 'Singe', img: 'assets/card_monkey.jpg' },
-    { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg' },
-    { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg' },
-    { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg' },
-    { id: 'lion', name: 'Lion', img: 'assets/card_lion.jpg' },
-    { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg' }
+    { id: 'crocodile', name: 'Crocodile', img: 'assets/card_crocodile.jpg?v=3', desc: 'Détruit la dernière carte d\'un adversaire aléatoire.' },
+    { id: 'chameleon', name: 'Caméléon', img: 'assets/card_chameleon.jpg?v=3', desc: 'Joker. S\'annule et se défausse si vous en posez un 2ème.' },
+    { id: 'monkey', name: 'Singe', img: 'assets/card_monkey.jpg?v=3', desc: 'Échange votre carte avec celle d\'un adversaire.' },
+    { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg?v=3', desc: 'Déplace votre première carte à la fin de votre rangée.' },
+    { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg?v=3', desc: 'Rejouez un tour si vous avez déjà un Crabe.' },
+    { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg?v=3', desc: 'Gagnez si vous avez 2 paires d\'animaux (4 cartes).' },
+    { id: 'lion', name: 'Lion', img: 'assets/card_lion.jpg?v=3', desc: 'Gagnez si vous avez 1 exemplaire de chaque autre animal.' },
+    { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=3', desc: 'Devinez votre pioche pour la conserver.' }
 ];
 
 // --- ANIMATION ENGINE ---
@@ -29,16 +29,10 @@ const vfx = {
         });
     },
 
-    flyCard: (imgSrc, startId, targetId, onComplete) => {
+    flyCardToRect: (imgSrc, startId, tRect, onComplete) => {
         const startEl = document.getElementById(startId) || document.body;
-        const targetEl = document.getElementById(targetId) || document.body;
-        
         const sRect = startEl.getBoundingClientRect();
-        let tRect = targetEl.getBoundingClientRect();
         
-        // Si le container cible est vide, on triche un peu sur la position
-        if(tRect.width === 0) tRect = { left: window.innerWidth/2, top: window.innerHeight - 50, width: 75, height: 110 };
-
         const flying = document.createElement('img');
         flying.src = imgSrc;
         flying.className = 'flying-card';
@@ -52,8 +46,8 @@ const vfx = {
         
         flying.style.left = tRect.left + 'px';
         flying.style.top = tRect.top + 'px';
-        flying.style.width = '75px';
-        flying.style.height = '110px';
+        flying.style.width = (tRect.width || 75) + 'px';
+        flying.style.height = (tRect.height || 110) + 'px';
         flying.style.transform = 'rotate(360deg)';
 
         setTimeout(() => {
@@ -131,6 +125,23 @@ const ui = {
             grid.appendChild(img);
         });
         document.getElementById('parrot-modal').style.display = 'flex';
+    },
+
+    showHelpModal: () => {
+        const grid = document.getElementById('help-grid');
+        grid.innerHTML = '';
+        ANIMALS.forEach(animal => {
+            grid.innerHTML += `
+                <div class="help-row">
+                    <img src="${animal.img}">
+                    <div>
+                        <h4>${animal.name}</h4>
+                        <p>${animal.desc}</p>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('help-modal').style.display = 'flex';
     },
     
     // Le rendu "silencieux" qui met à jour le DOM sans animer (car l'animation a déjà eu lieu)
@@ -447,20 +458,49 @@ const game = {
     },
 
     applyAnimalEffects: (player, card, side) => {
-        // Applique l'effet Crocodile (Mange la carte précédente)
-        if (card.id === 'crocodile' && player.row.length > 1) {
-            // S'il est placé à droite, il mange la carte à sa gauche
-            const crocIndex = side === 'left' ? 0 : player.row.length - 1;
-            const targetIndex = side === 'left' ? 1 : player.row.length - 2;
-            
-            // Le crocodile ne mange pas un autre crocodile
-            if (player.row[targetIndex].id !== 'crocodile') {
-                game.triggerVFX({ action: 'CROCODILE_BITE', player: player.id });
+        // Applique l'effet Crocodile (Détruit la dernière carte d'un adversaire aléatoire)
+        if (card.id === 'crocodile') {
+            const opponents = game.state.players.filter(p => p.id !== player.id && p.row.length > 0);
+            if (opponents.length > 0) {
+                const targetOpp = opponents[Math.floor(Math.random() * opponents.length)];
+                game.broadcast({ type: 'ALERT', msg: `Le Crocodile de ${player.name} attaque ${targetOpp.name} !` });
+                game.triggerVFX({ action: 'CROCODILE_BITE', player: targetOpp.id });
                 setTimeout(() => {
-                    player.row.splice(targetIndex, 1);
+                    targetOpp.row.pop(); // Détruit la dernière carte
                     game.finalizeTurn(player);
                 }, 800);
-                return; // On coupe ici, finalizeTurn sera appelé après l'anim
+                return;
+            }
+        }
+        
+        // Singe : Échange la dernière carte avec un adversaire aléatoire
+        if (card.id === 'monkey' && player.row.length > 1) {
+            const opponents = game.state.players.filter(p => p.id !== player.id && p.row.length > 0);
+            if (opponents.length > 0) {
+                const targetOpp = opponents[Math.floor(Math.random() * opponents.length)];
+                game.broadcast({ type: 'ALERT', msg: `${player.name} utilise son Singe pour échanger avec ${targetOpp.name} !` });
+                const myLast = player.row.pop();
+                const oppLast = targetOpp.row.pop();
+                player.row.push(oppLast);
+                targetOpp.row.push(myLast);
+                // On finalise le tour directement (les cartes sont échangées)
+            }
+        }
+
+        // Crabe : Déplace la première carte (la plus ancienne) à la fin
+        if (card.id === 'crab' && player.row.length > 2) {
+            game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} déplace une carte !` });
+            const first = player.row.shift();
+            player.row.push(first);
+        }
+
+        // Caméléon : Si 2 caméléons, ils s'autodétruisent
+        if (card.id === 'chameleon') {
+            const chameleons = player.row.filter(c => c.id === 'chameleon');
+            if (chameleons.length >= 2) {
+                game.broadcast({ type: 'ALERT', msg: `Les deux Caméléons de ${player.name} disparaissent !` });
+                // Enlève tous les caméléons de la main
+                player.row = player.row.filter(c => c.id !== 'chameleon');
             }
         }
         
@@ -476,11 +516,39 @@ const game = {
     },
 
     finalizeTurn: (player) => {
-        if(game.checkWinCondition(player)) {
-            player.score++;
-            game.broadcast({ type: 'ALERT', msg: `${player.name} remporte la couronne !` });
-            if(player.id === game.myId) ui.showOverlay("👑 Victoire", "Vous remportez la couronne !");
-            game.state.players.forEach(p => p.row = []);
+        // Condition de Victoire : Lion (1 de chaque animal sauf Lion)
+        const uniqueAnimals = new Set(player.row.filter(c => c.id !== 'lion').map(c => c.id));
+        if (player.row.find(c => c.id === 'lion') && uniqueAnimals.size >= 7) {
+            game.broadcast({ type: 'ALERT', msg: `${player.name} a réuni tous les animaux avec son Lion ! VICTOIRE !` });
+            player.score += 1;
+        }
+
+        // Condition de Victoire : 4 identiques
+        let lastId = null; let count = 0;
+        for (let c of player.row) {
+            if (c.id === lastId || c.id === 'chameleon' || lastId === 'chameleon') {
+                count++;
+                if(c.id !== 'chameleon') lastId = c.id; 
+            } else { count = 1; lastId = c.id; }
+            
+            if (count >= 4) {
+                game.broadcast({ type: 'ALERT', msg: `${player.name} a aligné 4 animaux ! VICTOIRE !` });
+                player.score += 1;
+                break;
+            }
+        }
+
+        // Condition de Victoire : Pieuvre (2 paires)
+        if (player.row.find(c => c.id === 'octopus') && player.row.length >= 5) {
+            // Logique simplifiée : a gagné
+            game.broadcast({ type: 'ALERT', msg: `${player.name} gagne grâce à la Pieuvre !` });
+            player.score += 1;
+        }
+
+        // Effet Bernard l'Hermite : Rejoue si un crabe est présent
+        if (player.row.length > 0 && player.row[player.row.length - 1].id === 'hermit_crab' && player.row.find(c => c.id === 'crab')) {
+            game.broadcast({ type: 'ALERT', msg: `Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !` });
+            // Ne pas avancer le turnIndex
         } else {
             game.state.turnIndex = (game.state.turnIndex + 1) % game.state.players.length;
             game.state.turn = game.state.players[game.state.turnIndex].id;
