@@ -47,7 +47,7 @@
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
                 <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 10px; background: white; color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
-            <div class="version-badge">v3.30</div>
+            <div class="version-badge">v3.31</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -176,6 +176,15 @@
                     <!-- Winning cards displayed here -->
                 </div>
                 <button class="btn btn-main" id="btn-rematch" style="margin-top:20px;" onclick="game.sendAction('REMATCH')">Rejouer une manche</button>
+            </div>
+        </div>
+
+        <!-- ================= OPPONENT ZOOM MODAL ================= -->
+        <div id="opponent-zoom-modal" class="overlay" style="display: none; z-index: 2000;">
+            <div class="overlay-content" style="width: 95%; max-width: 600px; padding: 20px;">
+                <h3 id="zoom-title" style="margin-top: 0; color: var(--primary);">Jeu de l'adversaire</h3>
+                <div id="zoom-cards" class="my-collection row" style="justify-content: center; flex-wrap: wrap; margin-top: 20px; min-height: 150px; gap: 10px;"></div>
+                <button class="btn btn-secondary" style="margin-top: 20px;" onclick="document.getElementById('opponent-zoom-modal').style.display='none'; ui.selectedCrabCard = null; ui.renderGameState(game.state, game.myId);">Annuler la sélection</button>
             </div>
         </div>
     </div>

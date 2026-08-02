@@ -142,6 +142,86 @@ const ui = {
         });
         document.getElementById('player-count').innerText = players.length;
     },
+    
+    zoomPlayerId: null,
+    openOpponentZoom: (playerId) => {
+        ui.zoomPlayerId = playerId;
+        ui.renderZoomModal();
+        document.getElementById('opponent-zoom-modal').style.display = 'flex';
+    },
+
+    renderZoomModal: () => {
+        const p = game.state.players.find(pl => pl.id === ui.zoomPlayerId);
+        if (!p) return;
+        
+        const myId = game.myId;
+        const state = game.state;
+        
+        document.getElementById('zoom-title').innerText = `Jeu de ${p.name}`;
+        const container = document.getElementById('zoom-cards');
+        container.innerHTML = '';
+        
+        if (state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id) {
+            const leftGhost = document.createElement('div');
+            leftGhost.className = 'crab-ghost bounce-in';
+            leftGhost.innerHTML = '⬅️';
+            leftGhost.onclick = () => { 
+                const payload = { targetPlayerId: p.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'left' }; 
+                ui.selectedCrabCard = null; 
+                document.getElementById('opponent-zoom-modal').style.display = 'none';
+                game.sendAction('CRAB_SELECT', payload); 
+            };
+            container.appendChild(leftGhost);
+        }
+        
+        p.row.forEach((c, index) => {
+            const img = document.createElement('img');
+            img.src = c.img;
+            img.style.width = 'clamp(80px, 20vw, 120px)'; // big enough
+            img.style.cursor = 'pointer';
+            img.style.borderRadius = '10px';
+            
+            if (state.crocodileTargeting === myId) {
+                img.classList.add('clickable-target');
+                img.onclick = () => {
+                    document.getElementById('opponent-zoom-modal').style.display = 'none';
+                    game.sendAction('CROCODILE_SELECT', { targetPlayerId: p.id, cardIndex: index });
+                };
+            } else if (state.monkeyTargeting === myId) {
+                img.classList.add('clickable-target');
+                img.onclick = () => {
+                    document.getElementById('opponent-zoom-modal').style.display = 'none';
+                    game.sendAction('MONKEY_SELECT', { targetPlayerId: p.id, cardIndex: index });
+                };
+            } else if (state.crabTargeting === myId && p.row.length > 1) {
+                img.classList.add('clickable-target');
+                if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id && ui.selectedCrabCard.cardIndex === index) {
+                    img.style.borderColor = 'var(--primary)';
+                    img.style.borderWidth = '4px';
+                    img.style.borderStyle = 'solid';
+                }
+                img.onclick = () => { 
+                    ui.selectedCrabCard = { playerId: p.id, cardIndex: index }; 
+                    ui.renderZoomModal(); 
+                };
+            }
+            container.appendChild(img);
+        });
+        
+        if (state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id) {
+            const rightGhost = document.createElement('div');
+            rightGhost.className = 'crab-ghost bounce-in';
+            rightGhost.innerHTML = '➡️';
+            rightGhost.onclick = () => { 
+                const payload = { targetPlayerId: p.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'right' }; 
+                ui.selectedCrabCard = null; 
+                document.getElementById('opponent-zoom-modal').style.display = 'none';
+                game.sendAction('CRAB_SELECT', payload); 
+            };
+            container.appendChild(rightGhost);
+        }
+    },
+    
     showPlacement: (skipPower = false) => {
         const myPlayer = game.state.players.find(p => p.id === game.myId);
         document.getElementById('card-actions').style.display = 'none';
@@ -184,11 +264,8 @@ const ui = {
             img.src = c.img;
             
             if (reason.includes('Lion')) {
-                // Pour le Lion, toutes les cartes différentes s'éclairent
                 img.classList.add('highlight-win');
             } else if (reason.includes('Pieuvre')) {
-                // Pour la pieuvre, toutes les paires s'éclairent
-                // (Simplification : on éclaire tout, car la victoire implique que l'ensemble du jeu contient les paires)
                 img.classList.add('highlight-win');
             }
             
@@ -367,7 +444,7 @@ const ui = {
             };
             ui.showOverlay("Prédiction en cours 🦜", `${targetingPlayer.name} a prédit ${animalNameMap[state.parrotPredictedAnimal]} ! Il s'apprête à piocher...`);
         } else {
-            ui.selectedCrabCard = null; // Clear if crab is done
+            ui.selectedCrabCard = null;
             ui.hideOverlay();
         }
 
@@ -425,6 +502,12 @@ const ui = {
             div.className = `opponent-slot ${state.turn === p.id ? 'active-turn' : ''}`;
             div.id = `opp-slot-${p.id}`;
             
+            if (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && p.row.length > 1)) {
+                div.classList.add('clickable-target');
+                div.style.cursor = 'pointer';
+                div.onclick = () => ui.openOpponentZoom(p.id);
+            }
+            
             const oppCardsMini = document.createElement('div');
             oppCardsMini.className = 'opp-cards-mini';
             oppCardsMini.id = `opp-cards-${p.id}`;
@@ -433,21 +516,6 @@ const ui = {
                 const img = document.createElement('img');
                 img.src = c.img;
                 img.id = `card-target-${p.id}-${index}`;
-                
-                if (state.crocodileTargeting === myId) {
-                    img.classList.add('clickable-target');
-                    img.onclick = () => game.sendAction('CROCODILE_SELECT', { targetPlayerId: p.id, cardIndex: index });
-                } else if (state.monkeyTargeting === myId) {
-                    img.classList.add('clickable-target');
-                    img.onclick = () => game.sendAction('MONKEY_SELECT', { targetPlayerId: p.id, cardIndex: index });
-                } else if (state.crabTargeting === myId && p.row.length > 1) {
-                    img.classList.add('clickable-target');
-                    if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id && ui.selectedCrabCard.cardIndex === index) {
-                        img.style.borderColor = 'var(--primary)';
-                    }
-                    img.onclick = () => { ui.selectedCrabCard = { playerId: p.id, cardIndex: index }; ui.renderGameState(state, myId); };
-                }
-                
                 oppCardsMini.appendChild(img);
             });
             
