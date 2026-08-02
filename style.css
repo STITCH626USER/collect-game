@@ -129,17 +129,41 @@ input::placeholder { color: #a0aec0; }
 .opponent-slot.active-turn { background: white; border: 3px solid var(--secondary); box-shadow: 0 15px 30px rgba(252, 196, 25, 0.4); transform: scale(1.1); z-index: 10; }
 .opp-name { font-size: 1.1rem; font-weight: 900; margin-bottom: 5px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%; text-align: center; color: var(--text-main); }
 .opp-score { position: absolute; top: -10px; right: -10px; font-size: 1rem; color: white; font-weight: 900; background: var(--primary); padding: 4px 10px; border-radius: 15px; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 5; }
-.opp-cards-mini { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 15px; position: relative; width: 100%; }
-.opp-cards-mini img { width: 35px; height: 50px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1px solid white; transition: transform 0.3s; }
+.opp-cards-mini { 
+    display: flex; 
+    flex-wrap: nowrap; 
+    justify-content: flex-start; 
+    gap: 5px; 
+    margin-top: 15px; 
+    position: relative; 
+    width: 100%; 
+    overflow-x: auto; 
+    padding: 10px 5px; 
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.opp-cards-mini::-webkit-scrollbar { display: none; }
+.opp-cards-mini img { width: 45px; height: 65px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1px solid white; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; }
 .opp-cards-mini img:hover { transform: translateY(-5px); }
+
+.targeting-mode {
+    border-color: var(--primary) !important;
+    background: rgba(255,255,255,0.9) !important;
+}
+.targeting-mode .opp-cards-mini img {
+    width: 60px;
+    height: 90px;
+    margin: 0 10px;
+}
 
 /* 1 vs 1 Mode (Bigger Opponent Cards) */
 .opponents-carousel.two-players-mode { padding-bottom: 25px; }
 .two-players-mode .opponent-slot { min-width: 180px; padding: 20px; }
 .two-players-mode .opp-name { font-size: 1.3rem; }
 .two-players-mode .opp-score { font-size: 1.2rem; top: -12px; right: -12px; padding: 6px 12px; }
-.two-players-mode .opp-cards-mini { gap: 8px; margin-top: 20px; }
-.two-players-mode .opp-cards-mini img { width: 50px; height: 75px; border-radius: 8px; border-width: 2px; }
+.two-players-mode .opp-cards-mini { gap: 10px; margin-top: 20px; }
+.two-players-mode .opp-cards-mini img { width: 60px; height: 90px; border-radius: 8px; border-width: 2px; }
+.two-players-mode .targeting-mode .opp-cards-mini img { width: 80px; height: 120px; margin: 0 15px; }
 
 
 /* Center Board */
