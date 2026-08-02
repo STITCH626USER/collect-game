@@ -733,8 +733,14 @@ const game = {
             if(game.state.forcedDeck && payload.deckIndex !== game.state.forcedDeck) return;
 
             let card = null;
-            if (payload.deckIndex === 1 && game.state.deck1.length > 0) card = game.state.deck1.pop();
-            else if (payload.deckIndex === 2 && game.state.deck2.length > 0) card = game.state.deck2.pop();
+            if (payload.deckIndex === 1 && game.state.deck1.length > 0) {
+                card = game.state.deck1.pop();
+                game.state.deck1Thumbnail = null;
+            }
+            else if (payload.deckIndex === 2 && game.state.deck2.length > 0) {
+                card = game.state.deck2.pop();
+                game.state.deck2Thumbnail = null;
+            }
 
             if (card) {
                 if (game.state.parrotPredictedAnimal) {
@@ -769,11 +775,11 @@ const game = {
         else if (action === 'REJECT') {
             if(!game.state.currentDrawnCard) return;
             if(game.state.originalDeckIndex === 1) {
-                game.state.deck1.unshift(game.state.currentDrawnCard);
+                game.state.deck1.push(game.state.currentDrawnCard);
                 game.state.deck1Thumbnail = game.state.currentDrawnCard.img;
             }
             else {
-                game.state.deck2.unshift(game.state.currentDrawnCard);
+                game.state.deck2.push(game.state.currentDrawnCard);
                 game.state.deck2Thumbnail = game.state.currentDrawnCard.img;
             }
             
