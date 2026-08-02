@@ -749,13 +749,10 @@ const game = {
         game.state.monkeyTargeting = null;
         game.state.crocTargeting = null;
 
-        // Initialiser 3 cartes pour tout le monde
+        // Initialiser une main vide pour tout le monde
         game.state.players.forEach(p => {
             p.row = [];
             if (p.score === undefined) p.score = 0;
-            p.row.push(game.state.deck1.pop());
-            p.row.push(game.state.deck2.pop());
-            p.row.push(game.state.deck1.pop());
         });
         
         game.broadcast({ type: 'START_GAME' });
@@ -986,14 +983,14 @@ const game = {
                     game.state.currentDrawnCard = card;
                     game.state.originalDeckIndex = payload.deckIndex;
                     game.state.forcedDeck = null;
-                    game.state.mustPlaceDrawnCard = false;
+                    game.state.mustPlaceDrawnCard = true;
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
                         game.broadcast({ type: 'ALERT', msg: "Prédiction réussie ! Le Perroquet est défaussé." });
                         game.state.parrotPredictedAnimal = null;
                         game.broadcastState();
                     } else {
-                        game.broadcastState(); // Broadcast to show the wrong card
+                        game.broadcastState();
                         game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Les deux cartes sont défaussées." });
                         setTimeout(() => {
                             game.state.parrotPredictedAnimal = null;
@@ -1004,9 +1001,6 @@ const game = {
                     game.state.currentDrawnCard = card;
                     game.state.originalDeckIndex = payload.deckIndex;
                     game.state.forcedDeck = null;
-                    // Note: We DO NOT clear mustPlaceDrawnCard here, because this is where the player DRAWS the forced card. 
-                    // If they drew the forced card, mustPlaceDrawnCard remains true until their turn ends!
-                    // Wait, if mustPlaceDrawnCard is true, it remains true for this card. If it's false, it remains false.
                     game.broadcastState();
                 }
             }
@@ -1439,6 +1433,8 @@ const game = {
             } else {
                 if (card.id === 'monkey' && !skipPower && !game.state.disablePower && !game.state.mustPlaceDrawnCard) {
                     game.handlePlayerAction(botId, 'MONKEY_INIT', {});
+                } else if (card.id === 'parrot' && !skipPower && !game.state.disablePower && !game.state.mustPlaceDrawnCard) {
+                    game.handlePlayerAction(botId, 'PARROT_INIT', {});
                 } else {
                     game.handlePlayerAction(botId, 'PLACE', { side: bestSide, skipPower: skipPower });
                 }
