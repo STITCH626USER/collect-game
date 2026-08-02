@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Collect! - Le Roi des Animaux</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <!-- En-tête -->
+        <header>
+            <h1>COLLECT!</h1>
+            <div class="score-board">
+                <div class="score">Couronnes: <span id="player-score">0</span></div>
+            </div>
+        </header>
+
+        <!-- Zone de jeu principale -->
+        <main>
+            <!-- Rangée adverse (simulée pour le visuel) -->
+            <div class="opponent-row-container">
+                <div class="row opponent-row" id="opponent-row">
+                    <!-- Cartes adverses -->
+                </div>
+            </div>
+
+            <!-- Centre de la table : Les Pioches et l'action -->
+            <div class="center-table">
+                <!-- Message de statut -->
+                <div id="status-message" class="status-message">Piochez une carte !</div>
+                
+                <div class="decks-container" id="decks-container">
+                    <div class="deck" id="deck-1" onclick="game.drawCard(1)">
+                        <img src="assets/card_back.jpg" alt="Dos de carte">
+                        <div class="deck-label">Pioche 1</div>
+                    </div>
+                    
+                    <!-- Zone de la carte tirée -->
+                    <div class="drawn-card-area" id="drawn-card-area" style="display: none;">
+                        <div class="card drawn-card" id="drawn-card-display">
+                            <img src="" alt="Carte tirée" id="drawn-card-img">
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-reject" id="btn-reject" onclick="game.rejectCard()">Rejeter</button>
+                            <button class="btn btn-keep" id="btn-keep" onclick="game.prepareKeep()">Garder</button>
+                        </div>
+                    </div>
+
+                    <div class="deck" id="deck-2" onclick="game.drawCard(2)">
+                        <img src="assets/card_back.jpg" alt="Dos de carte">
+                        <div class="deck-label">Pioche 2</div>
+                    </div>
+                </div>
+                
+                <!-- Boutons de placement (apparaissent après avoir cliqué sur Garder) -->
+                <div class="placement-actions" id="placement-actions" style="display: none;">
+                    <button class="btn btn-place" onclick="game.placeCard('left')">Placer à Gauche</button>
+                    <button class="btn btn-place" onclick="game.placeCard('right')">Placer à Droite</button>
+                </div>
+            </div>
+
+            <!-- Rangée du joueur -->
+            <div class="player-row-container">
+                <div class="row-label">Votre Collection</div>
+                <div class="row player-row" id="player-row">
+                    <!-- Les cartes du joueur apparaîtront ici -->
+                </div>
+            </div>
+        </main>
+        
+        <!-- Écran de victoire -->
+        <div id="victory-screen" class="overlay" style="display: none;">
+            <div class="modal">
+                <h2 id="victory-title">👑 Victoire !</h2>
+                <p id="victory-message">Vous avez remporté une couronne !</p>
+                <button class="btn btn-primary" onclick="game.reset()">Nouvelle Partie</button>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
