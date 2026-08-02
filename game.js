@@ -2,7 +2,7 @@ const ANIMALS = [
     { id: 'crocodile', name: 'Crocodile', img: 'assets/card_crocodile.jpg?v=4', desc: 'Détruit la dernière carte d\'un adversaire aléatoire.' },
     { id: 'chameleon', name: 'Caméléon', img: 'assets/card_chameleon.jpg?v=4', desc: 'Joker. S\'annule et se défausse si vous en posez un 2ème.' },
     { id: 'monkey', name: 'Singe', img: 'assets/card_monkey.jpg?v=4', desc: 'Échange votre carte avec celle d\'un adversaire.' },
-    { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg?v=4', desc: 'Déplace votre première carte à la fin de votre rangée.' },
+    { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg?v=4', desc: 'Peut être placé dans le jeu d\'un adversaire pour le bloquer.' },
     { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg?v=4', desc: 'Rejouez un tour si vous avez déjà un Crabe.' },
     { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg?v=4', desc: 'Gagnez si vous avez 2 paires d\'animaux (4 cartes).' },
     { id: 'lion', name: 'Lion', img: 'assets/card_lion.jpg?v=4', desc: 'Gagnez si vous avez 1 exemplaire de chaque autre animal.' },
@@ -108,10 +108,33 @@ const ui = {
         // Hide card actions immediately so the user can't click twice and it looks clean
         document.getElementById('card-actions').style.display = 'none';
 
-        if (myPlayer && myPlayer.row.length === 0) {
-            game.placeCard('right'); // Pas de choix nécessaire si la main est vide
+        const pa = document.getElementById('placement-actions');
+        pa.innerHTML = ''; // Clear
+
+        const card = game.state.currentDrawnCard;
+        if (card && card.id === 'crab') {
+            pa.innerHTML = `
+                <button class="btn-action btn-place" onclick="game.placeCard('left', '${game.myId}')">⬅ Moi</button>
+                <button class="btn-action btn-place" onclick="game.placeCard('right', '${game.myId}')">Moi ➡</button>
+            `;
+            game.state.players.forEach(p => {
+                if (p.id !== game.myId) {
+                    pa.innerHTML += `<button class="btn-action btn-place" style="background:#e74c3c" onclick="game.placeCard('right', '${p.id}')">Bloquer ${p.name} 🎯</button>`;
+                }
+            });
+            pa.style.flexWrap = 'wrap';
+            pa.style.display = 'flex';
         } else {
-            document.getElementById('placement-actions').style.display = 'flex';
+            pa.style.flexWrap = 'nowrap';
+            if (myPlayer && myPlayer.row.length === 0) {
+                game.placeCard('right', game.myId);
+            } else {
+                pa.innerHTML = `
+                    <button class="btn-action btn-place" onclick="game.placeCard('left', '${game.myId}')">⬅ Gauche</button>
+                    <button class="btn-action btn-place" onclick="game.placeCard('right', '${game.myId}')">Droite ➡</button>
+                `;
+                pa.style.display = 'flex';
+            }
         }
     },
     
@@ -379,7 +402,9 @@ const game = {
 
     drawCard: (deckIndex) => { game.sendAction('DRAW', { deckIndex }); },
     rejectCard: () => { game.sendAction('REJECT', {}); },
-    placeCard: (side) => { game.sendAction('PLACE', { side }); },
+    placeCard: (side, targetPlayerId) => {
+        game.sendAction('PLACE', { side, targetPlayerId: targetPlayerId || game.myId });
+    },
 
     // --- HOST LOGIC ---
     handlePlayerAction: (playerId, action, payload) => {
@@ -443,22 +468,25 @@ const game = {
             setTimeout(() => game.broadcastState(), 500); // sync après anim
         }
         else if (action === 'PLACE') {
-            if(!game.state.currentDrawnCard) return;
-            const player = game.state.players.find(p => p.id === playerId);
+            const sourcePlayer = game.state.players.find(p => p.id === playerId);
+            const targetId = payload.targetPlayerId || playerId;
+            const targetPlayer = game.state.players.find(p => p.id === targetId);
             const card = game.state.currentDrawnCard;
             
-            if(payload.side === 'left') player.row.unshift(card);
-            else player.row.push(card);
+            if(payload.side === 'left') targetPlayer.row.unshift(card);
+            else targetPlayer.row.push(card);
             
             game.state.currentDrawnCard = null;
+            game.state.forcedDeck = null;
 
             // Envoi de l'événement d'animation de la carte volante vers le joueur
-            game.triggerVFX({ action: 'PLACE', player: playerId, card: card, side: payload.side });
+            game.triggerVFX({ action: 'PLACE', player: playerId, targetPlayer: targetId, card: card, side: payload.side });
 
             // On attend la fin du vol de la carte pour faire les effets des animaux
             setTimeout(() => {
-                game.applyAnimalEffects(player, card, payload.side);
+                game.applyAnimalEffects(sourcePlayer, card, payload.side);
             }, 600);
+            return;
         }
     },
 
@@ -498,6 +526,8 @@ const game = {
             const first = player.row.shift();
             player.row.push(first);
         }
+
+        // Crab effect is handled passively by blocking identical chains
 
         // Caméléon : Si 2 caméléons, ils s'autodétruisent
         if (card.id === 'chameleon') {
@@ -584,7 +614,8 @@ const game = {
         const data = event.data || event; // Support host ({data}) et client (event direct)
         if(data.action === 'PLACE') {
             vfx.push((done) => {
-                const containerId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
+                const targetId = data.targetPlayer || data.player;
+                const containerId = targetId === game.myId ? 'my-row' : `opp-cards-${targetId}`;
                 const container = document.getElementById(containerId);
                 
                 // Hide the original card instantly so we don't have a duplicated visual during flight
@@ -594,8 +625,8 @@ const game = {
                 let tRect = { left: window.innerWidth/2, top: window.innerHeight - 50, width: 75, height: 110 };
                 if (container) {
                     const placeholder = document.createElement('div');
-                    placeholder.style.width = (data.player === game.myId ? 75 : 40) + 'px';
-                    placeholder.style.height = (data.player === game.myId ? 110 : 60) + 'px';
+                    placeholder.style.width = (targetId === game.myId ? 75 : 40) + 'px';
+                    placeholder.style.height = (targetId === game.myId ? 110 : 60) + 'px';
                     placeholder.style.flexShrink = '0';
                     if (data.side === 'left') container.prepend(placeholder);
                     else container.appendChild(placeholder);
@@ -658,7 +689,16 @@ const game = {
 
         setTimeout(() => {
             const card = game.state.currentDrawnCard;
-            let wantsToKeep = Math.random() > 0.2; // Bots gardent presque tout
+            if (card.id === 'crab') {
+                const opponents = game.state.players.filter(p => p.id !== bot.id);
+                if (opponents.length > 0) {
+                    opponents.sort((a, b) => b.row.length - a.row.length);
+                    game.handlePlayerAction(botId, 'PLACE', { side: 'right', targetPlayerId: opponents[0].id });
+                    return;
+                }
+            }
+            
+            let wantsToKeep = true; 
             if(card.id === 'chameleon' || card.id === 'parrot') wantsToKeep = true;
 
             if(!wantsToKeep && !game.state.forcedDeck) {
