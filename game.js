@@ -1162,7 +1162,7 @@ const game = {
                 if (opponents.length > 0) {
                     opponents.sort((a, b) => b.row.length - a.row.length);
                     const target = opponents[0];
-                    const cardIndex = target.row.length - 1;
+                    const cardIndex = Math.floor(Math.random() * target.row.length);
                     game.handlePlayerAction(botId, 'CROCODILE_SELECT', { targetPlayerId: target.id, cardIndex });
                 } else {
                     game.handlePlayerAction(botId, 'CROCODILE_SELECT', { skip: true });
@@ -1189,9 +1189,22 @@ const game = {
         if (game.state.crabTargeting === botId) {
             setTimeout(() => {
                 const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 1);
-                if (opponents.length > 0) {
-                    const target = opponents[0];
-                    game.handlePlayerAction(botId, 'CRAB_SELECT', { targetPlayerId: target.id, cardIndex: 0, direction: 'right' });
+                let target = null;
+                let cIndex = -1;
+                // Le bot cherche à séparer une paire existante chez l'adversaire
+                for (let opp of opponents) {
+                    for (let i = 0; i < opp.row.length - 1; i++) {
+                        if (opp.row[i].id === opp.row[i+1].id) {
+                            target = opp;
+                            cIndex = i;
+                            break;
+                        }
+                    }
+                    if (target) break;
+                }
+                
+                if (target) {
+                    game.handlePlayerAction(botId, 'CRAB_SELECT', { targetPlayerId: target.id, cardIndex: cIndex, direction: 'right' });
                 } else {
                     game.handlePlayerAction(botId, 'CRAB_SELECT', { skip: true });
                 }
@@ -1201,18 +1214,24 @@ const game = {
 
         if (game.state.parrotPredicting === botId) {
             setTimeout(() => {
-                const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
-                game.handlePlayerAction(botId, 'PARROT_PREDICT', { animalId: randomAnimal.id });
+                // Le bot prédit une carte qu'il possède aux extrémités pour faire une paire
+                let animalIdToPredict = 'lion';
+                if (bot.row.length > 0) {
+                    animalIdToPredict = bot.row[Math.random() > 0.5 ? 0 : bot.row.length - 1].id;
+                } else {
+                    const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+                    animalIdToPredict = randomAnimal.id;
+                }
+                game.handlePlayerAction(botId, 'PARROT_PREDICT', { animalId: animalIdToPredict });
             }, 1000);
             return;
         }
 
         if(!game.state.currentDrawnCard) {
             let delay = 1000;
-            if (game.state.parrotPredictedAnimal) delay = 2500; // Let human read the prediction alert
+            if (game.state.parrotPredictedAnimal) delay = 2500;
 
             setTimeout(() => {
-                // Ensure state hasn't radically changed during timeout
                 if(game.state.turn !== botId || game.state.currentDrawnCard) return;
                 const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
                 game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
@@ -1225,22 +1244,54 @@ const game = {
         setTimeout(() => {
             const card = game.state.currentDrawnCard;
             let wantsToKeep = true;
+            let skipPower = false;
             
+            const leftCard = bot.row.length > 0 ? bot.row[0] : null;
+            const rightCard = bot.row.length > 0 ? bot.row[bot.row.length - 1] : null;
+            let bestSide = Math.random() > 0.5 ? 'left' : 'right';
+            let formsPair = false;
+            
+            if (leftCard && card.id === leftCard.id) { bestSide = 'left'; formsPair = true; }
+            else if (rightCard && card.id === rightCard.id) { bestSide = 'right'; formsPair = true; }
+            
+            // Rejeter si c'est un caméléon en double
             if(card.id === 'chameleon' && bot.row.find(c => c.id === 'chameleon')) wantsToKeep = false;
-            if(card.id === 'crocodile') {
-                const hasOpponents = game.state.players.some(p => p.id !== bot.id && p.row.length > 0);
-                if(!hasOpponents) wantsToKeep = false;
+            
+            // Si c'est une carte sans pouvoir qui ne forme pas de paire, on pourrait la jeter (sauf si on a peu de cartes)
+            const powerCards = ['crocodile', 'monkey', 'crab', 'parrot'];
+            if (!powerCards.includes(card.id) && !formsPair && bot.row.length >= 3) {
+                wantsToKeep = false;
             }
 
+            // Gestion intelligente des pouvoirs
+            if(card.id === 'crocodile') {
+                const hasOpponents = game.state.players.some(p => p.id !== bot.id && p.row.length > 0);
+                if(!hasOpponents) skipPower = true;
+            }
+            if(card.id === 'crab') {
+                let hasPairToBreak = false;
+                game.state.players.forEach(p => {
+                    if (p.id !== bot.id && p.row.length > 1) {
+                        for (let i = 0; i < p.row.length - 1; i++) {
+                            if (p.row[i].id === p.row[i+1].id) hasPairToBreak = true;
+                        }
+                    }
+                });
+                if (!hasPairToBreak) skipPower = true;
+            }
+            if(card.id === 'monkey') {
+                const hasOpponents = game.state.players.some(p => p.id !== bot.id && p.row.length > 0);
+                if(!hasOpponents) skipPower = true;
+            }
                 
-                if (game.state.mustPlaceDrawnCard) {
-                    wantsToKeep = true;
-                }
+            if (game.state.mustPlaceDrawnCard) {
+                wantsToKeep = true;
+            }
 
-                if(!wantsToKeep && !game.state.forcedDeck && !game.state.mustPlaceDrawnCard) {
+            if(!wantsToKeep && !game.state.forcedDeck && !game.state.mustPlaceDrawnCard) {
                 game.handlePlayerAction(botId, 'REJECT', {});
             } else {
-                game.handlePlayerAction(botId, 'PLACE', { side: Math.random() > 0.5 ? 'left' : 'right' });
+                game.handlePlayerAction(botId, 'PLACE', { side: bestSide, skipPower: skipPower });
             }
         }, 1500);
     }
