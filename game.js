@@ -576,11 +576,28 @@ const game = {
     },
     
     handleVFX: (event) => {
-        const data = event.data;
+        const data = event.data || event; // Support host ({data}) et client (event direct)
         if(data.action === 'PLACE') {
             vfx.push((done) => {
-                const targetId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
-                vfx.flyCard(data.card.img, 'drawn-card-img', targetId, done);
+                const containerId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
+                const container = document.getElementById(containerId);
+                
+                let tRect = { left: window.innerWidth/2, top: window.innerHeight - 50, width: 75, height: 110 };
+                if (container) {
+                    const placeholder = document.createElement('div');
+                    placeholder.style.width = (data.player === game.myId ? 75 : 40) + 'px';
+                    placeholder.style.height = (data.player === game.myId ? 110 : 60) + 'px';
+                    placeholder.style.flexShrink = '0';
+                    if (data.side === 'left') container.prepend(placeholder);
+                    else container.appendChild(placeholder);
+                    
+                    tRect = placeholder.getBoundingClientRect();
+                    placeholder.remove();
+                }
+
+                vfx.flyCardToRect(data.card.img, 'drawn-card-img', tRect, () => {
+                    done();
+                });
             });
         }
         else if (data.action === 'CROCODILE_BITE') {
