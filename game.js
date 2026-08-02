@@ -173,7 +173,11 @@ const ui = {
             document.getElementById('deck-right').classList.add('disabled');
 
             if(isMyTurn) {
-                document.getElementById('card-actions').style.display = 'flex';
+                if (state.parrotPredictedAnimal) {
+                    document.getElementById('card-actions').style.display = 'none';
+                } else {
+                    document.getElementById('card-actions').style.display = 'flex';
+                }
                 document.getElementById('placement-actions').style.display = 'none';
                 if (state.forcedDeck === 1) document.getElementById('deck-right').style.opacity = '0.3';
                 if (state.forcedDeck === 2) document.getElementById('deck-left').style.opacity = '0.3';
@@ -187,12 +191,20 @@ const ui = {
             ui.showOverlay("Attaque Crocodile !", "Cliquez sur la carte d'un adversaire à dévorer.");
         } else if (state.monkeyTargeting === myId) {
             ui.showOverlay("Pouvoir du Singe !", "Cliquez sur une carte adverse pour l'échanger avec votre Singe.");
+        } else if (state.crabTargeting === myId) {
+            ui.showOverlay("Pouvoir du Crabe !", "Cliquez sur votre 1ère carte pour la déplacer à la fin.");
+            document.getElementById('card-actions').style.display = 'none';
+            document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" onclick="game.sendAction('CRAB_SELECT', {skip: true})">Passer</button>`;
+            document.getElementById('placement-actions').style.display = 'flex';
         } else if (state.crocodileTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crocodileTargeting);
             ui.showOverlay("Attaque Crocodile...", `${targetingPlayer.name} choisit sa cible...`);
         } else if (state.monkeyTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.monkeyTargeting);
             ui.showOverlay("Pouvoir du Singe...", `${targetingPlayer.name} choisit avec qui échanger...`);
+        } else if (state.crabTargeting) {
+            const targetingPlayer = state.players.find(p => p.id === state.crabTargeting);
+            ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer.name} hésite à déplacer sa carte...`);
         } else {
             ui.hideOverlay();
         }
@@ -207,6 +219,12 @@ const ui = {
                 img.src = c.img;
                 img.className = 'card';
                 if(index === myPlayer.row.length - 1) img.id = `card-target-${myId}`;
+                
+                if (state.crabTargeting === myId && index === 0) {
+                    img.classList.add('clickable-target');
+                    img.onclick = () => game.sendAction('CRAB_SELECT', { skip: false });
+                }
+                
                 myRowEl.appendChild(img);
             });
         }
@@ -263,6 +281,7 @@ const game = {
     myId: null,
     myName: "Joueur",
     roomCode: null,
+    botTimer: null,
     
     state: {
         started: false,
@@ -276,7 +295,8 @@ const game = {
         parrotPredicting: null,
         parrotPredictedAnimal: null,
         crocodileTargeting: null,
-        monkeyTargeting: null
+        monkeyTargeting: null,
+        crabTargeting: null
     },
 
     init: () => { ui.showScreen('screen-home'); },
@@ -341,8 +361,10 @@ const game = {
             turn: game.state.turn,
             currentDrawnCard: game.state.currentDrawnCard, forcedDeck: game.state.forcedDeck,
             parrotPredicting: game.state.parrotPredicting,
+            parrotPredictedAnimal: game.state.parrotPredictedAnimal,
             crocodileTargeting: game.state.crocodileTargeting,
             monkeyTargeting: game.state.monkeyTargeting,
+            crabTargeting: game.state.crabTargeting,
             players: game.state.players.map(p => ({ id: p.id, name: p.name, isBot: p.isBot, score: p.score, row: p.row }))
         };
         game.broadcast({ type: 'STATE_UPDATE', state: safeState });
@@ -350,7 +372,8 @@ const game = {
         
         const activePlayer = game.state.players.find(p => p.id === game.state.turn);
         if(activePlayer && activePlayer.isBot) {
-            setTimeout(game.playBotTurn, 2000);
+            if (game.botTimer) clearTimeout(game.botTimer);
+            game.botTimer = setTimeout(game.playBotTurn, 2000);
         }
     },
 
@@ -458,6 +481,22 @@ const game = {
                 return;
             }
         }
+        else if (action === 'CRAB_SELECT') {
+            const player = game.state.players.find(p => p.id === playerId);
+            if (player && game.state.crabTargeting === playerId) {
+                game.state.crabTargeting = null;
+                if (!payload.skip && player.row.length >= 2) {
+                    const first = player.row.shift();
+                    player.row.push(first);
+                    game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} déplace sa première carte !` });
+                } else {
+                    game.broadcast({ type: 'ALERT', msg: `${player.name} passe le pouvoir de son Crabe.` });
+                }
+                game.broadcastState();
+                setTimeout(() => { game.finalizeTurn(player); }, 800);
+                return;
+            }
+        }
 
         if(game.state.turn !== playerId) return;
 
@@ -507,6 +546,7 @@ const game = {
             setTimeout(() => game.broadcastState(), 500);
         }
         else if (action === 'PLACE') {
+            if (game.state.parrotPredictedAnimal) return; // Block cheating
             const player = game.state.players.find(p => p.id === playerId);
             const card = game.state.currentDrawnCard;
             
@@ -544,10 +584,10 @@ const game = {
             }
         }
 
-        if (card.id === 'crab' && player.row.length > 2) {
-            game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} déplace une carte !` });
-            const first = player.row.shift();
-            player.row.push(first);
+        if (card.id === 'crab' && player.row.length >= 2) {
+            game.state.crabTargeting = player.id;
+            game.broadcastState();
+            return;
         }
 
         if (card.id === 'chameleon') {
@@ -719,6 +759,13 @@ const game = {
                     const cardIndex = Math.floor(Math.random() * target.row.length);
                     game.handlePlayerAction(botId, 'MONKEY_SELECT', { targetPlayerId: target.id, cardIndex });
                 }
+            }, 1500);
+            return;
+        }
+        
+        if (game.state.crabTargeting === botId) {
+            setTimeout(() => {
+                game.handlePlayerAction(botId, 'CRAB_SELECT', { skip: false });
             }, 1500);
             return;
         }
