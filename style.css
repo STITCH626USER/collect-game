@@ -439,16 +439,19 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .spin-reverse { transform: rotate(-360deg) !important; }
 
 .version-badge {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--text-dim);
-    background: rgba(255,255,255,0.5);
-    padding: 5px 15px;
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    font-size: 0.85rem;
+    font-weight: 900;
+    color: #ffffff;
+    background: rgba(15, 15, 26, 0.85);
+    padding: 6px 14px;
     border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     pointer-events: none;
+    z-index: 9999;
 }
 
 .crab-ghost {
