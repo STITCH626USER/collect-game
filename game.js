@@ -713,7 +713,8 @@ const game = {
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.crocodileTargeting = null;
-                game.addHistory(`${sourcePlayer.name} 🐊 dévore une carte de ${targetPlayer.name}.`);
+                const targetCardName = targetPlayer.row[payload.cardIndex].name || "une carte";
+                game.addHistory(`${sourcePlayer.name} 🐊 dévore la carte ${targetCardName} de ${targetPlayer.name}.`);
                 
                 let crocIndex = -1;
                 for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
@@ -751,7 +752,8 @@ const game = {
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.monkeyTargeting = null;
-                game.addHistory(`${sourcePlayer.name} 🐒 échange avec ${targetPlayer.name}.`);
+                const targetCardName = targetPlayer.row[payload.cardIndex].name || "une carte";
+                game.addHistory(`${sourcePlayer.name} 🐒 échange son Singe contre la carte ${targetCardName} de ${targetPlayer.name}.`);
                 
                 let monkeyIndex = -1;
                 for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
@@ -795,8 +797,9 @@ const game = {
                             if (payload.direction === 'left') targetPlayer.row.unshift(cardToMove);
                             else targetPlayer.row.push(cardToMove);
                             
-                            game.addHistory(`${player.name} 🦀 déplace une carte de ${targetPlayer.name}.`);
-                            game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} a déplacé une carte de ${targetPlayer.name} vers la ${payload.direction === 'left' ? 'gauche' : 'droite'} !` });
+                            const targetCardName = targetCard.name || "une carte";
+                            game.addHistory(`${player.name} 🦀 déplace la carte ${targetCardName} de ${targetPlayer.name}.`);
+                            game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} a déplacé la carte ${targetCardName} de ${targetPlayer.name} vers la ${payload.direction === 'left' ? 'gauche' : 'droite'} !` });
                             game.broadcastState();
                             setTimeout(() => { game.finalizeTurn(player); }, 800);
                         }, 600);
