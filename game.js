@@ -305,12 +305,20 @@ const ui = {
                     cardActions.style.display = 'none';
                 } else {
                     cardActions.style.display = 'flex';
-                    if (activePowers.includes(state.currentDrawnCard.id)) {
-                        cardActions.innerHTML = `
-                            ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
-                            <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
-                            <button class="btn-action btn-keep" onclick="ui.showPlacement(false)">✨ AVEC pouvoir</button>
-                        `;
+                    if (activePowers.includes(state.currentDrawnCard.id) && !state.disablePower) {
+                        if (state.currentDrawnCard.id === 'monkey') {
+                            cardActions.innerHTML = `
+                                ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
+                                <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
+                                <button class="btn-action btn-keep" onclick="game.sendAction('MONKEY_INIT', {})">✨ AVEC pouvoir</button>
+                            `;
+                        } else {
+                            cardActions.innerHTML = `
+                                ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
+                                <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
+                                <button class="btn-action btn-keep" onclick="ui.showPlacement(false)">✨ AVEC pouvoir</button>
+                            `;
+                        }
                     } else {
                         cardActions.innerHTML = `
                             ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
@@ -696,6 +704,12 @@ const game = {
             return;
         }
 
+        if (action === 'MONKEY_INIT') {
+            game.state.monkeyTargeting = playerId;
+            game.broadcastState();
+            return;
+        }
+
         if (action === 'PARROT_PREDICT') {
             game.state.parrotPredicting = null;
             game.state.parrotPredictedAnimal = payload.animalId;
@@ -749,43 +763,35 @@ const game = {
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             if (payload.skip) {
                 game.state.monkeyTargeting = null;
+                game.state.disablePower = true;
                 game.addHistory(`${sourcePlayer.name} passe le pouvoir du Singe.`);
-                game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe !` });
+                game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe sans cibler d'adversaire !` });
                 game.broadcastState();
-                setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
                 return;
             }
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.monkeyTargeting = null;
                 const targetCardName = targetPlayer.row[payload.cardIndex].name || "une carte";
-                game.addHistory(`${sourcePlayer.name} 🐒 échange son Singe contre la carte ${targetCardName} de ${targetPlayer.name}.`);
+                game.addHistory(`${sourcePlayer.name} 🐒 vole la carte ${targetCardName} de ${targetPlayer.name} avec son Singe.`);
                 
-                let monkeyIndex = -1;
-                for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
-                    if (sourcePlayer.row[i].id === 'monkey') { monkeyIndex = i; break; }
-                }
+                const oppCard = targetPlayer.row[payload.cardIndex];
+                const monkeyCard = game.state.currentDrawnCard;
                 
-                if (monkeyIndex !== -1) {
-                    game.triggerVFX({
-                        action: 'MONKEY_SWAP',
-                        playerA: sourcePlayer.id, indexA: monkeyIndex, cardImgA: sourcePlayer.row[monkeyIndex].img,
-                        playerB: targetPlayer.id, indexB: payload.cardIndex, cardImgB: targetPlayer.row[payload.cardIndex].img
-                    });
+                game.triggerVFX({
+                    action: 'MONKEY_STEAL',
+                    playerB: targetPlayer.id, indexB: payload.cardIndex, cardImgB: oppCard.img,
+                    monkeyImg: monkeyCard.img
+                });
 
-                    setTimeout(() => {
-                        const myMonkey = sourcePlayer.row[monkeyIndex];
-                        const oppCard = targetPlayer.row[payload.cardIndex];
-                        sourcePlayer.row[monkeyIndex] = oppCard;
-                        targetPlayer.row[payload.cardIndex] = myMonkey;
-                        game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a échangé son Singe avec ${targetPlayer.name} !` });
-                        game.broadcastState();
-                        setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
-                    }, 600);
-                } else {
+                setTimeout(() => {
+                    targetPlayer.row[payload.cardIndex] = monkeyCard;
+                    game.state.currentDrawnCard = oppCard;
+                    game.state.mustPlaceDrawnCard = true;
+                    game.state.disablePower = true;
+                    game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a volé une carte à ${targetPlayer.name} avec son Singe !` });
                     game.broadcastState();
-                    setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
-                }
+                }, 600);
                 return;
             }
         }
@@ -914,11 +920,14 @@ const game = {
             game.state.currentDrawnCard = null;
             game.state.forcedDeck = null;
             game.state.mustPlaceDrawnCard = false;
+            
+            const wasDisablePower = game.state.disablePower;
+            game.state.disablePower = false;
 
             game.triggerVFX({ action: 'PLACE', player: playerId, card: card, side: payload.side });
 
             setTimeout(() => {
-                game.applyAnimalEffects(player, card, payload.side, payload.skipPower);
+                game.applyAnimalEffects(player, card, payload.side, payload.skipPower || wasDisablePower);
             }, 600);
             return;
         }
@@ -936,12 +945,6 @@ const game = {
             game.state.crocodileTargeting = player.id;
             game.broadcastState();
             return; 
-        }
-        
-        if (card.id === 'monkey') {
-            game.state.monkeyTargeting = player.id;
-            game.broadcastState();
-            return;
         }
 
         if (card.id === 'crab') {
@@ -1111,16 +1114,19 @@ const game = {
                 setTimeout(() => { if(c) c.style.transform = ''; done(); }, 300);
              });
         }
-        else if (data.action === 'MONKEY_SWAP') {
+        else if (data.action === 'MONKEY_STEAL') {
             vfx.push((done) => {
-                const cardA = document.getElementById(`card-target-${data.playerA}-${data.indexA}`);
-                const cardB = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
-                if (cardA && cardB) {
-                    const rectA = cardA.getBoundingClientRect();
-                    const rectB = cardB.getBoundingClientRect();
-                    cardA.style.opacity = '0';
-                    cardB.style.opacity = '0';
-                    vfx.flyCardToRect(data.cardImgA, null, rectB, null, rectA, 'spin');
+                const centerDrawnCard = document.getElementById('drawn-card');
+                const oppCard = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
+                
+                if (centerDrawnCard && oppCard) {
+                    const rectA = centerDrawnCard.getBoundingClientRect(); // Monkey
+                    const rectB = oppCard.getBoundingClientRect(); // Target
+                    
+                    centerDrawnCard.style.opacity = '0';
+                    oppCard.style.opacity = '0';
+                    
+                    vfx.flyCardToRect(data.monkeyImg, null, rectB, null, rectA, 'spin');
                     vfx.flyCardToRect(data.cardImgB, null, rectA, () => { done(); }, rectB, 'spin-reverse');
                 } else done();
             });
@@ -1291,7 +1297,11 @@ const game = {
             if(!wantsToKeep && !game.state.forcedDeck && !game.state.mustPlaceDrawnCard) {
                 game.handlePlayerAction(botId, 'REJECT', {});
             } else {
-                game.handlePlayerAction(botId, 'PLACE', { side: bestSide, skipPower: skipPower });
+                if (card.id === 'monkey' && !skipPower && !game.state.disablePower && !game.state.mustPlaceDrawnCard) {
+                    game.handlePlayerAction(botId, 'MONKEY_INIT', {});
+                } else {
+                    game.handlePlayerAction(botId, 'PLACE', { side: bestSide, skipPower: skipPower });
+                }
             }
         }, 1500);
     }
