@@ -853,10 +853,24 @@ const game = {
         }
         let fullDeck = [];
         for(let i=0; i<8; i++) ANIMALS.forEach(animal => fullDeck.push({...animal}));
-        for (let round = 0; round < 3; round++) {
+        
+        // Anti-clumping Fisher-Yates shuffle
+        for (let round = 0; round < 5; round++) {
             for (let i = fullDeck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
+            }
+        }
+
+        // Anti-clumping pass: ensure no two adjacent cards share the same animal ID
+        for (let i = 1; i < fullDeck.length; i++) {
+            if (fullDeck[i].id === fullDeck[i - 1].id) {
+                for (let j = i + 1; j < fullDeck.length; j++) {
+                    if (fullDeck[j].id !== fullDeck[i - 1].id) {
+                        [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
+                        break;
+                    }
+                }
             }
         }
         
@@ -1142,11 +1156,11 @@ const game = {
             game.addHistory(`${sourcePlayer.name} défausse la carte.`);
 
             if(game.state.originalDeckIndex === 1) {
-                game.state.deck1.unshift(game.state.currentDrawnCard);
+                game.state.deck1.push(game.state.currentDrawnCard);
                 game.state.deck1Thumbnail = game.state.currentDrawnCard.img;
             }
             else {
-                game.state.deck2.unshift(game.state.currentDrawnCard);
+                game.state.deck2.push(game.state.currentDrawnCard);
                 game.state.deck2Thumbnail = game.state.currentDrawnCard.img;
             }
             
