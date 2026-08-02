@@ -757,18 +757,26 @@ const game = {
         }
 
         if (!won && player.row.find(c => c.id === 'octopus')) {
+            let frequencies = {};
+            let chameleonCount = 0;
+            for(let c of player.row) {
+                if(c.id === 'chameleon') chameleonCount++;
+                else frequencies[c.id] = (frequencies[c.id] || 0) + 1;
+            }
             let pairs = 0;
-            for (let i = 0; i < player.row.length - 1; i++) {
-                const c1 = player.row[i].id;
-                const c2 = player.row[i+1].id;
-                if (c1 === 'octopus' || c2 === 'octopus') continue; // Octopus itself cannot form pairs
-                if (c1 === c2 || c1 === 'chameleon' || c2 === 'chameleon') {
+            for(let id in frequencies) {
+                pairs += Math.floor(frequencies[id] / 2);
+                frequencies[id] = frequencies[id] % 2;
+            }
+            for(let id in frequencies) {
+                if(frequencies[id] === 1 && chameleonCount > 0) {
                     pairs++;
-                    i++; // Skip the next card as it is consumed by this pair
+                    chameleonCount--;
+                    frequencies[id] = 0;
                 }
             }
             if (pairs >= 3) {
-                game.broadcast({ type: 'ALERT', msg: `${player.name} a formé 3 paires adjacentes grâce à la Pieuvre ! VICTOIRE !` });
+                game.broadcast({ type: 'ALERT', msg: `${player.name} a formé 3 paires grâce à la Pieuvre ! VICTOIRE !` });
                 player.score += 1;
                 won = true;
             }
