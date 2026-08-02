@@ -458,20 +458,20 @@ const ui = {
             }
         } else if (state.crocodileTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crocodileTargeting);
-            ui.showOverlay("Attaque Crocodile...", `${targetingPlayer.name} choisit sa cible...`);
+            ui.showOverlay("Attaque Crocodile...", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} choisit sa cible...`);
         } else if (state.monkeyTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.monkeyTargeting);
-            ui.showOverlay("Pouvoir du Singe...", `${targetingPlayer.name} choisit avec qui échanger...`);
+            ui.showOverlay("Pouvoir du Singe...", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} choisit avec qui échanger...`);
         } else if (state.crabTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crabTargeting);
-            ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer.name} hésite à déplacer une carte...`);
+            ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} hésite à déplacer une carte...`);
         } else if (state.parrotPredictedAnimal && state.turn !== myId) {
             const targetingPlayer = state.players.find(p => p.id === state.turn);
             const animalNameMap = {
                 lion: 'le Lion 🦁', chameleon: 'le Caméléon 🦎', monkey: 'le Singe 🐒',
                 crab: 'le Crabe 🦀', octopus: 'la Pieuvre 🐙', crocodile: 'le Crocodile 🐊', parrot: 'le Perroquet 🦜', 'hermit_crab': 'le Bernard-l\'ermite 🐚'
             };
-            ui.showOverlay("Prédiction en cours 🦜", `${targetingPlayer.name} a prédit ${animalNameMap[state.parrotPredictedAnimal]} ! Il s'apprête à piocher...`);
+            ui.showOverlay("Prédiction en cours 🦜", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} a prédit ${animalNameMap[state.parrotPredictedAnimal]} ! Il s'apprête à piocher...`);
         } else {
             ui.crabPreview = null;
             ui.hideOverlay();
