@@ -29,9 +29,12 @@ const vfx = {
         });
     },
 
-    flyCardToRect: (imgSrc, startId, tRect, onComplete) => {
-        const startEl = document.getElementById(startId) || document.body;
-        const sRect = startEl.getBoundingClientRect();
+    flyCardToRect: (imgSrc, startId, tRect, onComplete, forceStartRect = null) => {
+        let sRect = forceStartRect;
+        if (!sRect) {
+            const startEl = document.getElementById(startId) || document.body;
+            sRect = startEl.getBoundingClientRect();
+        }
         
         const flying = document.createElement('img');
         flying.src = imgSrc;
@@ -462,12 +465,27 @@ const game = {
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.crocodileTargeting = null;
-                game.broadcast({ type: 'ALERT', msg: `Le Crocodile de ${sourcePlayer.name} a dévoré une carte de ${targetPlayer.name} !` });
-                game.triggerVFX({ action: 'CROCODILE_BITE', player: targetPlayer.id, cardIndex: payload.cardIndex });
+                
+                let crocIndex = -1;
+                for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
+                    if (sourcePlayer.row[i].id === 'crocodile') { crocIndex = i; break; }
+                }
+                
+                game.triggerVFX({ 
+                    action: 'CROCODILE_ATTACK', 
+                    attackerId: sourcePlayer.id, 
+                    attackerIndex: crocIndex, 
+                    crocImg: sourcePlayer.row[crocIndex]?.img,
+                    targetId: targetPlayer.id, 
+                    targetIndex: payload.cardIndex 
+                });
+
                 setTimeout(() => {
+                    game.broadcast({ type: 'ALERT', msg: `Le Crocodile de ${sourcePlayer.name} a dévoré une carte de ${targetPlayer.name} !` });
                     targetPlayer.row.splice(payload.cardIndex, 1);
-                    game.finalizeTurn(sourcePlayer);
-                }, 800);
+                    game.broadcastState();
+                    setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
+                }, 1400);
                 return;
             }
         }
@@ -490,14 +508,25 @@ const game = {
                 }
                 
                 if (monkeyIndex !== -1) {
-                    const myMonkey = sourcePlayer.row.splice(monkeyIndex, 1)[0];
-                    const oppCard = targetPlayer.row.splice(payload.cardIndex, 1)[0];
-                    sourcePlayer.row.push(oppCard);
-                    targetPlayer.row.push(myMonkey);
-                    game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a échangé son Singe avec ${targetPlayer.name} !` });
+                    game.triggerVFX({
+                        action: 'MONKEY_SWAP',
+                        playerA: sourcePlayer.id, indexA: monkeyIndex, cardImgA: sourcePlayer.row[monkeyIndex].img,
+                        playerB: targetPlayer.id, indexB: payload.cardIndex, cardImgB: targetPlayer.row[payload.cardIndex].img
+                    });
+
+                    setTimeout(() => {
+                        const myMonkey = sourcePlayer.row.splice(monkeyIndex, 1)[0];
+                        const oppCard = targetPlayer.row.splice(payload.cardIndex, 1)[0];
+                        sourcePlayer.row.push(oppCard);
+                        targetPlayer.row.push(myMonkey);
+                        game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a échangé son Singe avec ${targetPlayer.name} !` });
+                        game.broadcastState();
+                        setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
+                    }, 600);
+                } else {
+                    game.broadcastState();
+                    setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
                 }
-                game.broadcastState();
-                setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
                 return;
             }
         }
@@ -506,14 +535,19 @@ const game = {
             if (player && game.state.crabTargeting === playerId) {
                 game.state.crabTargeting = null;
                 if (!payload.skip && player.row.length >= 2) {
-                    const first = player.row.shift();
-                    player.row.push(first);
-                    game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} déplace sa première carte !` });
+                    game.triggerVFX({ action: 'CRAB_MOVE', player: player.id, cardImg: player.row[0].img });
+                    setTimeout(() => {
+                        const first = player.row.shift();
+                        player.row.push(first);
+                        game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} déplace sa première carte !` });
+                        game.broadcastState();
+                        setTimeout(() => { game.finalizeTurn(player); }, 800);
+                    }, 600);
                 } else {
                     game.broadcast({ type: 'ALERT', msg: `${player.name} passe le pouvoir de son Crabe.` });
+                    game.broadcastState();
+                    setTimeout(() => { game.finalizeTurn(player); }, 800);
                 }
-                game.broadcastState();
-                setTimeout(() => { game.finalizeTurn(player); }, 800);
                 return;
             }
         }
@@ -739,6 +773,19 @@ const game = {
                 else done(); 
             });
         }
+        else if (data.action === 'CROCODILE_ATTACK') {
+            vfx.push((done) => {
+                const crocCard = document.getElementById(`card-target-${data.attackerId}-${data.attackerIndex}`);
+                const targetCard = document.getElementById(`card-target-${data.targetId}-${data.targetIndex}`);
+                if (targetCard && data.crocImg) {
+                    const sRect = crocCard ? crocCard.getBoundingClientRect() : { left: window.innerWidth/2, top: window.innerHeight/2, width: 80, height: 120 };
+                    const tRect = targetCard.getBoundingClientRect();
+                    vfx.flyCardToRect(data.crocImg, null, tRect, () => {
+                        vfx.crocodileBite(targetCard, () => { done(); });
+                    }, sRect);
+                } else done();
+            });
+        }
         else if (data.action === 'REJECT') {
              vfx.push((done) => {
                 const c = document.getElementById('drawn-card-zone');
@@ -748,6 +795,39 @@ const game = {
                 }
                 setTimeout(() => { if(c) c.style.transform = ''; done(); }, 300);
              });
+        }
+        else if (data.action === 'MONKEY_SWAP') {
+            vfx.push((done) => {
+                const cardA = document.getElementById(`card-target-${data.playerA}-${data.indexA}`);
+                const cardB = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
+                if (cardA && cardB) {
+                    const rectA = cardA.getBoundingClientRect();
+                    const rectB = cardB.getBoundingClientRect();
+                    cardA.style.opacity = '0';
+                    cardB.style.opacity = '0';
+                    vfx.flyCardToRect(data.cardImgA, null, rectB, null, rectA);
+                    vfx.flyCardToRect(data.cardImgB, null, rectA, () => { done(); }, rectB);
+                } else done();
+            });
+        }
+        else if (data.action === 'CRAB_MOVE') {
+            vfx.push((done) => {
+                const cardEl = document.getElementById(`card-target-${data.player}-0`);
+                const containerId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
+                const container = document.getElementById(containerId);
+                if (cardEl && container) {
+                    const sRect = cardEl.getBoundingClientRect();
+                    const placeholder = document.createElement('div');
+                    placeholder.style.width = (data.player === game.myId ? 75 : 40) + 'px';
+                    placeholder.style.height = (data.player === game.myId ? 110 : 60) + 'px';
+                    placeholder.style.flexShrink = '0';
+                    container.appendChild(placeholder);
+                    const tRect = placeholder.getBoundingClientRect();
+                    placeholder.remove();
+                    cardEl.style.opacity = '0';
+                    vfx.flyCardToRect(data.cardImg, null, tRect, () => { done(); }, sRect);
+                } else done();
+            });
         }
     },
 
