@@ -519,7 +519,8 @@ const game = {
     hostRoom: () => {
         game.isHost = true;
         game.roomCode = game.generateRoomCode();
-        game.myName = "Hôte";
+        const nameInput = document.getElementById('input-host-name');
+        game.myName = (nameInput && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Hôte";
         document.getElementById('room-code-display').innerText = game.roomCode;
         
         game.peer = new Peer(`collect-${game.roomCode}`, {
@@ -528,7 +529,7 @@ const game = {
         
         game.peer.on('open', (id) => {
             game.myId = id;
-            game.state.players.push({ id: id, name: "Hôte", isBot: false, row: [], score: 0 });
+            game.state.players.push({ id: id, name: game.myName, isBot: false, row: [], score: 0 });
             ui.updateWaitingPlayers(game.state.players);
             ui.showScreen('screen-host');
         });
