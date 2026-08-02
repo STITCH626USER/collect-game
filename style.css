@@ -183,6 +183,31 @@ input {
 }
 .opp-cards-mini img:first-child { margin-left: 0; }
 
+.opponents-carousel.two-players-mode {
+    justify-content: center;
+    min-height: 160px;
+}
+.opponents-carousel.two-players-mode .opponent-slot {
+    width: 150px;
+    padding: 15px;
+}
+.opponents-carousel.two-players-mode .opp-name {
+    font-size: 1.1rem;
+}
+.opponents-carousel.two-players-mode .opp-score {
+    font-size: 0.9rem;
+}
+.opponents-carousel.two-players-mode .opp-cards-mini {
+    height: 55px;
+    margin-top: 10px;
+}
+.opponents-carousel.two-players-mode .opp-cards-mini img {
+    width: 38px;
+    height: 55px;
+    margin-left: -15px;
+}
+.opponents-carousel.two-players-mode .opp-cards-mini img:first-child { margin-left: 0; }
+
 /* Center Board */
 .center-board {
     flex: 1;
@@ -230,13 +255,13 @@ input {
 }
 
 .drawn-card-zone {
-    width: 110px;
-    height: 160px;
+    width: 120px;
+    min-height: 160px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
+    gap: 15px;
 }
 .drawn-card-zone .card {
     width: 100px;
@@ -247,11 +272,9 @@ input {
 .card img { width: 100%; height: 100%; border-radius: inherit; }
 
 .card-actions, .placement-actions {
-    position: absolute;
-    bottom: -40px;
     display: flex;
     gap: 10px;
-    width: 200px;
+    width: 250px;
     justify-content: center;
 }
 .btn-action {

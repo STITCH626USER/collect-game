@@ -72,20 +72,34 @@ const ui = {
 
         // Render My Row
         const myRowEl = document.getElementById('my-row');
-        myRowEl.innerHTML = '';
         const myPlayer = state.players.find(p => p.id === myId);
         if(myPlayer) {
             document.getElementById('my-score').innerText = myPlayer.score;
-            myPlayer.row.forEach(c => {
-                const img = document.createElement('img');
-                img.src = c.img;
-                img.className = 'card';
-                myRowEl.appendChild(img);
-            });
+            if (myRowEl.children.length !== myPlayer.row.length) {
+                myRowEl.innerHTML = '';
+                myPlayer.row.forEach(c => {
+                    const img = document.createElement('img');
+                    img.src = c.img;
+                    img.className = 'card shadow-pop';
+                    myRowEl.appendChild(img);
+                });
+            } else if (myPlayer.row.length === 0) {
+                myRowEl.innerHTML = '';
+            } else {
+                // Same length, just update sources without re-animating
+                myPlayer.row.forEach((c, i) => {
+                    if(myRowEl.children[i]) myRowEl.children[i].src = c.img;
+                });
+            }
         }
 
         // Render Opponents
         const oppCarousel = document.getElementById('opponents-carousel');
+        if (state.players.length === 2) {
+            oppCarousel.classList.add('two-players-mode');
+        } else {
+            oppCarousel.classList.remove('two-players-mode');
+        }
         oppCarousel.innerHTML = '';
         state.players.forEach(p => {
             if (p.id === myId) return;
@@ -95,7 +109,7 @@ const ui = {
                 <div class="opp-name">${p.name} ${p.isBot?'🤖':''}</div>
                 <div class="opp-score">${p.score} 👑</div>
                 <div class="opp-cards-mini">
-                    ${p.row.map(c => `<img src="${c.img}">`).join('')}
+                    ${p.row.map(c => `<img src="${c.img}" class="shadow-pop">`).join('')}
                 </div>
             `;
             oppCarousel.appendChild(div);
