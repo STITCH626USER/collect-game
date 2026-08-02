@@ -1223,19 +1223,21 @@ const game = {
         }
         else if (data.action === 'MONKEY_STEAL') {
             vfx.push((done) => {
-                const centerDrawnCard = document.getElementById('drawn-card');
-                const oppCard = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
+                const targetCard = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
+                const centerDrawnCard = document.getElementById('drawn-card-img');
                 
-                if (centerDrawnCard && oppCard) {
+                if (targetCard && centerDrawnCard) {
+                    const rectB = targetCard.getBoundingClientRect(); // Opponent card
                     const rectA = centerDrawnCard.getBoundingClientRect(); // Monkey
-                    const rectB = oppCard.getBoundingClientRect(); // Target
                     
+                    targetCard.style.opacity = '0';
                     centerDrawnCard.style.opacity = '0';
-                    oppCard.style.opacity = '0';
                     
                     vfx.flyCardToRect(data.monkeyImg, null, rectB, null, rectA, 'spin');
                     vfx.flyCardToRect(data.cardImgB, null, rectA, () => { done(); }, rectB, 'spin-reverse');
-                } else done();
+                } else {
+                    done(); // Prevent blocking
+                }
             });
         }
         else if (data.action === 'CRAB_MOVE') {
