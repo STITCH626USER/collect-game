@@ -564,6 +564,9 @@ const game = {
 
     broadcast: (data) => {
         game.connections.forEach(conn => conn.send(data));
+        if (data.type === 'ALERT') {
+            ui.showOverlay("Info", data.msg);
+        }
     },
 
     broadcastState: () => {
@@ -1017,6 +1020,7 @@ const game = {
             game.state.started = false;
             game.state.rematchVotes = game.state.players.filter(p => p.isBot).map(p => p.id);
             game.broadcast({ type: 'VICTORY', winner: player, reason: winReason, row: player.row });
+            ui.showVictoryModal(player, winReason, player.row);
             game.broadcastState();
             return;
         }
