@@ -393,18 +393,13 @@ const ui = {
                                 <button class="btn-action btn-keep" onclick="game.sendAction('MONKEY_INIT', {})">✨ AVEC pouvoir</button>
                             `;
                         } else if (state.currentDrawnCard.id === 'parrot') {
-                            cardActions.innerHTML = `
-                                ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
-                                <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
-                                <button class="btn-action btn-keep" onclick="game.sendAction('PARROT_INIT', {})">✨ AVEC pouvoir</button>
-                            `;
                             if (state.parrotPredictedAnimal) {
-                                cardActions.innerHTML = `<div style="color: white; font-weight: bold; padding: 10px; font-size: 1.1rem; text-align: center; line-height: 1.4;">Piochez une carte pour vérifier votre prédiction !</div>`;
+                                cardActions.innerHTML = `<div style="color: white; font-weight: bold; padding: 10px; font-size: 1.1rem; text-align: center; line-height: 1.4;">Prédiction enregistrée ! Piochez une carte pour vérifier !</div>`;
                             } else {
                                 cardActions.innerHTML = `
                                     ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
                                     <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
-                                    <button class="btn-action btn-keep" onclick="game.sendAction('PARROT_INIT', {})">✨ AVEC pouvoir</button>
+                                    <button class="btn-action btn-keep" onclick="ui.showParrotModal()">✨ AVEC pouvoir</button>
                                 `;
                             }
                         } else {
@@ -1129,7 +1124,8 @@ const game = {
                     game.state.mustPlaceDrawnCard = true;
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
-                        game.broadcast({ type: 'ALERT', msg: "Prédiction réussie ! Le Perroquet est défaussé." });
+                        game.triggerVFX({ action: 'PARROT_FLY', player: playerId });
+                        game.broadcast({ type: 'ALERT', msg: "🎉 Prédiction réussie ! Le Perroquet s'envole 🦜 !" });
                         game.state.parrotPredictedAnimal = null;
                         game.broadcastState();
                         if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
@@ -1386,6 +1382,35 @@ const game = {
                         vfx.crocodileBite(targetCard, () => { done(); });
                     }, sRect, 'attack');
                 } else done();
+            });
+        }
+        else if (data.action === 'PARROT_FLY') {
+            vfx.push((done) => {
+                const drawnEl = document.getElementById('drawn-card') || document.body;
+                const rect = drawnEl.getBoundingClientRect();
+                
+                const parrotImg = document.createElement('img');
+                parrotImg.src = 'assets/card_parrot.jpg?v=4';
+                parrotImg.className = 'flying-card';
+                parrotImg.style.position = 'fixed';
+                parrotImg.style.zIndex = '10002';
+                parrotImg.style.left = rect.left + 'px';
+                parrotImg.style.top = rect.top + 'px';
+                parrotImg.style.width = (rect.width || 120) + 'px';
+                parrotImg.style.height = (rect.height || 180) + 'px';
+                parrotImg.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1)';
+                parrotImg.style.borderRadius = '20px';
+                document.body.appendChild(parrotImg);
+                
+                parrotImg.offsetHeight; // reflow
+                
+                parrotImg.style.transform = 'translateY(-400px) scale(0.2) rotate(35deg)';
+                parrotImg.style.opacity = '0';
+                
+                setTimeout(() => {
+                    parrotImg.remove();
+                    done();
+                }, 1000);
             });
         }
         else if (data.action === 'REJECT') {
