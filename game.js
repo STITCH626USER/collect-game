@@ -695,7 +695,7 @@ const game = {
             game.state.parrotPredictedAnimal = payload.animalId;
             const sourcePlayer = game.state.players.find(p=>p.id===playerId);
             const animalObj = ANIMALS.find(a=>a.id===payload.animalId);
-            game.addHistory(`${sourcePlayer.name} prédit un(e) ${animalObj.name} ${animalObj.icon}.`);
+            game.addHistory(`${sourcePlayer.name} prédit : ${animalObj.name}.`);
             game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} prédit un(e) ${animalObj.name} !` });
             game.broadcastState();
             return;
@@ -704,7 +704,7 @@ const game = {
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             if (payload.skip) {
                 game.state.crocodileTargeting = null;
-                game.addHistory(`${sourcePlayer.name} n'utilise pas le pouvoir du Crocodile.`);
+                game.addHistory(`${sourcePlayer.name} passe le pouvoir du Crocodile.`);
                 game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a épargné ses adversaires !` });
                 game.broadcastState();
                 setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
@@ -713,7 +713,7 @@ const game = {
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.crocodileTargeting = null;
-                game.addHistory(`${sourcePlayer.name} détruit la carte de ${targetPlayer.name} avec son Crocodile.`);
+                game.addHistory(`${sourcePlayer.name} 🐊 dévore une carte de ${targetPlayer.name}.`);
                 
                 let crocIndex = -1;
                 for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
@@ -742,7 +742,7 @@ const game = {
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             if (payload.skip) {
                 game.state.monkeyTargeting = null;
-                game.addHistory(`${sourcePlayer.name} n'utilise pas le pouvoir du Singe.`);
+                game.addHistory(`${sourcePlayer.name} passe le pouvoir du Singe.`);
                 game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe !` });
                 game.broadcastState();
                 setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
@@ -751,7 +751,7 @@ const game = {
             const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
             if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
                 game.state.monkeyTargeting = null;
-                game.addHistory(`${sourcePlayer.name} échange son Singe avec une carte de ${targetPlayer.name}.`);
+                game.addHistory(`${sourcePlayer.name} 🐒 échange avec ${targetPlayer.name}.`);
                 
                 let monkeyIndex = -1;
                 for (let i = sourcePlayer.row.length - 1; i >= 0; i--) {
@@ -795,7 +795,7 @@ const game = {
                             if (payload.direction === 'left') targetPlayer.row.unshift(cardToMove);
                             else targetPlayer.row.push(cardToMove);
                             
-                            game.addHistory(`${player.name} déplace une carte de ${targetPlayer.name} avec son Crabe.`);
+                            game.addHistory(`${player.name} 🦀 déplace une carte de ${targetPlayer.name}.`);
                             game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} a déplacé une carte de ${targetPlayer.name} vers la ${payload.direction === 'left' ? 'gauche' : 'droite'} !` });
                             game.broadcastState();
                             setTimeout(() => { game.finalizeTurn(player); }, 800);
@@ -803,7 +803,7 @@ const game = {
                         return;
                     }
                 }
-                game.addHistory(`${player.name} n'utilise pas le pouvoir de son Crabe.`);
+                game.addHistory(`${player.name} passe le pouvoir du Crabe.`);
                 game.broadcast({ type: 'ALERT', msg: `${player.name} passe le pouvoir de son Crabe.` });
                 game.broadcastState();
                 setTimeout(() => { game.finalizeTurn(player); }, 800);
@@ -830,7 +830,7 @@ const game = {
 
             if (card) {
                 const sourcePlayer = game.state.players.find(p => p.id === playerId);
-                game.addHistory(`${sourcePlayer.name} pioche ${card.name} ${card.icon}.`);
+                game.addHistory(`${sourcePlayer.name} pioche ${card.name}.`);
 
                 if (game.state.parrotPredictedAnimal) {
                     game.state.currentDrawnCard = card;
@@ -864,7 +864,7 @@ const game = {
         else if (action === 'REJECT') {
             if(!game.state.currentDrawnCard) return;
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
-            game.addHistory(`${sourcePlayer.name} remet la carte sur la pioche.`);
+            game.addHistory(`${sourcePlayer.name} défausse la carte.`);
 
             if(game.state.originalDeckIndex === 1) {
                 game.state.deck1.push(game.state.currentDrawnCard);
@@ -896,7 +896,7 @@ const game = {
             const player = game.state.players.find(p => p.id === playerId);
             const card = game.state.currentDrawnCard;
             
-            game.addHistory(`${player.name} pose ${card.name} ${card.icon}.`);
+            game.addHistory(`${player.name} joue ${card.name}.`);
 
             if(payload.side === 'left') player.row.unshift(card);
             else player.row.push(card);
@@ -1017,7 +1017,7 @@ const game = {
         }
 
         if (won) {
-            game.addHistory(`${player.name} GAGNE LA PARTIE ! 🎉`);
+            game.addHistory(`🏆 ${player.name} GAGNE !`);
             game.state.started = false;
             game.state.rematchVotes = game.state.players.filter(p => p.isBot).map(p => p.id);
             game.broadcast({ type: 'VICTORY', winner: player, reason: winReason, row: player.row });
@@ -1028,7 +1028,7 @@ const game = {
 
 
         if (getsExtraTurn) {
-            game.addHistory(`Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !`);
+            game.addHistory(`${player.name} rejoue grâce au Bernard l'hermite !`);
             game.broadcast({ type: 'ALERT', msg: `Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !` });
         } else {
             game.state.turnIndex = (game.state.turnIndex + 1) % game.state.players.length;
