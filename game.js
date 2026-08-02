@@ -110,6 +110,7 @@ const vfx = {
 
 // --- UI CONTROLLER ---
 const ui = {
+    selectedCrabCard: null,
     showScreen: (screenId) => {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
@@ -219,19 +220,29 @@ const ui = {
         }
         
         if (state.crocodileTargeting === myId) {
-            ui.showOverlay("Attaque Crocodile !", "Cliquez sur la carte d'un adversaire à dévorer.");
+            ui.showOverlay("Attaque Crocodile !", "Cliquez sur la carte à dévorer (la vôtre ou celle d'un adversaire).");
             document.getElementById('card-actions').style.display = 'none';
             document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" onclick="game.sendAction('CROCODILE_SELECT', {skip: true})">Passer</button>`;
             document.getElementById('placement-actions').style.display = 'flex';
         } else if (state.monkeyTargeting === myId) {
-            ui.showOverlay("Pouvoir du Singe !", "Cliquez sur une carte adverse pour l'échanger avec votre Singe.");
+            ui.showOverlay("Pouvoir du Singe !", "Cliquez sur la carte avec laquelle échanger votre Singe.");
             document.getElementById('card-actions').style.display = 'none';
             document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" onclick="game.sendAction('MONKEY_SELECT', {skip: true})">Passer</button>`;
             document.getElementById('placement-actions').style.display = 'flex';
         } else if (state.crabTargeting === myId) {
-            ui.showOverlay("Pouvoir du Crabe !", "Cliquez sur votre 1ère carte pour la déplacer à la fin.");
-            document.getElementById('card-actions').style.display = 'none';
-            document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" onclick="game.sendAction('CRAB_SELECT', {skip: true})">Passer</button>`;
+            if (ui.selectedCrabCard) {
+                ui.showOverlay("Pouvoir du Crabe !", "Où voulez-vous déplacer cette carte ?");
+                document.getElementById('card-actions').style.display = 'none';
+                document.getElementById('placement-actions').innerHTML = `
+                    <button class="btn-action btn-place" onclick="game.sendAction('CRAB_SELECT', { targetPlayerId: '${ui.selectedCrabCard.playerId}', cardIndex: ${ui.selectedCrabCard.cardIndex}, direction: 'left' })">⬅ Gauche</button>
+                    <button class="btn-action btn-reject" onclick="game.sendAction('CRAB_SELECT', { skip: true })">Passer</button>
+                    <button class="btn-action btn-place" onclick="game.sendAction('CRAB_SELECT', { targetPlayerId: '${ui.selectedCrabCard.playerId}', cardIndex: ${ui.selectedCrabCard.cardIndex}, direction: 'right' })">Droite ➡</button>
+                `;
+            } else {
+                ui.showOverlay("Pouvoir du Crabe !", "Cliquez sur la carte que vous souhaitez déplacer.");
+                document.getElementById('card-actions').style.display = 'none';
+                document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" onclick="game.sendAction('CRAB_SELECT', {skip: true})">Passer</button>`;
+            }
             document.getElementById('placement-actions').style.display = 'flex';
         } else if (state.crocodileTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crocodileTargeting);
@@ -241,8 +252,9 @@ const ui = {
             ui.showOverlay("Pouvoir du Singe...", `${targetingPlayer.name} choisit avec qui échanger...`);
         } else if (state.crabTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crabTargeting);
-            ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer.name} hésite à déplacer sa carte...`);
+            ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer.name} hésite à déplacer une carte...`);
         } else {
+            ui.selectedCrabCard = null; // Clear if crab is done
             ui.hideOverlay();
         }
 
@@ -255,11 +267,20 @@ const ui = {
                 const img = document.createElement('img');
                 img.src = c.img;
                 img.className = 'card';
-                if(index === myPlayer.row.length - 1) img.id = `card-target-${myId}`;
+                img.id = `card-target-${myId}-${index}`;
                 
-                if (state.crabTargeting === myId && index === 0) {
+                if (state.crabTargeting === myId) {
                     img.classList.add('clickable-target');
-                    img.onclick = () => game.sendAction('CRAB_SELECT', { skip: false });
+                    if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === myId && ui.selectedCrabCard.cardIndex === index) {
+                        img.style.borderColor = 'var(--primary)';
+                    }
+                    img.onclick = () => { ui.selectedCrabCard = { playerId: myId, cardIndex: index }; ui.renderGameState(state, myId); };
+                } else if (state.crocodileTargeting === myId) {
+                    img.classList.add('clickable-target');
+                    img.onclick = () => game.sendAction('CROCODILE_SELECT', { targetPlayerId: myId, cardIndex: index });
+                } else if (state.monkeyTargeting === myId) {
+                    img.classList.add('clickable-target');
+                    img.onclick = () => game.sendAction('MONKEY_SELECT', { targetPlayerId: myId, cardIndex: index });
                 }
                 
                 myRowEl.appendChild(img);
@@ -292,6 +313,12 @@ const ui = {
                 } else if (state.monkeyTargeting === myId) {
                     img.classList.add('clickable-target');
                     img.onclick = () => game.sendAction('MONKEY_SELECT', { targetPlayerId: p.id, cardIndex: index });
+                } else if (state.crabTargeting === myId) {
+                    img.classList.add('clickable-target');
+                    if (ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id && ui.selectedCrabCard.cardIndex === index) {
+                        img.style.borderColor = 'var(--primary)';
+                    }
+                    img.onclick = () => { ui.selectedCrabCard = { playerId: p.id, cardIndex: index }; ui.renderGameState(state, myId); };
                 }
                 
                 oppCardsMini.appendChild(img);
@@ -562,20 +589,26 @@ const game = {
             const player = game.state.players.find(p => p.id === playerId);
             if (player && game.state.crabTargeting === playerId) {
                 game.state.crabTargeting = null;
-                if (!payload.skip && player.row.length >= 2) {
-                    game.triggerVFX({ action: 'CRAB_MOVE', player: player.id, cardImg: player.row[0].img });
-                    setTimeout(() => {
-                        const first = player.row.shift();
-                        player.row.push(first);
-                        game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} déplace sa première carte !` });
-                        game.broadcastState();
-                        setTimeout(() => { game.finalizeTurn(player); }, 800);
-                    }, 600);
-                } else {
-                    game.broadcast({ type: 'ALERT', msg: `${player.name} passe le pouvoir de son Crabe.` });
-                    game.broadcastState();
-                    setTimeout(() => { game.finalizeTurn(player); }, 800);
+                if (!payload.skip && payload.targetPlayerId !== undefined) {
+                    const targetPlayer = game.state.players.find(p => p.id === payload.targetPlayerId);
+                    if (targetPlayer && targetPlayer.row.length > payload.cardIndex) {
+                        const targetCard = targetPlayer.row[payload.cardIndex];
+                        game.triggerVFX({ action: 'CRAB_MOVE', player: targetPlayer.id, cardImg: targetCard.img, cardIndex: payload.cardIndex, direction: payload.direction });
+                        setTimeout(() => {
+                            const cardToMove = targetPlayer.row.splice(payload.cardIndex, 1)[0];
+                            if (payload.direction === 'left') targetPlayer.row.unshift(cardToMove);
+                            else targetPlayer.row.push(cardToMove);
+                            
+                            game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} a déplacé une carte de ${targetPlayer.name} vers la ${payload.direction === 'left' ? 'gauche' : 'droite'} !` });
+                            game.broadcastState();
+                            setTimeout(() => { game.finalizeTurn(player); }, 800);
+                        }, 600);
+                        return;
+                    }
                 }
+                game.broadcast({ type: 'ALERT', msg: `${player.name} passe le pouvoir de son Crabe.` });
+                game.broadcastState();
+                setTimeout(() => { game.finalizeTurn(player); }, 800);
                 return;
             }
         }
@@ -674,7 +707,7 @@ const game = {
             }
         }
 
-        if (card.id === 'crab' && player.row.length >= 2) {
+        if (card.id === 'crab') {
             game.state.crabTargeting = player.id;
             game.broadcastState();
             return;
@@ -725,27 +758,18 @@ const game = {
         }
 
         if (!won && player.row.find(c => c.id === 'octopus')) {
-            let frequencies = {};
-            let chameleonCount = 0;
-            for(let c of player.row) {
-                if(c.id === 'octopus') continue;
-                if(c.id === 'chameleon') chameleonCount++;
-                else frequencies[c.id] = (frequencies[c.id] || 0) + 1;
-            }
             let pairs = 0;
-            for(let id in frequencies) {
-                pairs += Math.floor(frequencies[id] / 2);
-                frequencies[id] = frequencies[id] % 2;
-            }
-            for(let id in frequencies) {
-                if(frequencies[id] === 1 && chameleonCount > 0) {
+            for (let i = 0; i < player.row.length - 1; i++) {
+                const c1 = player.row[i].id;
+                const c2 = player.row[i+1].id;
+                if (c1 === 'octopus' || c2 === 'octopus') continue; // Octopus itself cannot form pairs
+                if (c1 === c2 || c1 === 'chameleon' || c2 === 'chameleon') {
                     pairs++;
-                    chameleonCount--;
-                    frequencies[id] = 0;
+                    i++; // Skip the next card as it is consumed by this pair
                 }
             }
-            if (pairs >= 2) {
-                game.broadcast({ type: 'ALERT', msg: `${player.name} a formé 2 paires grâce à la Pieuvre ! VICTOIRE !` });
+            if (pairs >= 3) {
+                game.broadcast({ type: 'ALERT', msg: `${player.name} a formé 3 paires adjacentes grâce à la Pieuvre ! VICTOIRE !` });
                 player.score += 1;
                 won = true;
             }
@@ -760,7 +784,7 @@ const game = {
             return;
         }
 
-        if (player.row.length > 0 && player.row[player.row.length - 1].id === 'hermit_crab' && player.row.find(c => c.id === 'crab')) {
+        if (player.row.length > 0 && player.row[player.row.length - 1].id === 'hermit_crab' && player.row.find(c => c.id === 'crab' || c.id === 'chameleon')) {
             game.broadcast({ type: 'ALERT', msg: `Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !` });
         } else {
             game.state.turnIndex = (game.state.turnIndex + 1) % game.state.players.length;
@@ -848,7 +872,7 @@ const game = {
         }
         else if (data.action === 'CRAB_MOVE') {
             vfx.push((done) => {
-                const cardEl = document.getElementById(`card-target-${data.player}-0`);
+                const cardEl = document.getElementById(`card-target-${data.player}-${data.cardIndex}`);
                 const containerId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
                 const container = document.getElementById(containerId);
                 if (cardEl && container) {
@@ -857,7 +881,10 @@ const game = {
                     placeholder.style.width = (data.player === game.myId ? 75 : 40) + 'px';
                     placeholder.style.height = (data.player === game.myId ? 110 : 60) + 'px';
                     placeholder.style.flexShrink = '0';
-                    container.appendChild(placeholder);
+                    
+                    if (data.direction === 'left') container.prepend(placeholder);
+                    else container.appendChild(placeholder);
+                    
                     const tRect = placeholder.getBoundingClientRect();
                     placeholder.remove();
                     cardEl.style.opacity = '0';
@@ -881,6 +908,8 @@ const game = {
                     const target = opponents[0];
                     const cardIndex = target.row.length - 1;
                     game.handlePlayerAction(botId, 'CROCODILE_SELECT', { targetPlayerId: target.id, cardIndex });
+                } else {
+                    game.handlePlayerAction(botId, 'CROCODILE_SELECT', { skip: true });
                 }
             }, 1500);
             return;
@@ -894,6 +923,8 @@ const game = {
                     const target = opponents[0];
                     const cardIndex = Math.floor(Math.random() * target.row.length);
                     game.handlePlayerAction(botId, 'MONKEY_SELECT', { targetPlayerId: target.id, cardIndex });
+                } else {
+                    game.handlePlayerAction(botId, 'MONKEY_SELECT', { skip: true });
                 }
             }, 1500);
             return;
@@ -901,7 +932,13 @@ const game = {
         
         if (game.state.crabTargeting === botId) {
             setTimeout(() => {
-                game.handlePlayerAction(botId, 'CRAB_SELECT', { skip: false });
+                const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 0);
+                if (opponents.length > 0) {
+                    const target = opponents[0];
+                    game.handlePlayerAction(botId, 'CRAB_SELECT', { targetPlayerId: target.id, cardIndex: 0, direction: 'right' });
+                } else {
+                    game.handlePlayerAction(botId, 'CRAB_SELECT', { skip: true });
+                }
             }, 1500);
             return;
         }
