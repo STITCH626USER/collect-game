@@ -118,6 +118,21 @@ const ui = {
         }
     },
     
+    showParrotModal: () => {
+        const grid = document.getElementById('parrot-animal-grid');
+        grid.innerHTML = '';
+        ANIMALS.forEach(animal => {
+            const img = document.createElement('img');
+            img.src = animal.img;
+            img.onclick = () => {
+                document.getElementById('parrot-modal').style.display = 'none';
+                game.sendAction('PARROT_PREDICT', { animalId: animal.id });
+            };
+            grid.appendChild(img);
+        });
+        document.getElementById('parrot-modal').style.display = 'flex';
+    },
+    
     // Le rendu "silencieux" qui met à jour le DOM sans animer (car l'animation a déjà eu lieu)
     renderGameState: (state, myId) => {
         document.getElementById('deck-left-count').innerText = state.deck1Count;
@@ -181,7 +196,7 @@ const ui = {
             div.className = `opponent-slot ${state.turn === p.id ? 'active-turn' : ''}`;
             div.id = `opp-slot-${p.id}`;
             div.innerHTML = `
-                <div class="opp-name">${p.name} ${p.isBot?'🤖':''}</div>
+                <div class="opp-name">${p.name} ${p.isBot?'🤖':''} ${state.parrotPredicting === p.id ? '🦜' : ''}</div>
                 <div class="opp-score">${p.score} 👑</div>
                 <div class="opp-cards-mini" id="opp-cards-${p.id}">
                     ${p.row.map((c, i) => `<img src="${c.img}" id="${i === p.row.length-1 ? 'card-target-'+p.id : ''}">`).join('')}
@@ -189,6 +204,13 @@ const ui = {
             `;
             oppCarousel.appendChild(div);
         });
+        
+        // Show Parrot Modal if predicting
+        if (state.parrotPredicting === myId) {
+            ui.showParrotModal();
+        } else {
+            document.getElementById('parrot-modal').style.display = 'none';
+        }
     }
 };
 
@@ -209,7 +231,9 @@ const game = {
         turnIndex: 0, turn: null,
         currentDrawnCard: null,
         originalDeckIndex: null,
-        forcedDeck: null
+        forcedDeck: null,
+        parrotPredicting: null, // id du joueur en train de prédire
+        parrotPredictedAnimal: null // l'animal prédit
     },
 
     init: () => { ui.showScreen('screen-home'); },
@@ -273,6 +297,7 @@ const game = {
             deck1Count: game.state.deck1.length, deck2Count: game.state.deck2.length,
             turn: game.state.turn,
             currentDrawnCard: game.state.currentDrawnCard, forcedDeck: game.state.forcedDeck,
+            parrotPredicting: game.state.parrotPredicting,
             players: game.state.players.map(p => ({ id: p.id, name: p.name, isBot: p.isBot, score: p.score, row: p.row }))
         };
         game.broadcast({ type: 'STATE_UPDATE', state: safeState });
@@ -343,9 +368,18 @@ const game = {
     // --- HOST LOGIC ---
     handlePlayerAction: (playerId, action, payload) => {
         if(!game.isHost || game.state.turn !== playerId) return;
+        
+        if (action === 'PARROT_PREDICT') {
+            game.state.parrotPredicting = null;
+            game.state.parrotPredictedAnimal = payload.animalId;
+            game.broadcast({ type: 'ALERT', msg: `${game.state.players.find(p=>p.id===playerId).name} prédit un(e) ${ANIMALS.find(a=>a.id===payload.animalId).name} !` });
+            game.broadcastState();
+            return;
+        }
 
         if (action === 'DRAW') {
             if(game.state.currentDrawnCard) return;
+            if(game.state.parrotPredicting) return; // Must finish prediction first
             if(game.state.forcedDeck && payload.deckIndex !== game.state.forcedDeck) return;
 
             let card = null;
@@ -353,10 +387,31 @@ const game = {
             else if (payload.deckIndex === 2 && game.state.deck2.length > 0) card = game.state.deck2.pop();
 
             if (card) {
-                game.state.currentDrawnCard = card;
-                game.state.originalDeckIndex = payload.deckIndex;
-                game.state.forcedDeck = null;
-                game.broadcastState();
+                // If this is a parrot prediction draw
+                if (game.state.parrotPredictedAnimal) {
+                    game.state.currentDrawnCard = card;
+                    game.state.originalDeckIndex = payload.deckIndex;
+                    game.state.forcedDeck = null;
+                    game.broadcastState(); // Show the drawn card
+                    
+                    if (card.id === game.state.parrotPredictedAnimal) {
+                        // Success! They can keep it.
+                        game.broadcast({ type: 'ALERT', msg: "Prédiction réussie !" });
+                        game.state.parrotPredictedAnimal = null;
+                    } else {
+                        // Fail! Forced reject.
+                        game.broadcast({ type: 'ALERT', msg: "Prédiction ratée !" });
+                        setTimeout(() => {
+                            game.state.parrotPredictedAnimal = null;
+                            game.handlePlayerAction(playerId, 'REJECT', {});
+                        }, 1500);
+                    }
+                } else {
+                    game.state.currentDrawnCard = card;
+                    game.state.originalDeckIndex = payload.deckIndex;
+                    game.state.forcedDeck = null;
+                    game.broadcastState();
+                }
             }
         }
         else if (action === 'REJECT') {
@@ -407,6 +462,13 @@ const game = {
                 }, 800);
                 return; // On coupe ici, finalizeTurn sera appelé après l'anim
             }
+        }
+        
+        // Effet Perroquet (Prédiction)
+        if (card.id === 'parrot') {
+            game.state.parrotPredicting = player.id;
+            game.broadcastState();
+            return; // On ne finalise pas le tour !
         }
         
         // Par défaut, pas d'effet complexe qui coupe le flux
@@ -483,16 +545,27 @@ const game = {
         const bot = game.state.players.find(p => p.id === botId);
         if(!bot || !bot.isBot) return;
 
+        if (game.state.parrotPredicting === botId) {
+            setTimeout(() => {
+                const randomAnimal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+                game.handlePlayerAction(botId, 'PARROT_PREDICT', { animalId: randomAnimal.id });
+            }, 1000);
+            return;
+        }
+
         if(!game.state.currentDrawnCard) {
             const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
             game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
             return;
         }
 
+        // Si le bot a raté sa prédiction perroquet, il n'a rien à faire (ça rejette auto)
+        if(game.state.parrotPredictedAnimal && game.state.currentDrawnCard.id !== game.state.parrotPredictedAnimal) return;
+
         setTimeout(() => {
             const card = game.state.currentDrawnCard;
             let wantsToKeep = Math.random() > 0.2; // Bots gardent presque tout
-            if(card.id === 'chameleon') wantsToKeep = true;
+            if(card.id === 'chameleon' || card.id === 'parrot') wantsToKeep = true;
 
             if(!wantsToKeep && !game.state.forcedDeck) {
                 game.handlePlayerAction(botId, 'REJECT', {});

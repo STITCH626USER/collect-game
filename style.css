@@ -161,6 +161,11 @@ input:focus { border-color: var(--secondary); }
 .overlay-content h2 { color: var(--secondary); margin-bottom: 20px; font-size: 2.5rem;}
 .overlay-content p { margin-bottom: 30px; font-size: 1.2rem; color: var(--text-dim); }
 
+/* Parrot Grid */
+.animal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+.animal-grid img { width: 100%; border-radius: 8px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 2px solid transparent; }
+.animal-grid img:hover { transform: scale(1.1); border-color: var(--secondary); }
+
 /* ================= ANIMATIONS & VFX ================= */
 .bounce-in { animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
 .fade-in { animation: fadeIn 1s ease; }
