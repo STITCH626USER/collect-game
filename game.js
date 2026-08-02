@@ -133,17 +133,17 @@ const ui = {
         });
         document.getElementById('player-count').innerText = players.length;
     },
-    showPlacement: () => {
+    showPlacement: (skipPower = false) => {
         const myPlayer = game.state.players.find(p => p.id === game.myId);
         document.getElementById('card-actions').style.display = 'none';
 
         if (myPlayer && myPlayer.row.length === 0) {
-            game.placeCard('right'); 
+            game.placeCard('right', skipPower); 
         } else {
             const pa = document.getElementById('placement-actions');
             pa.innerHTML = `
-                <button class="btn-action btn-place" onclick="game.placeCard('left')">⬅ Gauche</button>
-                <button class="btn-action btn-place" onclick="game.placeCard('right')">Droite ➡</button>
+                <button class="btn-action btn-place" onclick="game.placeCard('left', ${skipPower})">⬅ Gauche</button>
+                <button class="btn-action btn-place" onclick="game.placeCard('right', ${skipPower})">Droite ➡</button>
             `;
             pa.style.display = 'flex';
         }
@@ -205,10 +205,25 @@ const ui = {
             document.getElementById('deck-right').classList.add('disabled');
 
             if(isMyTurn) {
+                const activePowers = ['crocodile', 'monkey', 'crab', 'parrot'];
+                const cardActions = document.getElementById('card-actions');
+                
                 if (state.parrotPredictedAnimal) {
-                    document.getElementById('card-actions').style.display = 'none';
+                    cardActions.style.display = 'none';
                 } else {
-                    document.getElementById('card-actions').style.display = 'flex';
+                    cardActions.style.display = 'flex';
+                    if (activePowers.includes(state.currentDrawnCard.id)) {
+                        cardActions.innerHTML = `
+                            <button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>
+                            <button class="btn-action btn-keep" style="background: #555;" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
+                            <button class="btn-action btn-keep" onclick="ui.showPlacement(false)">✨ AVEC pouvoir</button>
+                        `;
+                    } else {
+                        cardActions.innerHTML = `
+                            <button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>
+                            <button class="btn-action btn-keep" onclick="ui.showPlacement(false)">✅ Garder</button>
+                        `;
+                    }
                 }
                 document.getElementById('placement-actions').style.display = 'none';
                 if (state.forcedDeck === 1) document.getElementById('deck-right').style.opacity = '0.3';
@@ -231,13 +246,9 @@ const ui = {
             document.getElementById('placement-actions').style.display = 'flex';
         } else if (state.crabTargeting === myId) {
             if (ui.selectedCrabCard) {
-                ui.showOverlay("Pouvoir du Crabe 🦀", "Où voulez-vous déplacer cette carte ?");
+                ui.showOverlay("Pouvoir du Crabe 🦀", "Cliquez sur ⬅️ ou ➡️ de chaque côté de sa ligne, ou annulez.");
                 document.getElementById('card-actions').style.display = 'none';
-                document.getElementById('placement-actions').innerHTML = `
-                    <button class="btn-action btn-place" onclick="game.sendAction('CRAB_SELECT', { targetPlayerId: '${ui.selectedCrabCard.playerId}', cardIndex: ${ui.selectedCrabCard.cardIndex}, direction: 'left' })">⬅ Gauche</button>
-                    <button class="btn-action btn-reject" onclick="ui.selectedCrabCard = null; ui.renderGameState(game.state, game.myId);">Annuler</button>
-                    <button class="btn-action btn-place" onclick="game.sendAction('CRAB_SELECT', { targetPlayerId: '${ui.selectedCrabCard.playerId}', cardIndex: ${ui.selectedCrabCard.cardIndex}, direction: 'right' })">Droite ➡</button>
-                `;
+                document.getElementById('placement-actions').innerHTML = `<button class="btn-action btn-reject" style="width: 100%;" onclick="ui.selectedCrabCard = null; ui.renderGameState(game.state, game.myId);">Annuler la sélection</button>`;
             } else {
                 ui.showOverlay("Pouvoir du Crabe 🦀", "Cliquez sur une carte à déplacer, ou passez.");
                 document.getElementById('card-actions').style.display = 'none';
@@ -285,6 +296,20 @@ const ui = {
                 
                 myRowEl.appendChild(img);
             });
+            
+            if (state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === myId) {
+                const leftGhost = document.createElement('div');
+                leftGhost.className = 'crab-ghost bounce-in';
+                leftGhost.innerHTML = '⬅️';
+                leftGhost.onclick = () => { const p = { targetPlayerId: myId, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'left' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', p); };
+                myRowEl.prepend(leftGhost);
+
+                const rightGhost = document.createElement('div');
+                rightGhost.className = 'crab-ghost bounce-in';
+                rightGhost.innerHTML = '➡️';
+                rightGhost.onclick = () => { const p = { targetPlayerId: myId, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'right' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', p); };
+                myRowEl.appendChild(rightGhost);
+            }
         }
 
         const oppCarousel = document.getElementById('opponents-carousel');
@@ -323,6 +348,20 @@ const ui = {
                 
                 oppCardsMini.appendChild(img);
             });
+            
+            if (state.crabTargeting === myId && ui.selectedCrabCard && ui.selectedCrabCard.playerId === p.id) {
+                const leftGhost = document.createElement('div');
+                leftGhost.className = 'crab-ghost opp-ghost bounce-in';
+                leftGhost.innerHTML = '⬅️';
+                leftGhost.onclick = () => { const payload = { targetPlayerId: p.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'left' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', payload); };
+                oppCardsMini.prepend(leftGhost);
+
+                const rightGhost = document.createElement('div');
+                rightGhost.className = 'crab-ghost opp-ghost bounce-in';
+                rightGhost.innerHTML = '➡️';
+                rightGhost.onclick = () => { const payload = { targetPlayerId: p.id, cardIndex: ui.selectedCrabCard.cardIndex, direction: 'right' }; ui.selectedCrabCard = null; game.sendAction('CRAB_SELECT', payload); };
+                oppCardsMini.appendChild(rightGhost);
+            }
 
             div.innerHTML = `
                 <div class="opp-name">${p.name} ${p.isBot?'🤖':''} ${state.parrotPredicting === p.id ? '🦜' : ''}</div>
@@ -495,8 +534,9 @@ const game = {
 
     drawCard: (deckIndex) => { game.sendAction('DRAW', { deckIndex }); },
     rejectCard: () => { game.sendAction('REJECT', {}); },
-    placeCard: (side) => { game.sendAction('PLACE', { side }); },
-
+    placeCard: (side, skipPower = false) => {
+        game.sendAction('PLACE', { side: side, skipPower: skipPower });
+    },
     // --- HOST LOGIC ---
     handlePlayerAction: (playerId, action, payload) => {
         if(!game.isHost) return;
@@ -683,13 +723,20 @@ const game = {
             game.triggerVFX({ action: 'PLACE', player: playerId, card: card, side: payload.side });
 
             setTimeout(() => {
-                game.applyAnimalEffects(player, card, payload.side);
+                game.applyAnimalEffects(player, card, payload.side, payload.skipPower);
             }, 600);
             return;
         }
     },
 
-    applyAnimalEffects: (player, card, side) => {
+    applyAnimalEffects: (player, card, side, skipPower = false) => {
+        if (skipPower) {
+            let getsExtraTurn = false;
+            if (card.id === 'hermit_crab' && player.row.find(c => c.id === 'crab' || c.id === 'chameleon')) getsExtraTurn = true;
+            game.finalizeTurn(player, getsExtraTurn);
+            return;
+        }
+
         if (card.id === 'crocodile') {
             game.state.crocodileTargeting = player.id;
             game.broadcastState();
