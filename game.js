@@ -341,6 +341,9 @@ const ui = {
         }
 
         const updateDOM = () => {
+        const effectiveMyId = myId || (state.players.length > 0 ? state.players[0].id : null);
+        const myPlayer = state.players.find(p => p.id === effectiveMyId) || state.players[0];
+        
         document.getElementById('deck-left-count').innerText = state.deck1Count;
         document.getElementById('deck-right-count').innerText = state.deck2Count;
         
@@ -353,7 +356,7 @@ const ui = {
         else { thumbRight.style.display = 'none'; }
         
         const turnPlayer = state.players.find(p => p.id === state.turn);
-        const isMyTurn = (state.turn === myId);
+        const isMyTurn = (state.turn === effectiveMyId);
         const turnIndicator = document.getElementById('turn-indicator');
         turnIndicator.innerText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
         if (isMyTurn) turnIndicator.classList.remove('opp-turn');
@@ -538,7 +541,7 @@ const ui = {
                 oppArea1v1.style.flexDirection = 'column';
             }
             
-            const oppPlayer = state.players.find(p => p.id !== myId);
+            const oppPlayer = state.players.find(p => p.id !== (myPlayer ? myPlayer.id : null)) || state.players.find(p => p.id !== effectiveMyId);
             if (oppPlayer) {
                 const isTargeting = (state.crocodileTargeting === myId || state.monkeyTargeting === myId || (state.crabTargeting === myId && oppPlayer.row.length > 1));
                 
@@ -760,18 +763,24 @@ const game = {
         game.myName = (nameInput && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Hôte";
         document.getElementById('room-code-display').innerText = game.roomCode;
         
-        game.peer = new Peer(`collect-${game.roomCode}`, {
-            config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] }
-        });
+        // Immediate ID assignment so game.myId is NEVER null or delayed!
+        game.myId = 'host_' + Math.floor(Math.random() * 10000);
+        game.state.players = [{ id: game.myId, name: game.myName, isBot: false, row: [], score: 0 }];
+        ui.updateWaitingPlayers(game.state.players);
+        ui.showScreen('screen-host');
         
-        game.peer.on('open', (id) => {
-            game.myId = id;
-            game.state.players.push({ id: id, name: game.myName, isBot: false, row: [], score: 0 });
-            ui.updateWaitingPlayers(game.state.players);
-            ui.showScreen('screen-host');
-        });
-
-        game.peer.on('connection', (conn) => {
+        try {
+            game.peer = new Peer(`collect-${game.roomCode}`, {
+                config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] }
+            });
+            
+            game.peer.on('open', (id) => {
+                const hostP = game.state.players.find(p => p.id === game.myId);
+                if (hostP) hostP.id = id;
+                game.myId = id;
+                ui.updateWaitingPlayers(game.state.players);
+            });
+            game.peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 if(data.type === 'JOIN') {
                     if(game.state.players.length >= 8) { conn.send({type: 'ERROR', msg: "Salon complet."}); return; }
@@ -791,6 +800,9 @@ const game = {
                 if(game.state.started) game.broadcastState();
             });
         });
+        } catch(e) {
+            console.log("PeerJS init note:", e);
+        }
     },
 
     addBot: () => {
