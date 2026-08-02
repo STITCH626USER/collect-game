@@ -114,6 +114,10 @@ const ui = {
     showScreen: (screenId) => {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
+        if (screenId === 'screen-game') {
+            const vic = document.getElementById('victory-modal');
+            if(vic) vic.style.display = 'none';
+        }
     },
     showOverlay: (title, desc) => {
         document.getElementById('overlay-title').innerText = title;
@@ -162,6 +166,27 @@ const ui = {
             grid.appendChild(img);
         });
         document.getElementById('parrot-modal').style.display = 'flex';
+    },
+
+    showVictoryModal: (winner, reason, row) => {
+        document.getElementById('victory-title').innerText = winner.id === game.myId ? "VOUS AVEZ GAGNÉ ! 🎉" : "VICTOIRE ! 🎉";
+        document.getElementById('victory-subtitle').innerText = `${winner.name} a gagné ${reason}`;
+        
+        const cardsDiv = document.getElementById('victory-cards');
+        cardsDiv.innerHTML = '';
+        row.forEach(c => {
+            const img = document.createElement('img');
+            img.src = c.img;
+            if (reason.includes('Lion') && c.id === 'lion') img.classList.add('highlight-win');
+            if (reason.includes('Pieuvre') && c.id === 'octopus') img.classList.add('highlight-win');
+            cardsDiv.appendChild(img);
+        });
+        
+        const rematchBtn = document.getElementById('btn-rematch');
+        if (!game.isHost) rematchBtn.style.display = 'none';
+        else rematchBtn.style.display = 'inline-block';
+        
+        document.getElementById('victory-modal').style.display = 'flex';
     },
 
     showHelpModal: () => {
@@ -522,6 +547,7 @@ const game = {
                 else if(data.type === 'STATE_UPDATE') ui.renderGameState(data.state, game.myId);
                 else if(data.type === 'ALERT') ui.showOverlay("Info", data.msg);
                 else if(data.type === 'VFX') game.handleVFX(data);
+                else if(data.type === 'VICTORY') ui.showVictoryModal(data.winner, data.reason, data.row);
             });
             game.connections = [conn];
         });
@@ -541,6 +567,12 @@ const game = {
     handlePlayerAction: (playerId, action, payload) => {
         if(!game.isHost) return;
         
+        if (action === 'REMATCH') {
+            game.state.players.forEach(p => p.row = []);
+            game.startGame();
+            return;
+        }
+
         if (action === 'PARROT_PREDICT') {
             game.state.parrotPredicting = null;
             game.state.parrotPredictedAnimal = payload.animalId;
@@ -779,12 +811,13 @@ const game = {
 
     finalizeTurn: (player, getsExtraTurn = false) => {
         let won = false;
+        let winReason = '';
         
         const uniqueAnimals = new Set(player.row.filter(c => c.id !== 'lion').map(c => c.id));
         if (player.row.find(c => c.id === 'lion') && uniqueAnimals.size >= 7) {
             game.broadcast({ type: 'ALERT', msg: `${player.name} a réuni tous les animaux avec son Lion ! VICTOIRE !` });
             player.score += 1;
-            won = true;
+            won = true; winReason = "grâce au Lion (7 espèces différentes) !";
         }
 
         if (!won) {
@@ -798,7 +831,7 @@ const game = {
                 if (count >= 4) {
                     game.broadcast({ type: 'ALERT', msg: `${player.name} a aligné 4 animaux ! VICTOIRE !` });
                     player.score += 1;
-                    won = true;
+                    won = true; winReason = "en alignant 4 animaux identiques !";
                     break;
                 }
             }
@@ -826,18 +859,17 @@ const game = {
             if (pairs >= 3) {
                 game.broadcast({ type: 'ALERT', msg: `${player.name} a formé 3 paires grâce à la Pieuvre ! VICTOIRE !` });
                 player.score += 1;
-                won = true;
+                won = true; winReason = "grâce à la Pieuvre (3 paires) !";
             }
         }
-        
+
         if (won) {
-            setTimeout(() => {
-                game.broadcast({ type: 'ALERT', msg: 'Nouvelle manche !' });
-                game.state.players.forEach(p => p.row = []);
-                game.startGame();
-            }, 3000);
+            game.state.started = false;
+            game.broadcast({ type: 'VICTORY', winner: player, reason: winReason, row: player.row });
+            game.broadcastState();
             return;
         }
+
 
         if (getsExtraTurn) {
             game.broadcast({ type: 'ALERT', msg: `Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !` });

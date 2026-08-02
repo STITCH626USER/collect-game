@@ -215,6 +215,13 @@ input:focus { border-color: var(--secondary); }
     box-shadow: 0 0 10px #FF3B30; animation: explode 0.5s ease-out forwards;
 }
 
+/* Victory Screen */
+.victory-content { text-align: center; background: rgba(20, 30, 50, 0.95); border: 3px solid #f1c40f; box-shadow: 0 0 50px rgba(241, 196, 15, 0.5); }
+.victory-content h1 { font-size: 3rem; color: #f1c40f; margin-bottom: 10px; animation: pulse 1.5s infinite; }
+.victory-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 30px 0; }
+.victory-cards img { width: 80px; height: 120px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.8); transition: transform 0.3s; }
+.victory-cards img.highlight-win { border: 3px solid #2ecc71; box-shadow: 0 0 20px #2ecc71; transform: scale(1.15); z-index: 10; }
+
 @keyframes crocBite {
     0% { transform: scale(1); filter: brightness(1); }
     30% { transform: scale(1.1) rotate(5deg); filter: sepia(1) hue-rotate(-50deg) saturate(3) brightness(0.5); }

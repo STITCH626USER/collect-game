@@ -33,7 +33,7 @@
                 <button class="btn btn-main" onclick="ui.showScreen('screen-host')">Créer un Salon</button>
                 <button class="btn btn-main" onclick="ui.showScreen('screen-join')">Rejoindre</button>
             </div>
-            <div class="version-badge">Version 1.06</div>
+            <div class="version-badge">Version 1.07</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -140,6 +140,17 @@
             </div>
         </div>
 
+        <!-- ================= VICTORY MODAL ================= -->
+        <div id="victory-modal" class="overlay" style="display: none;">
+            <div class="overlay-content victory-content bounce-in">
+                <h1 id="victory-title">VICTOIRE ! 🎉</h1>
+                <h3 id="victory-subtitle">Joueur a gagné !</h3>
+                <div class="victory-cards" id="victory-cards">
+                    <!-- Winning cards displayed here -->
+                </div>
+                <button class="btn btn-main" id="btn-rematch" style="margin-top:20px;" onclick="game.sendAction('REMATCH')">Rejouer une manche</button>
+            </div>
+        </div>
     </div>
     
     <script src="game.js"></script>
