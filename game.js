@@ -133,10 +133,7 @@ const game = {
     },
 
     generateRoomCode: () => {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let res = '';
-        for(let i=0; i<4; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
-        return res;
+        return Math.floor(1000 + Math.random() * 9000).toString();
     },
 
     // ================= HOST =================
@@ -146,7 +143,9 @@ const game = {
         game.myName = "Hôte";
         document.getElementById('room-code-display').innerText = game.roomCode;
         
-        game.peer = new Peer(`collect-${game.roomCode}`);
+        game.peer = new Peer(`collect-${game.roomCode}`, {
+            config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
+        });
         game.peer.on('open', (id) => {
             game.myId = id;
             game.state.players.push({ id: id, name: "Hôte", isBot: false, row: [], score: 0 });
@@ -236,7 +235,12 @@ const game = {
         if(code.length !== 4) return;
         
         document.getElementById('join-msg').innerText = "Connexion...";
-        game.peer = new Peer();
+        game.peer = new Peer({
+            config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] }
+        });
+        game.peer.on('error', (err) => {
+            document.getElementById('join-msg').innerText = "Erreur (" + err.type + "). Réessayez.";
+        });
         game.peer.on('open', (id) => {
             game.myId = id;
             game.myName = name;

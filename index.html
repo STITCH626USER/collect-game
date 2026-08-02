@@ -51,7 +51,7 @@
             <button class="btn-back" onclick="ui.showScreen('screen-home')">⬅ Retour</button>
             <h2>Rejoindre</h2>
             <div class="join-box">
-                <input type="text" id="input-room-code" placeholder="Code à 4 lettres/chiffres" maxlength="4" style="text-transform: uppercase;">
+                <input type="tel" id="input-room-code" placeholder="Code à 4 chiffres" maxlength="4" pattern="[0-9]*">
                 <input type="text" id="input-player-name" placeholder="Votre Pseudo" maxlength="10">
                 <button class="btn btn-main" onclick="game.joinRoom()">Connexion</button>
             </div>
