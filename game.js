@@ -261,13 +261,13 @@ const ui = {
                     cardActions.style.display = 'flex';
                     if (activePowers.includes(state.currentDrawnCard.id)) {
                         cardActions.innerHTML = `
-                            <button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>
+                            ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
                             <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
                             <button class="btn-action btn-keep" onclick="ui.showPlacement(false)">✨ AVEC pouvoir</button>
                         `;
                     } else {
                         cardActions.innerHTML = `
-                            <button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>
+                            ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
                             <button class="btn-action btn-keep" onclick="ui.showPlacement(false)">✅ Garder</button>
                         `;
                     }
@@ -442,6 +442,7 @@ const game = {
         currentDrawnCard: null,
         originalDeckIndex: null,
         forcedDeck: null,
+        mustPlaceDrawnCard: false,
         parrotPredicting: null,
         parrotPredictedAnimal: null,
         crocodileTargeting: null,
@@ -510,7 +511,7 @@ const game = {
             deck1Count: game.state.deck1.length, deck2Count: game.state.deck2.length,
             deck1Thumbnail: game.state.deck1Thumbnail, deck2Thumbnail: game.state.deck2Thumbnail,
             turn: game.state.turn,
-            currentDrawnCard: game.state.currentDrawnCard, forcedDeck: game.state.forcedDeck,
+            currentDrawnCard: game.state.currentDrawnCard, forcedDeck: game.state.forcedDeck, mustPlaceDrawnCard: game.state.mustPlaceDrawnCard,
             parrotPredicting: game.state.parrotPredicting,
             parrotPredictedAnimal: game.state.parrotPredictedAnimal,
             crocodileTargeting: game.state.crocodileTargeting,
@@ -544,6 +545,7 @@ const game = {
         game.state.turnIndex = 0;
         game.state.turn = game.state.players[0].id;
         game.state.currentDrawnCard = null;
+        game.state.mustPlaceDrawnCard = false;
         game.state.crabTargeting = null;
         game.state.monkeyTargeting = null;
         game.state.crocTargeting = null;
@@ -739,6 +741,7 @@ const game = {
                     game.state.currentDrawnCard = card;
                     game.state.originalDeckIndex = payload.deckIndex;
                     game.state.forcedDeck = null;
+                    game.state.mustPlaceDrawnCard = false;
                     game.broadcastState(); 
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
@@ -756,6 +759,9 @@ const game = {
                     game.state.currentDrawnCard = card;
                     game.state.originalDeckIndex = payload.deckIndex;
                     game.state.forcedDeck = null;
+                    // Note: We DO NOT clear mustPlaceDrawnCard here, because this is where the player DRAWS the forced card. 
+                    // If they drew the forced card, mustPlaceDrawnCard remains true until their turn ends!
+                    // Wait, if mustPlaceDrawnCard is true, it remains true for this card. If it's false, it remains false.
                     game.broadcastState();
                 }
             }
@@ -776,12 +782,14 @@ const game = {
 
             if (payload && payload.endTurn) {
                 game.state.forcedDeck = null;
+                game.state.mustPlaceDrawnCard = false;
                 setTimeout(() => {
                     const p = game.state.players.find(x => x.id === playerId);
                     if (p) game.finalizeTurn(p);
                 }, 500);
             } else {
                 game.state.forcedDeck = game.state.originalDeckIndex === 1 ? 2 : 1;
+                game.state.mustPlaceDrawnCard = true;
                 setTimeout(() => game.broadcastState(), 500);
             }
         }
@@ -795,6 +803,7 @@ const game = {
             
             game.state.currentDrawnCard = null;
             game.state.forcedDeck = null;
+            game.state.mustPlaceDrawnCard = false;
 
             game.triggerVFX({ action: 'PLACE', player: playerId, card: card, side: payload.side });
 
@@ -921,6 +930,7 @@ const game = {
             game.state.turnIndex = (game.state.turnIndex + 1) % game.state.players.length;
             game.state.turn = game.state.players[game.state.turnIndex].id;
         }
+        game.state.mustPlaceDrawnCard = false;
         game.broadcastState();
     },
 
@@ -1107,7 +1117,12 @@ const game = {
                 if(!hasOpponents) wantsToKeep = false;
             }
 
-            if(!wantsToKeep && !game.state.forcedDeck) {
+                
+                if (game.state.mustPlaceDrawnCard) {
+                    wantsToKeep = true;
+                }
+
+                if(!wantsToKeep && !game.state.forcedDeck && !game.state.mustPlaceDrawnCard) {
                 game.handlePlayerAction(botId, 'REJECT', {});
             } else {
                 game.handlePlayerAction(botId, 'PLACE', { side: Math.random() > 0.5 ? 'left' : 'right' });
