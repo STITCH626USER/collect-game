@@ -374,6 +374,12 @@ const ui = {
                                 <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
                                 <button class="btn-action btn-keep" onclick="game.sendAction('MONKEY_INIT', {})">✨ AVEC pouvoir</button>
                             `;
+                        } else if (state.currentDrawnCard.id === 'parrot') {
+                            cardActions.innerHTML = `
+                                ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
+                                <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
+                                <button class="btn-action btn-keep" onclick="game.sendAction('PARROT_INIT', {})">✨ AVEC pouvoir</button>
+                            `;
                         } else {
                             cardActions.innerHTML = `
                                 ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
@@ -394,6 +400,13 @@ const ui = {
 
                 if (state.mustPlaceDrawnCard && (state.disablePower || !activePowers.includes(state.currentDrawnCard.id))) {
                     ui.showPlacement(false);
+                }
+                
+                if (state.monkeyTargeting === myId || state.parrotPredicting === myId) {
+                    document.getElementById('drawn-card').style.transform = 'scale(0.5) translateY(30px)';
+                    cardActions.style.display = 'none';
+                } else {
+                    document.getElementById('drawn-card').style.transform = '';
                 }
             } else {
                 document.getElementById('card-actions').style.display = 'none';
@@ -736,15 +749,14 @@ const game = {
         game.state.monkeyTargeting = null;
         game.state.crocTargeting = null;
 
+        // Initialiser 3 cartes pour tout le monde
         game.state.players.forEach(p => {
             p.row = [];
-            if (!p.score) p.score = 0;
-        });
-
-        
-        game.broadcast({ type: 'START_GAME' });
-        ui.showScreen('screen-game');
-        ui.hideOverlay();
+            if (p.score === undefined) p.score = 0;
+            p.row.push(game.state.deck1.pop());
+            p.row.push(game.state.deck2.pop());
+            p.row.push(game.state.deck1.pop());
+        });ui.hideOverlay();
         document.getElementById('victory-modal').style.display = 'none';
         game.broadcastState();
     },
@@ -817,6 +829,14 @@ const game = {
 
         if (action === 'MONKEY_INIT') {
             game.state.monkeyTargeting = playerId;
+            game.broadcastState();
+            return;
+        }
+
+        if (action === 'PARROT_INIT') {
+            game.state.parrotPredicting = playerId;
+            const sourcePlayer = game.state.players.find(p => p.id === playerId);
+            game.addHistory(`${sourcePlayer.name} utilise son Perroquet et va faire une prédiction...`);
             game.broadcastState();
             return;
         }
@@ -965,12 +985,12 @@ const game = {
                     game.state.mustPlaceDrawnCard = false;
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
-                        game.broadcast({ type: 'ALERT', msg: "Prédiction réussie !" });
+                        game.broadcast({ type: 'ALERT', msg: "Prédiction réussie ! Le Perroquet est défaussé." });
                         game.state.parrotPredictedAnimal = null;
                         game.broadcastState();
                     } else {
                         game.broadcastState(); // Broadcast to show the wrong card
-                        game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Le Perroquet reste, mais la pioche est défaussée." });
+                        game.broadcast({ type: 'ALERT', msg: "Prédiction ratée ! Les deux cartes sont défaussées." });
                         setTimeout(() => {
                             game.state.parrotPredictedAnimal = null;
                             game.handlePlayerAction(playerId, 'REJECT', { endTurn: true });
