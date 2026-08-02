@@ -481,3 +481,68 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 
 .btn-neutral { background: #a4b0be; }
 
+/* ================= 3.1 VERTICAL OPPONENTS LIST ================= */
+.opponents-vertical-list {
+    width: 100%;
+    max-height: clamp(140px, 35vh, 280px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px;
+    background: rgba(15, 15, 26, 0.45);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    margin-bottom: 8px;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+}
+
+.opponent-card-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 6px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.opponent-card-block.active-turn {
+    border: 2px solid var(--secondary);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+    background: rgba(0, 229, 255, 0.08);
+}
+
+.opponent-header-pill {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: #ffffff;
+    padding: 3px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.opp-row-cards {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px;
+    min-height: 60px;
+    align-items: center;
+    -webkit-overflow-scrolling: touch;
+}
+
+.opp-row-cards .card {
+    width: clamp(45px, 12vw, 70px);
+    height: auto;
+    aspect-ratio: 2.5/3.5;
+    flex-shrink: 0;
+}
+
