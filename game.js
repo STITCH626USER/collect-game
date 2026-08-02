@@ -240,7 +240,7 @@ const ui = {
                     if (activePowers.includes(state.currentDrawnCard.id)) {
                         cardActions.innerHTML = `
                             <button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>
-                            <button class="btn-action btn-keep" style="background: #555;" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
+                            <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
                             <button class="btn-action btn-keep" onclick="ui.showPlacement(false)">✨ AVEC pouvoir</button>
                         `;
                     } else {

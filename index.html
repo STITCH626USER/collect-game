@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Collect! - The Wild Card Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -23,17 +24,17 @@
             </div>
         </div>
         
-        <!-- ================= LOBBY ================= -->
+        <!-- ================= HOME SCREEN ================= -->
         <div id="screen-home" class="screen active">
-            <div class="logo-container">
-                <h1 class="bounce-in">COLLECT!</h1>
-                <p class="subtitle fade-in">Le jeu du Roi des Animaux</p>
+            <div class="logo-container bounce-in">
+                <h1>COLLECT</h1>
+                <div class="subtitle">L'Édition Bubbly</div>
             </div>
             <div class="menu-actions fade-in-up">
                 <button class="btn btn-main" onclick="ui.showScreen('screen-host')">Créer un Salon</button>
-                <button class="btn btn-main" onclick="ui.showScreen('screen-join')">Rejoindre</button>
+                <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
             </div>
-            <div class="version-badge">Version 1.08</div>
+            <div class="version-badge">Version 2.00</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
