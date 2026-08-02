@@ -1094,7 +1094,7 @@ const game = {
         const uniqueAnimals = new Set(player.row.filter(c => c.id !== 'lion').map(c => c.id));
         if (player.row.find(c => c.id === 'lion') && uniqueAnimals.size >= 7) {
             game.broadcast({ type: 'ALERT', msg: `${player.name} a réuni tous les animaux avec son Lion ! VICTOIRE !` });
-            player.score += 1;
+            player.score += 0.5;
             won = true; winReason = "grâce au Lion (7 espèces différentes) !";
         }
 
@@ -1108,7 +1108,7 @@ const game = {
                 
                 if (count >= 4) {
                     game.broadcast({ type: 'ALERT', msg: `${player.name} a aligné 4 animaux ! VICTOIRE !` });
-                    player.score += 1;
+                    player.score += 0.5;
                     won = true; winReason = "en alignant 4 animaux identiques !";
                     break;
                 }
@@ -1136,7 +1136,7 @@ const game = {
             }
             if (pairs >= 3) {
                 game.broadcast({ type: 'ALERT', msg: `${player.name} a formé 3 paires grâce à la Pieuvre ! VICTOIRE !` });
-                player.score += 1;
+                player.score += 0.5;
                 won = true; winReason = "grâce à la Pieuvre (3 paires) !";
             }
         }
