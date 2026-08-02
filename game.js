@@ -1055,7 +1055,7 @@ const game = {
                         game.broadcastState();
                         if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                     } else {
-                        game.broadcast({ type: 'ALERT', msg: "❌ Prédiction ratée ! Carte défaussée, placez votre Perroquet 🦜 !" });
+                        game.broadcast({ type: 'ALERT', msg: "❌ Mauvaise pioche 😞 ! Carte défaussée, placez votre Perroquet 🦜 !" });
                         game.state.currentDrawnCard = card;
                         game.broadcastState();
 
@@ -1075,7 +1075,7 @@ const game = {
                             game.state.disablePower = true;
                             game.broadcastState();
                             if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
-                        }, 400);
+                        }, 1400);
                     }
                 } else {
                     game.state.currentDrawnCard = card;
