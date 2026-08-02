@@ -1,12 +1,12 @@
 const ANIMALS = [
-    { id: 'crocodile', name: 'Crocodile', img: 'assets/card_crocodile.jpg?v=3', desc: 'Détruit la dernière carte d\'un adversaire aléatoire.' },
-    { id: 'chameleon', name: 'Caméléon', img: 'assets/card_chameleon.jpg?v=3', desc: 'Joker. S\'annule et se défausse si vous en posez un 2ème.' },
-    { id: 'monkey', name: 'Singe', img: 'assets/card_monkey.jpg?v=3', desc: 'Échange votre carte avec celle d\'un adversaire.' },
-    { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg?v=3', desc: 'Déplace votre première carte à la fin de votre rangée.' },
-    { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg?v=3', desc: 'Rejouez un tour si vous avez déjà un Crabe.' },
-    { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg?v=3', desc: 'Gagnez si vous avez 2 paires d\'animaux (4 cartes).' },
-    { id: 'lion', name: 'Lion', img: 'assets/card_lion.jpg?v=3', desc: 'Gagnez si vous avez 1 exemplaire de chaque autre animal.' },
-    { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=3', desc: 'Devinez votre pioche pour la conserver.' }
+    { id: 'crocodile', name: 'Crocodile', img: 'assets/card_crocodile.jpg?v=4', desc: 'Détruit la dernière carte d\'un adversaire aléatoire.' },
+    { id: 'chameleon', name: 'Caméléon', img: 'assets/card_chameleon.jpg?v=4', desc: 'Joker. S\'annule et se défausse si vous en posez un 2ème.' },
+    { id: 'monkey', name: 'Singe', img: 'assets/card_monkey.jpg?v=4', desc: 'Échange votre carte avec celle d\'un adversaire.' },
+    { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg?v=4', desc: 'Déplace votre première carte à la fin de votre rangée.' },
+    { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg?v=4', desc: 'Rejouez un tour si vous avez déjà un Crabe.' },
+    { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg?v=4', desc: 'Gagnez si vous avez 2 paires d\'animaux (4 cartes).' },
+    { id: 'lion', name: 'Lion', img: 'assets/card_lion.jpg?v=4', desc: 'Gagnez si vous avez 1 exemplaire de chaque autre animal.' },
+    { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=4', desc: 'Devinez votre pioche pour la conserver.' }
 ];
 
 // --- ANIMATION ENGINE ---
@@ -104,10 +104,13 @@ const ui = {
     },
     showPlacement: () => {
         const myPlayer = game.state.players.find(p => p.id === game.myId);
+        
+        // Hide card actions immediately so the user can't click twice and it looks clean
+        document.getElementById('card-actions').style.display = 'none';
+
         if (myPlayer && myPlayer.row.length === 0) {
             game.placeCard('right'); // Pas de choix nécessaire si la main est vide
         } else {
-            document.getElementById('card-actions').style.display = 'none';
             document.getElementById('placement-actions').style.display = 'flex';
         }
     },
@@ -162,7 +165,9 @@ const ui = {
             document.getElementById('deck-right').style.opacity = '1';
         } else {
             document.getElementById('drawn-card-zone').style.display = 'flex';
-            document.getElementById('drawn-card-img').src = state.currentDrawnCard.img;
+            const drawnCardImg = document.getElementById('drawn-card-img');
+            drawnCardImg.src = state.currentDrawnCard.img;
+            drawnCardImg.style.opacity = '1'; // Reset opacity if it was hidden by VFX
             
             // Disable both decks while deciding
             document.getElementById('deck-left').classList.add('disabled');
@@ -581,6 +586,10 @@ const game = {
             vfx.push((done) => {
                 const containerId = data.player === game.myId ? 'my-row' : `opp-cards-${data.player}`;
                 const container = document.getElementById(containerId);
+                
+                // Hide the original card instantly so we don't have a duplicated visual during flight
+                const origCard = document.getElementById('drawn-card-img');
+                if (origCard && data.player === game.myId) origCard.style.opacity = '0';
                 
                 let tRect = { left: window.innerWidth/2, top: window.innerHeight - 50, width: 75, height: 110 };
                 if (container) {
