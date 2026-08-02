@@ -177,8 +177,16 @@ const ui = {
         row.forEach(c => {
             const img = document.createElement('img');
             img.src = c.img;
-            if (reason.includes('Lion') && c.id === 'lion') img.classList.add('highlight-win');
-            if (reason.includes('Pieuvre') && c.id === 'octopus') img.classList.add('highlight-win');
+            
+            if (reason.includes('Lion')) {
+                // Pour le Lion, toutes les cartes différentes s'éclairent
+                img.classList.add('highlight-win');
+            } else if (reason.includes('Pieuvre')) {
+                // Pour la pieuvre, toutes les paires s'éclairent
+                // (Simplification : on éclaire tout, car la victoire implique que l'ensemble du jeu contient les paires)
+                img.classList.add('highlight-win');
+            }
+            
             cardsDiv.appendChild(img);
         });
         
@@ -207,8 +215,17 @@ const ui = {
     },
     
     renderGameState: (state, myId) => {
+        const updateDOM = () => {
         document.getElementById('deck-left-count').innerText = state.deck1Count;
         document.getElementById('deck-right-count').innerText = state.deck2Count;
+        
+        const thumbLeft = document.getElementById('deck-left-thumbnail');
+        if (state.deck1Thumbnail) { thumbLeft.src = state.deck1Thumbnail; thumbLeft.style.display = 'block'; }
+        else { thumbLeft.style.display = 'none'; }
+        
+        const thumbRight = document.getElementById('deck-right-thumbnail');
+        if (state.deck2Thumbnail) { thumbRight.src = state.deck2Thumbnail; thumbRight.style.display = 'block'; }
+        else { thumbRight.style.display = 'none'; }
         
         const turnPlayer = state.players.find(p => p.id === state.turn);
         const isMyTurn = (state.turn === myId);
@@ -398,6 +415,16 @@ const ui = {
         
         if (state.parrotPredicting === myId) ui.showParrotModal();
         else document.getElementById('parrot-modal').style.display = 'none';
+        };
+
+        if (document.startViewTransition && !ui.isAnimating) {
+            ui.isAnimating = true;
+            document.startViewTransition(updateDOM).finished.finally(() => {
+                ui.isAnimating = false;
+            });
+        } else {
+            updateDOM();
+        }
     }
 };
 
@@ -486,6 +513,7 @@ const game = {
         const safeState = {
             started: game.state.started,
             deck1Count: game.state.deck1.length, deck2Count: game.state.deck2.length,
+            deck1Thumbnail: game.state.deck1Thumbnail, deck2Thumbnail: game.state.deck2Thumbnail,
             turn: game.state.turn,
             currentDrawnCard: game.state.currentDrawnCard, forcedDeck: game.state.forcedDeck,
             parrotPredicting: game.state.parrotPredicting,
@@ -515,9 +543,21 @@ const game = {
         
         game.state.deck1 = fullDeck.slice(0, 32);
         game.state.deck2 = fullDeck.slice(32);
+        game.state.deck1Thumbnail = null;
+        game.state.deck2Thumbnail = null;
         game.state.started = true;
         game.state.turnIndex = 0;
         game.state.turn = game.state.players[0].id;
+        game.state.currentDrawnCard = null;
+        game.state.crabTargeting = null;
+        game.state.monkeyTargeting = null;
+        game.state.crocTargeting = null;
+
+        game.state.players.forEach(p => {
+            p.cards = [];
+            if (!p.score) p.score = 0;
+        });
+
         
         game.broadcast({ type: 'START_GAME' });
         ui.showScreen('screen-game');
@@ -727,8 +767,14 @@ const game = {
         }
         else if (action === 'REJECT') {
             if(!game.state.currentDrawnCard) return;
-            if(game.state.originalDeckIndex === 1) game.state.deck1.unshift(game.state.currentDrawnCard);
-            else game.state.deck2.unshift(game.state.currentDrawnCard);
+            if(game.state.originalDeckIndex === 1) {
+                game.state.deck1.unshift(game.state.currentDrawnCard);
+                game.state.deck1Thumbnail = game.state.currentDrawnCard.img;
+            }
+            else {
+                game.state.deck2.unshift(game.state.currentDrawnCard);
+                game.state.deck2Thumbnail = game.state.currentDrawnCard.img;
+            }
             
             game.state.currentDrawnCard = null;
             game.triggerVFX({ action: 'REJECT', player: playerId });

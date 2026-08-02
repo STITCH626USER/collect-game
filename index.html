@@ -27,8 +27,8 @@
         <!-- ================= HOME SCREEN ================= -->
         <div id="screen-home" class="screen active">
             <div class="logo-container bounce-in">
-                <h1>COLLECT</h1>
-                <div class="subtitle">L'Édition Bubbly</div>
+                <h1 class="logo-title">Le <span class="crowned-r">R<span class="crown-icon">👑</span></span>oi</h1>
+                <h1 class="logo-title">des Animaux</h1>
             </div>
             <div class="menu-actions fade-in-up">
                 <button class="btn btn-main" onclick="ui.showScreen('screen-host')">Créer un Salon</button>
@@ -87,6 +87,7 @@
                 <div class="decks-area" id="decks-area">
                     <div class="deck" id="deck-left" onclick="game.drawCard(1)">
                         <img src="assets/card_back.jpg" alt="Deck 1">
+                        <img src="" id="deck-left-thumbnail" class="deck-thumbnail" style="display:none;" alt="Rejected Card">
                         <span class="deck-count" id="deck-left-count">32</span>
                     </div>
                     
@@ -106,6 +107,7 @@
 
                     <div class="deck" id="deck-right" onclick="game.drawCard(2)">
                         <img src="assets/card_back.jpg" alt="Deck 2">
+                        <img src="" id="deck-right-thumbnail" class="deck-thumbnail" style="display:none;" alt="Rejected Card">
                         <span class="deck-count" id="deck-right-count">32</span>
                     </div>
                 </div>
