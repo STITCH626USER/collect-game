@@ -329,6 +329,10 @@ const ui = {
                 document.getElementById('placement-actions').style.display = 'none';
                 if (state.forcedDeck === 1) document.getElementById('deck-right').style.opacity = '0.3';
                 if (state.forcedDeck === 2) document.getElementById('deck-left').style.opacity = '0.3';
+
+                if (state.mustPlaceDrawnCard && state.disablePower) {
+                    ui.showPlacement(false);
+                }
             } else {
                 document.getElementById('card-actions').style.display = 'none';
                 document.getElementById('placement-actions').style.display = 'none';
