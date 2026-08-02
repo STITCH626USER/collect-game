@@ -11,8 +11,7 @@
 </head>
 <body>
     <div id="app-container">
-        <button id="btn-history" class="btn-history" onclick="document.getElementById('history-modal').style.display='flex'">📖</button>
-        <button id="btn-help" class="btn-help" onclick="ui.showHelpModal()">❓</button>
+        <!-- Floating buttons removed to avoid overlap on mobile landscape -->
         
         <!-- ================= HELP MODAL ================= -->
         <div id="help-modal" class="overlay">
@@ -46,8 +45,9 @@
                 <input type="text" id="input-host-name" placeholder="Votre Pseudo (Hôte)" maxlength="10">
                 <button class="btn btn-main" onclick="ui.showScreen('screen-host')">Créer un Salon</button>
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
+                <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 10px; background: white; color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
-            <div class="version-badge">v3.20</div>
+            <div class="version-badge">v3.21</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -132,6 +132,10 @@
             <div class="local-player-area">
                 <div class="player-header">
                     <span class="player-name">Vous (<span id="my-score">0</span> 👑)</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-history-inline" onclick="document.getElementById('history-modal').style.display='flex'">📖</button>
+                        <button class="btn-help-inline" onclick="ui.showHelpModal()">❓</button>
+                    </div>
                 </div>
                 <div class="my-collection row" id="my-row">
                     <!-- Mes cartes -->
