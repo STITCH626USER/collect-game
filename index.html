@@ -47,7 +47,7 @@
                 <button class="btn btn-main" onclick="ui.showScreen('screen-host')">Créer un Salon</button>
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
             </div>
-            <div class="version-badge">v3.17</div>
+            <div class="version-badge">v3.18</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -144,6 +144,9 @@
             <div class="overlay-content bounce-in">
                 <h2>Prédiction 🦜</h2>
                 <p>Quel animal allez-vous piocher ?</p>
+                <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 5px; margin-bottom: 15px; font-style: italic; line-height: 1.3;">
+                    Astuce : Si une carte est visible sur une pioche, vous pouvez la prédire pour l'obtenir à coup sûr, ou en prédire une autre et tenter la pioche cachée !
+                </p>
                 <div class="animal-grid" id="parrot-animal-grid">
                     <!-- Dynamically populated -->
                 </div>
