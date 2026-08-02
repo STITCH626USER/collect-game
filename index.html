@@ -6,7 +6,7 @@
     <title>Collect - Jeu de Cartes</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4.1">
+    <link rel="stylesheet" href="style.css?v=4.2">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -47,7 +47,7 @@
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
                 <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
-            <div class="version-badge">v4.1 (Premium UI Fix)</div>
+            <div class="version-badge">v4.2 (VFX Fix)</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -89,8 +89,8 @@
         <div id="screen-game" class="screen">
             
             <!-- Haut : Adversaire (1v1) -->
-            <div class="local-player-area" id="opponent-area-1v1" style="display:none; transform: rotate(180deg);">
-                <div style="transform: rotate(180deg);">
+            <div class="local-player-area" id="opponent-area-1v1" style="display:none; flex-direction: column-reverse;">
+                <div style="display:flex; flex-direction: column-reverse;">
                     <div class="player-header">
                         <span class="player-name" id="opp-1v1-name">Adversaire (<span id="opp-1v1-score">0</span> 👑)</span>
                     </div>
