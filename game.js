@@ -429,7 +429,7 @@ const ui = {
                     ui.showPlacement(false);
                 }
                 
-                if (state.monkeyTargeting === myId || state.parrotPredicting === myId || (state.parrotPredictedAnimal && state.turn === myId)) {
+                if (state.monkeyTargeting === effectiveMyId || state.parrotPredicting === effectiveMyId || (state.parrotPredictedAnimal && state.turn === effectiveMyId)) {
                     if (state.parrotPredictedAnimal) {
                         document.getElementById('drawn-card').style.transform = '';
                         cardActions.style.display = 'block';
@@ -446,11 +446,11 @@ const ui = {
             }
         }
         
-        if (state.crocodileTargeting === myId) {
+        if (state.crocodileTargeting === effectiveMyId) {
             ui.showOverlay("Attaque Crocodile 🐊", "Cliquez sur une carte à dévorer, ou passez si vous ne voulez pas utiliser le pouvoir.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('CROCODILE_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
-        } else if (state.monkeyTargeting === myId) {
+        } else if (state.monkeyTargeting === effectiveMyId) {
             ui.showOverlay("Pouvoir du Singe 🐒", "Cliquez sur la carte avec laquelle échanger, ou passez.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('MONKEY_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
-        } else if (state.crabTargeting === myId) {
+        } else if (state.crabTargeting === effectiveMyId) {
             if (ui.crabPreview) {
                 ui.showOverlay("Pouvoir du Crabe 🦀", "Déplacez la carte, puis validez.", `
                     <button class="btn-action btn-keep" style="width: 100%; margin-bottom: 10px;" onclick="game.sendAction('CRAB_SELECT', { targetPlayerId: ui.crabPreview.playerId, originalIndex: ui.crabPreview.originalIndex, currentIndex: ui.crabPreview.currentIndex }); ui.crabPreview = null;">✅ Valider le déplacement</button>
@@ -468,7 +468,7 @@ const ui = {
         } else if (state.crabTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crabTargeting);
             ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} hésite à déplacer une carte...`);
-        } else if (state.parrotPredictedAnimal && state.turn !== myId) {
+        } else if (state.parrotPredictedAnimal && state.turn !== effectiveMyId) {
             const targetingPlayer = state.players.find(p => p.id === state.turn);
             const animalNameMap = {
                 lion: 'le Lion 🦁', chameleon: 'le Caméléon 🦎', monkey: 'le Singe 🐒',
@@ -701,7 +701,7 @@ const ui = {
             document.getElementById('opponent-zoom-modal').style.display = 'none';
         }
         
-        if (state.parrotPredicting === myId) ui.showParrotModal();
+        if (state.parrotPredicting === effectiveMyId) ui.showParrotModal();
         else document.getElementById('parrot-modal').style.display = 'none';
         };
 
