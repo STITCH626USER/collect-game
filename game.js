@@ -2012,9 +2012,73 @@ const game = {
                 resetGuard();
                 const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 0);
                 if (opponents.length > 0) {
-                    const target = opponents[Math.floor(Math.random() * opponents.length)];
-                    const cardIndex = Math.floor(Math.random() * target.row.length);
-                    game.handlePlayerAction(botId, 'CROCODILE_SELECT', { targetPlayerId: target.id, cardIndex });
+                    let bestTarget = null;
+                    let bestCardIndex = 0;
+                    let maxScore = -999;
+
+                    opponents.forEach(opp => {
+                        const len = opp.row.length;
+                        opp.row.forEach((card, idx) => {
+                            let score = 0;
+
+                            // 1. Is this card part of an adjacent pair in opp's row? (Break pairs!)
+                            const isPairedWithLeft = (idx > 0 && opp.row[idx - 1].id === card.id);
+                            const isPairedWithRight = (idx < len - 1 && opp.row[idx + 1].id === card.id);
+                            const isChameleonLeft = (idx > 0 && opp.row[idx - 1].id === 'chameleon');
+                            const isChameleonRight = (idx < len - 1 && opp.row[idx + 1].id === 'chameleon');
+
+                            if (isPairedWithLeft || isPairedWithRight) {
+                                score += 80; // High priority to break adjacent pairs!
+                            }
+                            if (isChameleonLeft || isChameleonRight) {
+                                score += 60; // Break chameleon pairs
+                            }
+
+                            // 2. Is this card at the edge of opp's row? (Edge cards are active pair builders)
+                            const isEdge = (idx === 0 || idx === len - 1);
+                            if (isEdge) {
+                                score += 30;
+                                if (isPairedWithLeft || isPairedWithRight) score += 50; // Edge pair combo bonus!
+                            }
+
+                            // 3. Opponent Threat Level (Close to winning?)
+                            const uniqueAnimals = new Set(opp.row.filter(c => c.id !== 'lion').map(c => c.id));
+                            const hasLion = opp.row.some(c => c.id === 'lion');
+                            if (hasLion && uniqueAnimals.size >= 5) {
+                                score += 120; // Critical threat! Destroy their cards!
+                            }
+
+                            let pairCount = 0;
+                            const freqs = {};
+                            opp.row.forEach(c => freqs[c.id] = (freqs[c.id] || 0) + 1);
+                            Object.values(freqs).forEach(count => { if (count >= 2) pairCount++; });
+                            if (pairCount >= 2 && (isPairedWithLeft || isPairedWithRight)) {
+                                score += 100; // Critical threat to break octopus 3-pair win!
+                            }
+
+                            // 4. Animal Type Importance
+                            if (card.id === 'crocodile') score += 45; // Destroy opponent crocodiles!
+                            else if (card.id === 'lion') score += 50; // Destroy opponent lions!
+                            else if (card.id === 'octopus') score += 35;
+                            else if (card.id === 'hermit_crab') score += 30;
+                            else if (card.id === 'chameleon') score += 25;
+                            else if (card.id === 'monkey') score += 15;
+
+                            score += Math.random() * 5; // Natural tie-breaking noise
+
+                            if (score > maxScore) {
+                                maxScore = score;
+                                bestTarget = opp;
+                                bestCardIndex = idx;
+                            }
+                        });
+                    });
+
+                    if (bestTarget) {
+                        game.handlePlayerAction(botId, 'CROCODILE_SELECT', { targetPlayerId: bestTarget.id, cardIndex: bestCardIndex });
+                    } else {
+                        game.handlePlayerAction(botId, 'CROCODILE_SELECT', { skip: true });
+                    }
                 } else {
                     game.handlePlayerAction(botId, 'CROCODILE_SELECT', { skip: true });
                 }
