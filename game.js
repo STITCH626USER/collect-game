@@ -834,6 +834,42 @@ const game = {
             game.deferredPrompt = e;
             if (installBtn && !isStandalone) installBtn.style.display = 'block';
         });
+
+        // Reconnect listener on tab refocus / browser online
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                game.checkAndReconnect();
+            }
+        });
+        window.addEventListener('online', () => {
+            game.checkAndReconnect();
+        });
+
+        // Keep-alive PING interval
+        setInterval(() => {
+            if (game.isHost) {
+                game.connections.forEach(conn => {
+                    try { conn.send({ type: 'PING' }); } catch(e){}
+                });
+            } else if (game.clientConn && game.clientConn.open) {
+                try { game.clientConn.send({ type: 'PING' }); } catch(e){}
+            }
+        }, 4000);
+    },
+
+    checkAndReconnect: () => {
+        const savedCode = sessionStorage.getItem('collect_room_code');
+        const savedName = sessionStorage.getItem('collect_player_name');
+        const savedId = sessionStorage.getItem('collect_player_id');
+
+        if (savedCode && !game.isHost) {
+            if (!game.clientConn || !game.clientConn.open) {
+                console.log("Auto-reconnecting to room:", savedCode);
+                game.reconnectClient(savedCode, savedName, savedId);
+            } else {
+                try { game.clientConn.send({ type: 'PING' }); } catch(e){}
+            }
+        }
     },
 
     generateRoomCode: () => {
@@ -848,9 +884,13 @@ const game = {
         const codeEl = document.getElementById('room-code-display');
         if (codeEl) { codeEl.innerText = game.roomCode; codeEl.textContent = game.roomCode; }
         
-        // Immediate ID assignment so game.myId is NEVER null or delayed!
         game.myId = 'host_' + Math.floor(Math.random() * 10000);
-        game.state.players = [{ id: game.myId, name: game.myName, isBot: false, row: [], score: 0 }];
+        game.state.players = [{ id: game.myId, name: game.myName, isBot: false, row: [], score: 0, disconnected: false }];
+        
+        sessionStorage.setItem('collect_room_code', game.roomCode);
+        sessionStorage.setItem('collect_player_name', game.myName);
+        sessionStorage.setItem('collect_player_id', game.myId);
+
         ui.updateWaitingPlayers(game.state.players);
         ui.showScreen('screen-host');
         
@@ -863,28 +903,66 @@ const game = {
                 const hostP = game.state.players.find(p => p.id === game.myId);
                 if (hostP) hostP.id = id;
                 game.myId = id;
+                sessionStorage.setItem('collect_player_id', id);
                 ui.updateWaitingPlayers(game.state.players);
             });
             game.peer.on('connection', (conn) => {
-            conn.on('data', (data) => {
-                if(data.type === 'JOIN') {
-                    if(game.state.players.length >= 5) { conn.send({type: 'ERROR', msg: "Salon complet (5 joueurs max)."}); return; }
-                    game.connections.push(conn);
-                    game.state.players.push({ id: conn.peer, name: data.name, isBot: false, row: [], score: 0 });
+                conn.on('data', (data) => {
+                    if (data.type === 'JOIN') {
+                        let existingPlayer = game.state.players.find(p => 
+                            (data.reconnectId && p.id === data.reconnectId) || 
+                            (p.name && data.name && p.name.trim().toLowerCase() === data.name.trim().toLowerCase() && !p.isBot)
+                        );
+                        
+                        if (existingPlayer) {
+                            existingPlayer.id = conn.peer;
+                            existingPlayer.disconnected = false;
+                            
+                            game.connections = game.connections.filter(c => c.peer !== conn.peer && c.peer !== existingPlayer.id);
+                            game.connections.push(conn);
+                            
+                            conn.send({ type: 'RECONNECT_SUCCESS', state: game.state });
+                            conn.send({ type: 'HISTORY_UPDATE', history: game.state.history });
+                            
+                            if (game.state.started) {
+                                game.broadcastState();
+                            } else {
+                                ui.updateWaitingPlayers(game.state.players);
+                                game.broadcast({ type: 'PLAYERS_UPDATE', players: game.state.players });
+                            }
+                            return;
+                        }
+
+                        if (game.state.players.length >= 5) { conn.send({type: 'ERROR', msg: "Salon complet (5 joueurs max)."}); return; }
+                        game.connections.push(conn);
+                        game.state.players.push({ id: conn.peer, name: data.name, isBot: false, row: [], score: 0, disconnected: false });
+                        ui.updateWaitingPlayers(game.state.players);
+                        game.broadcast({ type: 'PLAYERS_UPDATE', players: game.state.players });
+                        conn.send({ type: 'HISTORY_UPDATE', history: game.state.history });
+                    }
+                    else if (data.type === 'ACTION') {
+                        game.handlePlayerAction(conn.peer, data.action, data.payload);
+                    }
+                });
+                conn.on('close', () => {
+                    const p = game.state.players.find(item => item.id === conn.peer);
+                    if (p) {
+                        p.disconnected = true;
+                    }
+                    // 90-second grace period before removing disconnected player
+                    setTimeout(() => {
+                        const targetP = game.state.players.find(item => item.id === conn.peer);
+                        if (targetP && targetP.disconnected) {
+                            game.state.players = game.state.players.filter(item => item.id !== conn.peer);
+                            ui.updateWaitingPlayers(game.state.players);
+                            if (game.state.started) game.broadcastState();
+                        }
+                    }, 90000);
+
                     ui.updateWaitingPlayers(game.state.players);
-                    game.broadcast({ type: 'PLAYERS_UPDATE', players: game.state.players });
-                    conn.send({ type: 'HISTORY_UPDATE', history: game.state.history });
-                }
-                else if (data.type === 'ACTION') {
-                    game.handlePlayerAction(conn.peer, data.action, data.payload);
-                }
+                    if (game.state.started) game.broadcastState();
+                });
             });
-            conn.on('close', () => {
-                game.state.players = game.state.players.filter(p => p.id !== conn.peer);
-                ui.updateWaitingPlayers(game.state.players);
-                if(game.state.started) game.broadcastState();
-            });
-        });
         } catch(e) {
             console.log("PeerJS init note:", e);
         }
@@ -1046,71 +1124,140 @@ const game = {
     },
 
     joinRoom: () => {
-        const code = document.getElementById('input-room-code').value;
-        const name = document.getElementById('input-player-name').value || "Joueur";
-        if(code.length !== 4) return;
+        const codeInput = document.getElementById('input-room-code');
+        const nameInput = document.getElementById('input-player-name');
+        const code = codeInput ? codeInput.value.trim() : '';
+        const name = (nameInput && nameInput.value && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Joueur";
+        if (code.length !== 4) return;
         
         document.getElementById('join-msg').innerText = "Connexion...";
+        
+        sessionStorage.setItem('collect_room_code', code);
+        sessionStorage.setItem('collect_player_name', name);
+
         game.peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
         
         game.peer.on('error', (err) => { document.getElementById('join-msg').innerText = "Erreur (" + err.type + ")"; });
         game.peer.on('open', (id) => {
             game.myId = id;
             game.myName = name;
+            sessionStorage.setItem('collect_player_id', id);
+
             const conn = game.peer.connect(`collect-${code}`);
-            conn.on('open', () => { conn.send({ type: 'JOIN', name: name }); });
+            game.clientConn = conn;
+            game.connections = [conn];
+
+            conn.on('open', () => { 
+                conn.send({ type: 'JOIN', name: name, reconnectId: id }); 
+            });
             conn.on('data', (data) => {
-                if(data.type === 'ERROR') document.getElementById('join-msg').innerText = data.msg;
-                else if(data.type === 'PLAYERS_UPDATE') {
+                game.handleClientData(data, code);
+            });
+            conn.on('close', () => {
+                game.clientConn = null;
+            });
+        });
+    },
+
+    reconnectClient: (code, name, reconnectId) => {
+        if (game.isReconnecting) return;
+        game.isReconnecting = true;
+        console.log("reconnectClient triggered for room:", code);
+
+        if (game.peer) {
+            try { game.peer.destroy(); } catch(e){}
+        }
+
+        game.peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+        
+        game.peer.on('open', (id) => {
+            game.myId = id;
+            game.myName = name;
+            const conn = game.peer.connect(`collect-${code}`);
+            game.clientConn = conn;
+            game.connections = [conn];
+
+            conn.on('open', () => {
+                game.isReconnecting = false;
+                conn.send({ type: 'JOIN', name: name, reconnectId: reconnectId || id });
+            });
+
+            conn.on('data', (data) => {
+                game.handleClientData(data, code);
+            });
+
+            conn.on('close', () => {
+                game.clientConn = null;
+            });
+        });
+
+        game.peer.on('error', () => {
+            game.isReconnecting = false;
+        });
+    },
+
+    handleClientData: (data, code) => {
+        if(data.type === 'ERROR') document.getElementById('join-msg').innerText = data.msg;
+        else if(data.type === 'PLAYERS_UPDATE') {
+            ui.showScreen('screen-host');
+            const codeEl = document.getElementById('room-code-display');
+            if (codeEl) { codeEl.innerText = code; codeEl.textContent = code; }
+            const hostAct = document.querySelector('.host-actions');
+            if (hostAct) hostAct.style.display = 'none';
+            ui.updateWaitingPlayers(data.players);
+        } 
+        else if(data.type === 'STATE_UPDATE' || data.type === 'RECONNECT_SUCCESS') {
+            if (data.state) {
+                game.state = data.state;
+                if (game.state.started) {
+                    ui.showScreen('screen-game');
+                } else {
                     ui.showScreen('screen-host');
                     const codeEl = document.getElementById('room-code-display');
                     if (codeEl) { codeEl.innerText = code; codeEl.textContent = code; }
                     const hostAct = document.querySelector('.host-actions');
                     if (hostAct) hostAct.style.display = 'none';
-                    ui.updateWaitingPlayers(data.players);
-                } 
-                else if(data.type === 'STATE_UPDATE') {
-                    game.state = data.state;
-                    ui.renderGameState(game.state);
+                    ui.updateWaitingPlayers(game.state.players);
                 }
-                else if(data.type === 'DICE_ROLL_START') {
-                    game.myDiceRoll = null;
-                    ui.showDiceModal(data.players, {});
-                }
-                else if(data.type === 'DICE_ROLL_UPDATE') {
-                    ui.updateDiceScores(game.state ? game.state.players : [], data.diceRolls);
-                }
-                else if(data.type === 'DICE_ROLL_WINNER') {
-                    ui.updateDiceScores(game.state ? game.state.players : [], {}, data.winnerId);
-                    setTimeout(() => {
-                        ui.hideDiceModal();
-                        ui.showScreen('screen-game');
-                    }, 2200);
-                }
-                else if(data.type === 'START_GAME') { 
-                    ui.showScreen('screen-game'); 
-                    document.getElementById('victory-modal').style.display = 'none';
-                }
-                else if(data.type === 'KICK') {
-                    ui.showOverlay("Salon", data.msg || "Vous avez été retiré du salon par l'hôte.");
-                    if (game.peer) { try { game.peer.destroy(); } catch(e){} }
-                    setTimeout(() => { ui.hideOverlay(); ui.showScreen('screen-home'); }, 2200);
-                }
-                else if(data.type === 'ALERT') ui.showOverlay("Info", data.msg);
-                else if(data.type === 'PARROT_RESULT') {
-                    ui.showParrotResultModal(data);
-                }
-                else if(data.type === 'VFX') game.handleVFX(data);
-                else if(data.type === 'VICTORY') ui.showVictoryModal(data.winner, data.reason, data.row);
-                else if(data.type === 'HISTORY_UPDATE') ui.renderHistory(data.history);
-            });
-            game.connections = [conn];
-        });
+                ui.renderGameState(game.state);
+            }
+        }
+        else if(data.type === 'DICE_ROLL_START') {
+            game.myDiceRoll = null;
+            ui.showDiceModal(data.players, {});
+        }
+        else if(data.type === 'DICE_ROLL_UPDATE') {
+            ui.updateDiceScores(game.state ? game.state.players : [], data.diceRolls);
+        }
+        else if(data.type === 'DICE_ROLL_WINNER') {
+            ui.updateDiceScores(game.state ? game.state.players : [], {}, data.winnerId);
+            setTimeout(() => {
+                ui.hideDiceModal();
+                ui.showScreen('screen-game');
+            }, 2200);
+        }
+        else if(data.type === 'START_GAME') { 
+            ui.showScreen('screen-game'); 
+            document.getElementById('victory-modal').style.display = 'none';
+        }
+        else if(data.type === 'KICK') {
+            ui.showOverlay("Salon", data.msg || "Vous avez été retiré du salon par l'hôte.");
+            sessionStorage.removeItem('collect_room_code');
+            if (game.peer) { try { game.peer.destroy(); } catch(e){} }
+            setTimeout(() => { ui.hideOverlay(); ui.showScreen('screen-home'); }, 2200);
+        }
+        else if(data.type === 'ALERT') ui.showOverlay("Info", data.msg);
+        else if(data.type === 'PARROT_RESULT') {
+            ui.showParrotResultModal(data);
+        }
+        else if(data.type === 'VFX') game.handleVFX(data);
+        else if(data.type === 'VICTORY') ui.showVictoryModal(data.winner, data.reason, data.row);
+        else if(data.type === 'HISTORY_UPDATE') ui.renderHistory(data.history);
     },
 
     sendAction: (action, payload) => {
         if(game.isHost) game.handlePlayerAction(game.myId, action, payload);
-        else game.connections[0].send({ type: 'ACTION', action, payload });
+        else if (game.connections && game.connections[0]) game.connections[0].send({ type: 'ACTION', action, payload });
     },
 
     drawCard: (deckIndex) => { game.sendAction('DRAW', { deckIndex }); },
