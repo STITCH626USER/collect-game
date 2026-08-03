@@ -465,15 +465,11 @@ const ui = {
                                 <button class="btn-action btn-keep" onclick="game.sendAction('MONKEY_INIT', {})">✨ AVEC pouvoir</button>
                             `;
                         } else if (state.currentDrawnCard.id === 'parrot') {
-                            if (state.parrotPredictedAnimal) {
-                                cardActions.innerHTML = `<div style="color: white; font-weight: bold; padding: 10px; font-size: 1.1rem; text-align: center; line-height: 1.4;">Prédiction enregistrée ! Piochez une carte pour vérifier !</div>`;
-                            } else {
-                                cardActions.innerHTML = `
-                                    ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
-                                    <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
-                                    <button class="btn-action btn-keep" onclick="ui.showParrotModal()">✨ AVEC pouvoir</button>
-                                `;
-                            }
+                            cardActions.innerHTML = `
+                                ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
+                                <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
+                                <button class="btn-action btn-keep" onclick="ui.showParrotModal()">✨ AVEC pouvoir</button>
+                            `;
                         } else {
                             cardActions.innerHTML = `
                                 ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
@@ -496,14 +492,16 @@ const ui = {
                     ui.showPlacement(false);
                 }
                 
-                if (state.monkeyTargeting === effectiveMyId || state.parrotPredicting === effectiveMyId || (state.parrotPredictedAnimal && state.turn === effectiveMyId)) {
-                    if (state.parrotPredictedAnimal) {
-                        document.getElementById('drawn-card').style.transform = '';
-                        cardActions.style.display = 'block';
-                    } else {
-                        document.getElementById('drawn-card').style.transform = 'scale(0.5) translateY(30px)';
-                        cardActions.style.display = 'none';
-                    }
+                if (state.mustPlaceDrawnCard && (state.disablePower || !activePowers.includes(state.currentDrawnCard.id))) {
+                    ui.showPlacement(false);
+                }
+                
+                if (state.monkeyTargeting === effectiveMyId || state.parrotPredicting === effectiveMyId) {
+                    document.getElementById('drawn-card').style.transform = 'scale(0.5) translateY(30px)';
+                    cardActions.style.display = 'none';
+                } else if (state.parrotPredictedAnimal) {
+                    cardActions.style.display = 'none';
+                    document.getElementById('drawn-card').style.transform = '';
                 } else {
                     document.getElementById('drawn-card').style.transform = '';
                 }
