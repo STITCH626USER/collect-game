@@ -9,6 +9,209 @@ const ANIMALS = [
     { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=4', desc: 'Devinez votre pioche pour la conserver.' }
 ];
 
+// --- SOUND SYNTHESIZER ENGINE ---
+const soundEngine = {
+    audioCtx: null,
+    getAudioContext: () => {
+        if (!soundEngine.audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            soundEngine.audioCtx = new AudioContext();
+        }
+        if (soundEngine.audioCtx.state === 'suspended') {
+            soundEngine.audioCtx.resume();
+        }
+        return soundEngine.audioCtx;
+    },
+
+    playAnimalSound: (animalId) => {
+        try {
+            const ctx = soundEngine.getAudioContext();
+            const now = ctx.currentTime;
+
+            if (animalId === 'lion') {
+                // 🦁 Lion Roar: Low resonant frequency growl + noise rumble
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.exponentialRampToValueAtTime(55, now + 0.8);
+                osc.frequency.linearRampToValueAtTime(75, now + 1.2);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 1.8);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(450, now);
+                filter.frequency.exponentialRampToValueAtTime(200, now + 1.8);
+
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.6, now + 0.2);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 1.8);
+
+                // Add sub-bass roar noise
+                const bufferSize = Math.floor(ctx.sampleRate * 1.5);
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const noiseFilter = ctx.createBiquadFilter();
+                noiseFilter.type = 'bandpass';
+                noiseFilter.frequency.setValueAtTime(180, now);
+                noiseFilter.Q.setValueAtTime(2.0, now);
+
+                const noiseGain = ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.3, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+
+                noise.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(ctx.destination);
+
+                noise.start(now);
+                noise.stop(now + 1.5);
+            }
+            else if (animalId === 'crocodile') {
+                // 🐊 Crocodile: Snappy jaw snap + growl
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+
+                gain.gain.setValueAtTime(0.8, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+            else if (animalId === 'monkey') {
+                // 🐒 Singe: High-pitched double screech chatter
+                [0, 0.18, 0.36].forEach((delay, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    const baseFreq = 850 + idx * 150;
+                    osc.frequency.setValueAtTime(baseFreq, now + delay);
+                    osc.frequency.linearRampToValueAtTime(baseFreq + 400, now + delay + 0.08);
+                    osc.frequency.linearRampToValueAtTime(baseFreq - 100, now + delay + 0.15);
+
+                    gain.gain.setValueAtTime(0, now + delay);
+                    gain.gain.linearRampToValueAtTime(0.4, now + delay + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.15);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.15);
+                });
+            }
+            else if (animalId === 'crab') {
+                // 🦀 Crabe: Double woodblock/claw snap
+                [0, 0.12].forEach(delay => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(600, now + delay);
+                    osc.frequency.exponentialRampToValueAtTime(120, now + delay + 0.06);
+
+                    gain.gain.setValueAtTime(0.5, now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.06);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.06);
+                });
+            }
+            else if (animalId === 'hermit_crab') {
+                // 🐚 Bernard l'Hermite: Magical sparkling chime & romantic heart sound
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    const delay = idx * 0.08;
+                    osc.frequency.setValueAtTime(freq, now + delay);
+
+                    gain.gain.setValueAtTime(0, now + delay);
+                    gain.gain.linearRampToValueAtTime(0.3, now + delay + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.6);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.6);
+                });
+            }
+            else if (animalId === 'octopus') {
+                // 🐙 Pieuvre: Wet suction cup pop / bubble
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.12);
+
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+            else if (animalId === 'parrot') {
+                // 🦜 Perroquet: Chirpy FM bird whistle call
+                [0, 0.2].forEach(delay => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1400, now + delay);
+                    osc.frequency.linearRampToValueAtTime(2200, now + delay + 0.08);
+                    osc.frequency.linearRampToValueAtTime(1600, now + delay + 0.16);
+
+                    gain.gain.setValueAtTime(0.3, now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.16);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.16);
+                });
+            }
+            else if (animalId === 'chameleon') {
+                // 🦎 Caméléon: Shimmering magic sfx / pitch glide
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(1200, now + 0.4);
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.4, now + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        } catch(e) {
+            console.log("Audio play note:", e);
+        }
+    }
+};
+
 // --- ANIMATION ENGINE ---
 const vfx = {
     queue: [],
@@ -462,6 +665,23 @@ const ui = {
             `;
         });
         document.getElementById('help-modal').style.display = 'flex';
+    },
+
+    showSoundTesterModal: () => {
+        const grid = document.getElementById('sound-tester-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        ANIMALS.forEach(animal => {
+            const card = document.createElement('div');
+            card.style.cssText = 'background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;';
+            card.innerHTML = `
+                <img src="${animal.img}" style="width: 75px; aspect-ratio: 2/3; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.4);" alt="${animal.name}">
+                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">${animal.name}</div>
+                <button class="btn btn-main" style="padding: 6px 12px; font-size: 0.85rem; width: 100%; border-radius: 12px;" onclick="soundEngine.playAnimalSound('${animal.id}')">▶️ Écouter</button>
+            `;
+            grid.appendChild(card);
+        });
+        document.getElementById('sound-tester-modal').style.display = 'flex';
     },
     
     renderHistory: (history) => {

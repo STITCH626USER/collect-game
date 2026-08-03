@@ -51,9 +51,10 @@
                 <button class="btn btn-main" onclick="game.hostRoom()">Créer un Salon</button>
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
                 <button id="btn-install-app" class="btn" style="display:none; background: linear-gradient(135deg, #1e90ff, #3742fa); color: white;" onclick="ui.installPWA()">📲 Installer l'application</button>
+                <button class="btn btn-secondary" onclick="ui.showSoundTesterModal()" style="margin-top: 5px; background: linear-gradient(135deg, rgba(255,165,0,0.2), rgba(255,71,87,0.2)); border: 1px solid rgba(255,165,0,0.5); color: #ffbe76;">🎵 Écouter les Bruitages</button>
                 <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
-            <div class="version-badge">v1.47</div>
+            <div class="version-badge">v1.48</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -227,6 +228,23 @@
             </div>
         </div>
 
+        <!-- ================= SOUND TESTER MODAL ================= -->
+        <div id="sound-tester-modal" class="overlay" style="display: none; z-index: 10006;">
+            <div class="overlay-content bounce-in" style="position: relative; max-width: 520px; width: 92%; text-align: center; padding: 25px 20px; max-height: 85vh; overflow-y: auto;">
+                <button class="modal-close-cross" onclick="document.getElementById('sound-tester-modal').style.display='none'">&times;</button>
+                <h2 style="font-size: clamp(1.4rem, 5vw, 1.8rem); color: #ffbe76; margin-bottom: 8px; font-weight: 900;">
+                    🎵 ÉCOUTER LES BRUITAGES
+                </h2>
+                <p style="font-size: 0.95rem; color: rgba(255,255,255,0.7); margin-bottom: 20px;">
+                    Cliquez sur chaque animal pour tester et écouter son bruitage sonore en direct !
+                </p>
+                <div id="sound-tester-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-bottom: 20px;">
+                    <!-- Injected dynamically by JS -->
+                </div>
+                <button class="btn btn-main" style="width: 100%;" onclick="document.getElementById('sound-tester-modal').style.display='none'">✖ Fermer</button>
+            </div>
+        </div>
+
         <!-- ================= VICTORY MODAL ================= -->
         <div id="victory-modal" class="overlay" style="display: none;">
             <div class="overlay-content victory-content bounce-in">
@@ -238,7 +256,7 @@
                 <button class="btn btn-main" id="btn-rematch" style="margin-top:20px;" onclick="game.sendAction('REMATCH')">Rejouer une manche</button>
             </div>
         </div>
-        <div class="version-badge">v1.47</div>
+        <div class="version-badge">v1.48</div>
     </div>
     
     <script src="game.js?v=1.47"></script>
