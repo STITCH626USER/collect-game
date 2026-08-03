@@ -467,6 +467,12 @@ const ui = {
     showScreen: (screenId) => {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
+
+        const versionBadge = document.querySelector('.version-badge');
+        if (versionBadge) {
+            versionBadge.style.display = (screenId === 'screen-home') ? 'block' : 'none';
+        }
+
         if (screenId === 'screen-game') {
             const vic = document.getElementById('victory-modal');
             if(vic) vic.style.display = 'none';
@@ -1034,7 +1040,14 @@ const ui = {
             document.getElementById('action-modal').style.display = 'none';
             if (state.parrotPredictedAnimal && isMyTurn && !ui.isParrotResultActive) {
                 const animalObj = ANIMALS.find(a => a.id === state.parrotPredictedAnimal);
-                ui.showOverlay("Prédiction Perroquet 🦜", `Vous avez prédit : ${animalObj ? animalObj.name : ''} !\nCliquez sur la pioche de votre choix (Pioche Gauche ⬅️ ou Pioche Droite ➡️).`);
+                ui.showOverlay(
+                    "Prédiction Perroquet 🦜", 
+                    `Vous avez prédit : ${animalObj ? animalObj.name : ''} !\nChoisissez la pioche de votre choix :`,
+                    `<div style="display:flex; gap:10px; justify-content:center; width:100%; margin-top:12px;">
+                        <button class="btn-action btn-place" style="flex:1;" onclick="game.drawCard(1)">⬅️ Pioche Gauche</button>
+                        <button class="btn-action btn-place" style="flex:1;" onclick="game.drawCard(2)">Pioche Droite ➡️</button>
+                    </div>`
+                );
             }
         } else {
             document.getElementById('action-modal').style.display = 'flex';
@@ -1439,26 +1452,27 @@ const game = {
     },
 
     startInactivityTracker: () => {
-        const timerBadge = document.getElementById('inactivity-timer-badge');
-        if (timerBadge) {
-            timerBadge.onclick = () => {
-                game.updateInactivityUI();
-            };
-        }
-
         if (game.shotClockTimer) clearInterval(game.shotClockTimer);
         game.shotClockTimer = setInterval(() => {
-            if (game.state && game.state.started) {
-                if (game.turnTimeLeft > 0) {
-                    game.turnTimeLeft--;
-                } else if (game.isHost) {
-                    game.handleShotClockTimeout();
-                }
-            } else {
-                game.turnTimeLeft = 20;
+            if (game.isHost && game.state && game.state.started) {
+                const now = Date.now();
+                game.state.players.forEach(p => {
+                    if (!p.isBot && !p.afkDisconnected) {
+                        const lastActive = p.lastActiveTime || game.state.gameStartTime || now;
+                        if (now - lastActive > 100000) { // 100 seconds
+                            p.afkDisconnected = true;
+                            p.isBot = true;
+                            game.addHistory(`😴 ${p.name} déconnecté pour inactivité (100s). Un Bot prend le relais.`);
+                            game.broadcast({ type: 'PLAYER_AFK_DISCONNECT', playerId: p.id, playerName: p.name });
+                            game.broadcastState();
+                            if (game.state.turn === p.id) {
+                                setTimeout(game.playBotTurn, 800);
+                            }
+                        }
+                    }
+                });
             }
-            game.updateInactivityUI();
-        }, 1000);
+        }, 2000);
     },
 
     handleShotClockTimeout: () => {
@@ -2116,6 +2130,13 @@ const game = {
         else if(data.type === 'PARROT_RESULT') {
             ui.showParrotResultModal(data);
         }
+        else if(data.type === 'PLAYER_AFK_DISCONNECT') {
+            if (data.playerId === game.myId) {
+                document.getElementById('afk-disconnect-modal').style.display = 'flex';
+            } else {
+                ui.showOverlay("Info", `😴 ${data.playerName} a été déconnecté pour inactivité (100s). Un Bot prend le relais !`);
+            }
+        }
         else if(data.type === 'HERMIT_EXTRA_TURN') {
             ui.showHermitLoveModal(data.playerId, data.playerName);
         }
@@ -2137,6 +2158,8 @@ const game = {
     // --- HOST LOGIC ---
     handlePlayerAction: (playerId, action, payload) => {
         if(!game.isHost) return;
+        const actingP = game.state.players.find(p => p.id === playerId);
+        if (actingP) actingP.lastActiveTime = Date.now();
         
         if (action === 'REMATCH') {
             if (!game.state.rematchVotes.includes(playerId)) {
