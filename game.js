@@ -840,7 +840,21 @@ const ui = {
 
     showHelpModal: () => {
         const grid = document.getElementById('help-grid');
-        grid.innerHTML = '';
+        grid.innerHTML = `
+            <div class="rules-victory-banner" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(255, 234, 0, 0.1)); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 16px; margin-bottom: 15px; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
+                <h3 style="color: var(--secondary); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; font-weight: 900; display: flex; align-items: center; gap: 8px;">
+                    <span>🏆</span> Comment Gagner la Partie ?
+                </h3>
+                <div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); font-weight: 700;">
+                    <p style="margin: 0 0 8px 0;">
+                        🥇 <strong style="color: #2ed573;">Règle de Base :</strong> Alignez <strong>4 animaux identiques d'affilée</strong> (ex: 4 Lions 🦁🦁🦁🦁 côte à côte) dans votre jeu pour l'emporter instantanément !
+                    </p>
+                    <p style="margin: 0;">
+                        🌟 <strong style="color: var(--secondary);">Règle des 7 Espèces :</strong> Réunissez <strong>7 espèces différentes</strong> dans votre jeu !
+                    </p>
+                </div>
+            </div>
+        `;
         ANIMALS.forEach(animal => {
             grid.innerHTML += `
                 <div class="help-row">
