@@ -156,7 +156,25 @@ const ui = {
         ul.innerHTML = '';
         players.forEach(p => {
             const li = document.createElement('li');
-            li.innerHTML = `<span>${p.name} ${p.isBot ? '🤖' : '👤'}</span> <span>${p.id === game.myId ? '(Vous)' : ''}</span>`;
+            let roleTag = '';
+            if (p.id === game.myId) {
+                roleTag = game.isHost ? '<span style="opacity:0.6; font-size:0.95rem; margin-left:6px; font-weight:bold;">(Hôte - Vous)</span>' : '<span style="opacity:0.6; font-size:0.95rem; margin-left:6px; font-weight:bold;">(Vous)</span>';
+            } else if (p.isBot) {
+                roleTag = '<span style="opacity:0.6; font-size:0.95rem; margin-left:6px; font-weight:bold;">(Bot)</span>';
+            }
+
+            let kickBtnHtml = '';
+            if (game.isHost && p.id !== game.myId) {
+                kickBtnHtml = `<button class="btn-kick" title="Retirer" onclick="game.removePlayer('${p.id}')">❌</button>`;
+            }
+
+            li.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <span style="font-weight:900;">${p.name}</span>
+                    ${roleTag}
+                </div>
+                ${kickBtnHtml}
+            `;
             ul.appendChild(li);
         });
         document.getElementById('player-count').innerText = players.length;
@@ -763,6 +781,27 @@ const game = {
         ui.updateWaitingPlayers(game.state.players);
     },
 
+    removePlayer: (targetId) => {
+        if (!game.isHost) return;
+        const pIndex = game.state.players.findIndex(p => p.id === targetId);
+        if (pIndex !== -1) {
+            const targetP = game.state.players[pIndex];
+            if (!targetP.isBot) {
+                const conn = game.connections.find(c => c.peer === targetId);
+                if (conn) {
+                    try {
+                        conn.send({ type: 'KICK', msg: "Vous avez été retiré du salon par l'hôte." });
+                        setTimeout(() => conn.close(), 300);
+                    } catch(e){}
+                }
+                game.connections = game.connections.filter(c => c.peer !== targetId);
+            }
+            game.state.players.splice(pIndex, 1);
+            ui.updateWaitingPlayers(game.state.players);
+            game.broadcast({ type: 'PLAYERS_UPDATE', players: game.state.players });
+        }
+    },
+
     broadcast: (data) => {
         game.connections.forEach(conn => conn.send(data));
         if (data.type === 'ALERT') {
@@ -884,6 +923,11 @@ const game = {
                     ui.showScreen('screen-game'); 
                     ui.hideOverlay();
                     document.getElementById('victory-modal').style.display = 'none'; 
+                }
+                else if(data.type === 'KICK') {
+                    ui.showOverlay("Salon", data.msg || "Vous avez été retiré du salon par l'hôte.");
+                    if (game.peer) { try { game.peer.destroy(); } catch(e){} }
+                    setTimeout(() => { ui.hideOverlay(); ui.showScreen('screen-home'); }, 2200);
                 }
                 else if(data.type === 'ALERT') ui.showOverlay("Info", data.msg);
                 else if(data.type === 'PARROT_RESULT') {
