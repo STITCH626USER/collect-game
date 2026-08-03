@@ -1422,8 +1422,7 @@ const game = {
             setTimeout(() => {
                 const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 0);
                 if (opponents.length > 0) {
-                    opponents.sort((a, b) => b.row.length - a.row.length);
-                    const target = opponents[0];
+                    const target = opponents[Math.floor(Math.random() * opponents.length)];
                     const cardIndex = Math.floor(Math.random() * target.row.length);
                     game.handlePlayerAction(botId, 'CROCODILE_SELECT', { targetPlayerId: target.id, cardIndex });
                 } else {
@@ -1437,10 +1436,30 @@ const game = {
             setTimeout(() => {
                 const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 0);
                 if (opponents.length > 0) {
-                    opponents.sort((a, b) => b.row.length - a.row.length);
-                    const target = opponents[0];
-                    const cardIndex = Math.floor(Math.random() * target.row.length);
-                    game.handlePlayerAction(botId, 'MONKEY_SELECT', { targetPlayerId: target.id, cardIndex });
+                    let chosenTarget = null;
+                    let chosenCardIndex = -1;
+
+                    const botLeft = bot.row.length > 0 ? bot.row[0].id : null;
+                    const botRight = bot.row.length > 0 ? bot.row[bot.row.length - 1].id : null;
+
+                    for (let opp of opponents) {
+                        for (let i = 0; i < opp.row.length; i++) {
+                            const cId = opp.row[i].id;
+                            if ((botLeft && cId === botLeft) || (botRight && cId === botRight) || cId === 'lion' || cId === 'chameleon') {
+                                chosenTarget = opp;
+                                chosenCardIndex = i;
+                                break;
+                            }
+                        }
+                        if (chosenTarget) break;
+                    }
+
+                    if (!chosenTarget) {
+                        chosenTarget = opponents[Math.floor(Math.random() * opponents.length)];
+                        chosenCardIndex = Math.floor(Math.random() * chosenTarget.row.length);
+                    }
+
+                    game.handlePlayerAction(botId, 'MONKEY_SELECT', { targetPlayerId: chosenTarget.id, cardIndex: chosenCardIndex });
                 } else {
                     game.handlePlayerAction(botId, 'MONKEY_SELECT', { skip: true });
                 }
