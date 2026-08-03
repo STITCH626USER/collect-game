@@ -121,18 +121,29 @@ const ui = {
     },
     showOverlay: (title, desc, btnHtml = '') => {
         if (ui.isParrotResultActive) return;
-        document.getElementById('overlay-title').innerText = title;
-        document.getElementById('overlay-desc').innerText = desc;
+        const titleEl = document.getElementById('overlay-title');
+        const descEl = document.getElementById('overlay-desc');
+        const overlayEl = document.getElementById('overlay-msg');
+        
+        // Prevent flickering / animation restarts if overlay content is already identical
+        if (overlayEl && overlayEl.style.display === 'block' && titleEl.innerText === title && descEl.innerText === desc && ui._lastOverlayBtnHtml === btnHtml) {
+            return;
+        }
+        ui._lastOverlayBtnHtml = btnHtml;
+        titleEl.innerText = title;
+        descEl.innerText = desc;
         const btnContainer = document.getElementById('overlay-btn-container');
         if (btnContainer) {
             btnContainer.innerHTML = btnHtml;
             btnContainer.style.display = btnHtml ? 'block' : 'none';
         }
-        document.getElementById('overlay-msg').style.display = 'block';
+        if (overlayEl) overlayEl.style.display = 'block';
     },
     hideOverlay: (force = false) => {
         if (ui.isParrotResultActive && !force) return;
-        document.getElementById('overlay-msg').style.display = 'none';
+        ui._lastOverlayBtnHtml = null;
+        const overlayEl = document.getElementById('overlay-msg');
+        if (overlayEl) overlayEl.style.display = 'none';
     },
     showParrotResultModal: (data) => {
         ui.isParrotResultActive = true;
@@ -482,21 +493,35 @@ const ui = {
         const effectiveMyId = game.myId || myId || (state.players.length > 0 ? state.players[0].id : null);
         const myPlayer = state.players.find(p => p.id === effectiveMyId) || state.players[0];
         
-        document.getElementById('deck-left-count').innerText = state.deck1Count;
-        document.getElementById('deck-right-count').innerText = state.deck2Count;
+        const leftCount = document.getElementById('deck-left-count');
+        if (leftCount && leftCount.innerText !== String(state.deck1Count)) leftCount.innerText = state.deck1Count;
+
+        const rightCount = document.getElementById('deck-right-count');
+        if (rightCount && rightCount.innerText !== String(state.deck2Count)) rightCount.innerText = state.deck2Count;
         
         const thumbLeft = document.getElementById('deck-left-thumbnail');
-        if (state.deck1Thumbnail) { thumbLeft.src = state.deck1Thumbnail; thumbLeft.style.display = 'block'; }
-        else { thumbLeft.style.display = 'none'; }
+        if (state.deck1Thumbnail) {
+            if (thumbLeft.src !== state.deck1Thumbnail) thumbLeft.src = state.deck1Thumbnail;
+            thumbLeft.style.display = 'block';
+        } else {
+            thumbLeft.style.display = 'none';
+        }
         
         const thumbRight = document.getElementById('deck-right-thumbnail');
-        if (state.deck2Thumbnail) { thumbRight.src = state.deck2Thumbnail; thumbRight.style.display = 'block'; }
-        else { thumbRight.style.display = 'none'; }
+        if (state.deck2Thumbnail) {
+            if (thumbRight.src !== state.deck2Thumbnail) thumbRight.src = state.deck2Thumbnail;
+            thumbRight.style.display = 'block';
+        } else {
+            thumbRight.style.display = 'none';
+        }
         
         const turnPlayer = state.players.find(p => p.id === state.turn);
         const isMyTurn = (state.turn === effectiveMyId);
         const turnIndicator = document.getElementById('turn-indicator');
-        turnIndicator.innerText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
+        const targetTurnText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
+        if (turnIndicator && turnIndicator.innerText !== targetTurnText) {
+            turnIndicator.innerText = targetTurnText;
+        }
         if (isMyTurn) turnIndicator.classList.remove('opp-turn');
         else turnIndicator.classList.add('opp-turn');
 
