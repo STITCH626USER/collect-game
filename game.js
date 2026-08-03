@@ -430,6 +430,12 @@ const ui = {
         turnIndicator.innerText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
         if (isMyTurn) turnIndicator.classList.remove('opp-turn');
         else turnIndicator.classList.add('opp-turn');
+
+        const localArea = document.querySelector('.local-player-area');
+        if (localArea) {
+            if (isMyTurn) localArea.classList.add('active-turn');
+            else localArea.classList.remove('active-turn');
+        }
         
         const canDraw = isMyTurn && (!state.currentDrawnCard || state.parrotPredictedAnimal);
         document.getElementById('deck-left').classList.toggle('disabled', !canDraw);

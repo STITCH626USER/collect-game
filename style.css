@@ -220,7 +220,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 /* Local Player & 1v1 Opponent Area - Premium Dark Glass */
 .local-player-area { 
     background: rgba(15, 15, 26, 0.85); 
-    border-top: 1px solid rgba(255,255,255,0.08); 
+    border-top: 2px solid rgba(255,255,255,0.08); 
     padding: 8px 10px; 
     padding-bottom: max(10px, env(safe-area-inset-bottom)); 
     position: relative; 
@@ -228,6 +228,16 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     backdrop-filter: blur(25px); 
     box-shadow: 0 -10px 40px rgba(0,0,0,0.5); 
     flex-shrink: 0; 
+    transition: all 0.3s ease;
+}
+.local-player-area.active-turn {
+    border-top: 2px solid var(--secondary) !important;
+    box-shadow: 0 -5px 25px rgba(0, 229, 255, 0.5), inset 0 0 15px rgba(0, 229, 255, 0.2) !important;
+    background: rgba(0, 229, 255, 0.08) !important;
+}
+.local-player-area.active-turn .player-header {
+    border-color: var(--secondary);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
 }
 #opponent-area-1v1 { border-top: none; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; padding-top: max(20px, env(safe-area-inset-top)); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
 .player-header { 
@@ -568,9 +578,14 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 }
 
 .opp-row-cards .card {
-    width: clamp(45px, 12vw, 70px);
+    width: clamp(42px, 11vw, 64px);
     height: auto;
     aspect-ratio: 2.5/3.5;
+    border-radius: 8px;
     flex-shrink: 0;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    border: 1.5px solid white;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
