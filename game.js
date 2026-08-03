@@ -120,6 +120,7 @@ const ui = {
         }
     },
     showOverlay: (title, desc, btnHtml = '') => {
+        if (ui.isParrotResultActive) return;
         document.getElementById('overlay-title').innerText = title;
         document.getElementById('overlay-desc').innerText = desc;
         const btnContainer = document.getElementById('overlay-btn-container');
@@ -129,10 +130,12 @@ const ui = {
         }
         document.getElementById('overlay-msg').style.display = 'block';
     },
-    hideOverlay: () => {
+    hideOverlay: (force = false) => {
+        if (ui.isParrotResultActive && !force) return;
         document.getElementById('overlay-msg').style.display = 'none';
     },
     showParrotResultModal: (data) => {
+        ui.isParrotResultActive = true;
         const titleEl = document.getElementById('overlay-title');
         const descEl = document.getElementById('overlay-desc');
         const btnContainer = document.getElementById('overlay-btn-container');
@@ -142,7 +145,7 @@ const ui = {
         if (data.success) {
             text = `${data.playerName} a prédit <b>${data.predictedName}</b> et a pioché <b>${data.cardName}</b> ! Le Perroquet s'envole 🦜 !`;
         } else {
-            text = `${data.playerName} a prédit <b>${data.predictedName}</b> mais a pioché <b>${data.cardName}</b> ! Carte défaussée.`;
+            text = `${data.playerName} a prédit <b>${data.predictedName}</b> mais a pioché <b>${data.cardName}</b> ! Carte défaussée, Perroquet remis en jeu.`;
         }
 
         titleEl.innerText = title;
@@ -156,7 +159,9 @@ const ui = {
         document.getElementById('overlay-msg').style.display = 'block';
 
         setTimeout(() => {
-            ui.hideOverlay();
+            ui.isParrotResultActive = false;
+            ui.hideOverlay(true);
+            if (game.state) ui.renderGameState(game.state);
         }, 1800);
     },
     installPWA: () => {
@@ -447,9 +452,9 @@ const ui = {
         document.getElementById('deck-left').style.opacity = (canDraw && state.forcedDeck === 2) ? '0.3' : '1';
         document.getElementById('deck-right').style.opacity = (canDraw && state.forcedDeck === 1) ? '0.3' : '1';
 
-        if (!state.currentDrawnCard) {
+        if (!state.currentDrawnCard || ui.isParrotResultActive) {
             document.getElementById('action-modal').style.display = 'none';
-            if (state.parrotPredictedAnimal && isMyTurn) {
+            if (state.parrotPredictedAnimal && isMyTurn && !ui.isParrotResultActive) {
                 const animalObj = ANIMALS.find(a => a.id === state.parrotPredictedAnimal);
                 ui.showOverlay("Prédiction Perroquet 🦜", `Vous avez prédit : ${animalObj ? animalObj.name : ''} ! Pioche automatique en cours...`);
             }
