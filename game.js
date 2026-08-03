@@ -477,9 +477,9 @@ const ui = {
         const title = data.success ? "🎉 BONNE PIOCHE !" : "❌ MAUVAISE PIOCHE 😞";
         let text = "";
         if (data.success) {
-            text = `${data.playerName} a prédit <b>${data.predictedName}</b> et a pioché <b>${data.cardName}</b> ! Le Perroquet s'envole 🦜 !`;
+            text = `${data.playerName} a prédit <b>${data.predictedName}</b> et a pioché <b>${data.cardName}</b> ! Prédiction réussie 🦜 !`;
         } else {
-            text = `${data.playerName} a prédit <b>${data.predictedName}</b> mais a pioché <b>${data.cardName}</b> ! Carte défaussée, Perroquet remis en jeu.`;
+            text = `${data.playerName} a prédit <b>${data.predictedName}</b> mais a pioché <b>${data.cardName}</b> ! Carte remise sous la pioche, le Perroquet reste dans le jeu.`;
         }
 
         titleEl.innerText = title;
