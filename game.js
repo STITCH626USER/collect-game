@@ -29,6 +29,12 @@ const vfx = {
         });
     },
 
+    clearAll: () => {
+        vfx.queue = [];
+        vfx.isAnimating = false;
+        document.querySelectorAll('.flying-card, .vfx-blood-particles').forEach(el => el.remove());
+    },
+
     flyCardToRect: (imgSrc, startId, tRect, onComplete, forceStartRect = null, customClass = 'spin') => {
         let sRect = forceStartRect;
         if (!sRect) {
@@ -1091,6 +1097,7 @@ const game = {
     },
 
     startGame: () => {
+        vfx.clearAll();
         if (game.state.players.length < 2) {
             ui.showOverlay("Action impossible", "Il faut au moins 2 joueurs pour démarrer la partie !");
             setTimeout(ui.hideOverlay, 3000);

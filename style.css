@@ -693,3 +693,15 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     transform: perspective(500px) rotateY(-3deg);
 }
 
+/* ================= GPU ACCELERATION & ULTRA-SMOOTH PERFORMANCE ================= */
+.card, .flying-card, .home-logo-img, .modal-content, .card-tile, .history-badge {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.my-collection, .opp-row-cards, .victory-cards {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
