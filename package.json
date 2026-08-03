@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/STITCH626USER/collect-game/issues"
   },
-  "homepage": "https://github.com/STITCH626USER/collect-game#readme"
+  "homepage": "https://github.com/STITCH626USER/collect-game#readme",
+  "dependencies": {
+    "jsdom": "^30.0.1"
+  }
 }

@@ -750,7 +750,7 @@ const game = {
         game.isHost = true;
         game.roomCode = game.generateRoomCode();
         const nameInput = document.getElementById('input-host-name');
-        game.myName = (nameInput && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Hôte";
+        game.myName = (nameInput && nameInput.value && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Hôte";
         document.getElementById('room-code-display').innerText = game.roomCode;
         
         // Immediate ID assignment so game.myId is NEVER null or delayed!
