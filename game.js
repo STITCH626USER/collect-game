@@ -1200,10 +1200,8 @@ const game = {
                         setTimeout(() => {
                             if (payload.deckIndex === 1) {
                                 game.state.deck1.push(card);
-                                game.state.deck1Thumbnail = card.img;
                             } else {
                                 game.state.deck2.push(card);
-                                game.state.deck2Thumbnail = card.img;
                             }
                             
                             game.state.parrotPredictedAnimal = null;
