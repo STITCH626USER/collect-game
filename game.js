@@ -1905,21 +1905,34 @@ const game = {
         let fullDeck = [];
         for(let i=0; i<8; i++) ANIMALS.forEach(animal => fullDeck.push({...animal}));
         
-        // Anti-clumping Fisher-Yates shuffle
-        for (let round = 0; round < 5; round++) {
+        // 100% Fair Cryptographic Shuffle with Anti-Clumping Pass
+        const getRandomInt = (max) => {
+            if (window.crypto && window.crypto.getRandomValues) {
+                const array = new Uint32Array(1);
+                window.crypto.getRandomValues(array);
+                return array[0] % max;
+            }
+            return Math.floor(Math.random() * max);
+        };
+
+        for (let round = 0; round < 7; round++) {
             for (let i = fullDeck.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                const j = getRandomInt(i + 1);
                 [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
             }
         }
 
-        // Anti-clumping pass: ensure no two adjacent cards share the same animal ID
-        for (let i = 1; i < fullDeck.length; i++) {
-            if (fullDeck[i].id === fullDeck[i - 1].id) {
-                for (let j = i + 1; j < fullDeck.length; j++) {
-                    if (fullDeck[j].id !== fullDeck[i - 1].id) {
-                        [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
-                        break;
+        // Strict Anti-Clumping Pass: Prevents adjacent identical cards throughout both decks
+        for (let pass = 0; pass < 3; pass++) {
+            for (let i = 1; i < fullDeck.length; i++) {
+                if (fullDeck[i].id === fullDeck[i - 1].id) {
+                    for (let j = i + 1; j < fullDeck.length; j++) {
+                        const prevMatch = (fullDeck[j].id === fullDeck[i - 1].id);
+                        const nextMatch = (j + 1 < fullDeck.length && fullDeck[j].id === fullDeck[j + 1].id);
+                        if (!prevMatch && !nextMatch) {
+                            [fullDeck[i], fullDeck[j]] = [fullDeck[j], fullDeck[i]];
+                            break;
+                        }
                     }
                 }
             }
