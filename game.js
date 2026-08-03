@@ -29,56 +29,59 @@ const soundEngine = {
             const now = ctx.currentTime;
 
             if (animalId === 'lion') {
-                // 🦁 Lion Roar: Low resonant frequency growl + noise rumble
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                const filter = ctx.createBiquadFilter();
+                // 🦁 Majestic Lion Roar (Dual detuned predator vocal growl + throat formant filters)
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const lfo = ctx.createOscillator();
+                const lfoGain = ctx.createGain();
+                const mainGain = ctx.createGain();
                 
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(110, now);
-                osc.frequency.exponentialRampToValueAtTime(55, now + 0.8);
-                osc.frequency.linearRampToValueAtTime(75, now + 1.2);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 1.8);
+                const filter1 = ctx.createBiquadFilter();
+                const filter2 = ctx.createBiquadFilter();
 
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(450, now);
-                filter.frequency.exponentialRampToValueAtTime(200, now + 1.8);
+                osc1.type = 'sawtooth';
+                osc2.type = 'triangle';
+                osc1.frequency.setValueAtTime(140, now);
+                osc2.frequency.setValueAtTime(144, now);
 
-                gain.gain.setValueAtTime(0.01, now);
-                gain.gain.linearRampToValueAtTime(0.6, now + 0.2);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+                osc1.frequency.exponentialRampToValueAtTime(80, now + 0.5);
+                osc2.frequency.exponentialRampToValueAtTime(82, now + 0.5);
+                osc1.frequency.linearRampToValueAtTime(110, now + 1.0);
+                osc2.frequency.linearRampToValueAtTime(113, now + 1.0);
+                osc1.frequency.exponentialRampToValueAtTime(50, now + 1.8);
+                osc2.frequency.exponentialRampToValueAtTime(52, now + 1.8);
 
-                osc.connect(filter);
-                filter.connect(gain);
-                gain.connect(ctx.destination);
+                lfo.frequency.setValueAtTime(22, now);
+                lfoGain.gain.setValueAtTime(0.35, now);
+                lfo.connect(mainGain.gain);
 
-                osc.start(now);
-                osc.stop(now + 1.8);
+                filter1.type = 'bandpass';
+                filter1.frequency.setValueAtTime(320, now);
+                filter1.Q.setValueAtTime(3.0, now);
+                filter1.frequency.exponentialRampToValueAtTime(650, now + 0.6);
+                filter1.frequency.exponentialRampToValueAtTime(250, now + 1.8);
 
-                // Add sub-bass roar noise
-                const bufferSize = Math.floor(ctx.sampleRate * 1.5);
-                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                filter2.type = 'lowpass';
+                filter2.frequency.setValueAtTime(800, now);
+                filter2.frequency.exponentialRampToValueAtTime(400, now + 1.8);
 
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
+                mainGain.gain.setValueAtTime(0.01, now);
+                mainGain.gain.linearRampToValueAtTime(0.5, now + 0.3);
+                mainGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
 
-                const noiseFilter = ctx.createBiquadFilter();
-                noiseFilter.type = 'bandpass';
-                noiseFilter.frequency.setValueAtTime(180, now);
-                noiseFilter.Q.setValueAtTime(2.0, now);
+                osc1.connect(filter1);
+                osc2.connect(filter1);
+                filter1.connect(filter2);
+                filter2.connect(mainGain);
+                mainGain.connect(ctx.destination);
 
-                const noiseGain = ctx.createGain();
-                noiseGain.gain.setValueAtTime(0.3, now);
-                noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+                osc1.start(now);
+                osc2.start(now);
+                lfo.start(now);
 
-                noise.connect(noiseFilter);
-                noiseFilter.connect(noiseGain);
-                noiseGain.connect(ctx.destination);
-
-                noise.start(now);
-                noise.stop(now + 1.5);
+                osc1.stop(now + 1.8);
+                osc2.stop(now + 1.8);
+                lfo.stop(now + 1.8);
             }
             else if (animalId === 'crocodile') {
                 // 🐊 Crocodile: Snappy jaw snap + growl
