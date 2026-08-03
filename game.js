@@ -181,6 +181,35 @@ const ui = {
             if (game.state) ui.renderGameState(game.state);
         }, 1800);
     },
+    showHermitLoveModal: (actingPlayerId, actingPlayerName) => {
+        const modal = document.getElementById('hermit-love-modal');
+        if (!modal) return;
+        
+        const isMe = (game.myId === actingPlayerId);
+        const titleEl = document.getElementById('hermit-love-title');
+        const descEl = document.getElementById('hermit-love-desc');
+
+        if (titleEl) {
+            titleEl.innerText = isMe ? "VOUS REPIOCHEZ ! 💕" : `${actingPlayerName.toUpperCase()} REPIOCHE ! 💕`;
+        }
+        if (descEl) {
+            descEl.innerText = isMe 
+                ? "Le Bernard l'hermite et le Crabe ont trouvé l'amour parfait ! Vous rejouez un tour !"
+                : `${actingPlayerName} réunit le Bernard l'hermite et le Crabe et rejoue un tour !`;
+        }
+
+        modal.style.display = 'flex';
+
+        if (ui.hermitLoveTimer) clearTimeout(ui.hermitLoveTimer);
+        ui.hermitLoveTimer = setTimeout(() => {
+            ui.hideHermitLoveModal();
+        }, 2000);
+    },
+    hideHermitLoveModal: () => {
+        if (ui.hermitLoveTimer) clearTimeout(ui.hermitLoveTimer);
+        const modal = document.getElementById('hermit-love-modal');
+        if (modal) modal.style.display = 'none';
+    },
     showDiceModal: (players, diceRolls = {}) => {
         const modal = document.getElementById('dice-modal');
         if (modal) modal.style.display = 'flex';
@@ -1288,6 +1317,9 @@ const game = {
         else if(data.type === 'PARROT_RESULT') {
             ui.showParrotResultModal(data);
         }
+        else if(data.type === 'HERMIT_EXTRA_TURN') {
+            ui.showHermitLoveModal(data.playerId, data.playerName);
+        }
         else if(data.type === 'VFX') game.handleVFX(data);
         else if(data.type === 'VICTORY') ui.showVictoryModal(data.winner, data.reason, data.row);
         else if(data.type === 'HISTORY_UPDATE') ui.renderHistory(data.history);
@@ -1760,8 +1792,9 @@ const game = {
 
 
         if (getsExtraTurn) {
-            game.addHistory(`${player.name} rejoue grâce au Bernard l'hermite !`);
-            game.broadcast({ type: 'ALERT', msg: `Le Bernard l'hermite offre un tour supplémentaire à ${player.name} !` });
+            game.addHistory(`${player.name} 💕 rejoue grâce à l'amour du Bernard l'hermite et du Crabe !`);
+            game.broadcast({ type: 'HERMIT_EXTRA_TURN', playerId: player.id, playerName: player.name });
+            ui.showHermitLoveModal(player.id, player.name);
         } else {
             game.state.turnIndex = (game.state.turnIndex + 1) % game.state.players.length;
             game.state.turn = game.state.players[game.state.turnIndex].id;

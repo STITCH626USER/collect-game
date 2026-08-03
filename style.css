@@ -694,7 +694,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 }
 
 /* ================= GPU ACCELERATION & ULTRA-SMOOTH PERFORMANCE ================= */
-.card, .flying-card, .home-logo-img, .modal-content, .card-tile, .history-badge {
+.card, .flying-card, .home-logo-img, .modal-content, .card-tile, .history-badge, .love-card {
     will-change: transform, opacity;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -703,5 +703,36 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .my-collection, .opp-row-cards, .victory-cards {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
+}
+
+/* ================= HERMIT & CRAB LOVE POPUP STYLES ================= */
+.modal-close-cross {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    font-size: 1.6rem;
+    font-weight: 900;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+.modal-close-cross:hover {
+    background: rgba(255, 71, 87, 0.8);
+    transform: scale(1.1);
+}
+
+@keyframes heartPulse {
+    0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 5px rgba(255, 71, 87, 0.6)); }
+    100% { transform: scale(1.35) rotate(10deg); filter: drop-shadow(0 0 25px rgba(255, 71, 87, 0.9)); }
 }
 
