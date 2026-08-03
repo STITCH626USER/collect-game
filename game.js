@@ -1384,22 +1384,87 @@ const game = {
         const activePlayerId = game.state.turn;
         if (!activePlayerId) return;
 
+        const activePlayer = game.state.players.find(p => p.id === activePlayerId);
+        if (!activePlayer) return;
+
         game.resetTurnTimer(30);
 
-        if (game.state.crocodileTargeting === activePlayerId) {
-            game.handlePlayerAction(activePlayerId, 'CROCODILE_SELECT', { skip: true });
-        } else if (game.state.crabTargeting === activePlayerId) {
-            game.handlePlayerAction(activePlayerId, 'CRAB_SELECT', { skip: true });
-        } else if (game.state.monkeyTargeting === activePlayerId) {
-            game.handlePlayerAction(activePlayerId, 'MONKEY_SELECT', { skip: true });
-        } else if (game.state.parrotPredicting === activePlayerId) {
-            game.handlePlayerAction(activePlayerId, 'PARROT_PREDICT', { animalId: 'lion' });
-        } else if (game.state.currentDrawnCard) {
-            game.handlePlayerAction(activePlayerId, 'PLACE', { side: 'left', skipPower: true });
-        } else {
-            const deckToDraw = game.state.forcedDeck || 1;
-            game.handlePlayerAction(activePlayerId, 'DRAW', { deckIndex: deckToDraw });
+        // If it's a Bot turn, execute standard bot logic
+        if (activePlayer.isBot) {
+            game.playBotTurn();
+            return;
         }
+
+        // --- DISADVANTAGEOUS AFK PENALTY FOR HUMAN PLAYER ---
+        game.broadcast({ type: 'ALERT', msg: `⏳ Temps écoulé pour ${activePlayer.name} ! Pénalité AFK appliquée.` });
+        game.addHistory(`⏱️ Temps écoulé (30s) pour ${activePlayer.name} : choix défavorable appliqué !`);
+
+        // 1. Crocodile targeting penalty: Crocodile bites one of the AFK player's OWN cards if possible!
+        if (game.state.crocodileTargeting === activePlayerId) {
+            if (activePlayer.row && activePlayer.row.length > 0) {
+                game.handlePlayerAction(activePlayerId, 'CROCODILE_SELECT', { targetPlayerId: activePlayerId, cardIndex: 0 });
+            } else {
+                game.handlePlayerAction(activePlayerId, 'CROCODILE_SELECT', { skip: true });
+            }
+            return;
+        }
+
+        // 2. Crab targeting penalty: Skip crab power
+        if (game.state.crabTargeting === activePlayerId) {
+            game.handlePlayerAction(activePlayerId, 'CRAB_SELECT', { skip: true });
+            return;
+        }
+
+        // 3. Monkey targeting penalty: Skip monkey power
+        if (game.state.monkeyTargeting === activePlayerId) {
+            game.handlePlayerAction(activePlayerId, 'MONKEY_SELECT', { skip: true });
+            return;
+        }
+
+        // 4. Parrot predicting penalty: Intentionally predict wrong animal to discard card
+        if (game.state.parrotPredicting === activePlayerId) {
+            game.handlePlayerAction(activePlayerId, 'PARROT_PREDICT', { animalId: 'lion' });
+            return;
+        }
+
+        // 5. Drawn card placement penalty:
+        if (game.state.currentDrawnCard) {
+            const card = game.state.currentDrawnCard;
+
+            // If card can be REJECTED (not mustPlaceDrawnCard): ALWAYS REJECT IT!
+            if (!game.state.mustPlaceDrawnCard) {
+                game.handlePlayerAction(activePlayerId, 'REJECT', { endTurn: true });
+                return;
+            }
+
+            // If forced to place (e.g. 2nd card drawn or parrot success):
+            // Choose the side that DOES NOT create a pair for the AFK player
+            let worstSide = 'left';
+            if (activePlayer.row && activePlayer.row.length > 0) {
+                const leftEndCard = activePlayer.row[0];
+                const rightEndCard = activePlayer.row[activePlayer.row.length - 1];
+
+                const leftCreatesPair = (leftEndCard.id === card.id || card.id === 'chameleon' || leftEndCard.id === 'chameleon');
+                const rightCreatesPair = (rightEndCard.id === card.id || card.id === 'chameleon' || rightEndCard.id === 'chameleon');
+
+                if (leftCreatesPair && !rightCreatesPair) {
+                    worstSide = 'right';
+                } else if (!leftCreatesPair && rightCreatesPair) {
+                    worstSide = 'left';
+                } else if (card.id === 'chameleon') {
+                    const chamIdx = activePlayer.row.findIndex(c => c.id === 'chameleon');
+                    if (chamIdx === 0) worstSide = 'left';
+                    else if (chamIdx === activePlayer.row.length - 1) worstSide = 'right';
+                }
+            }
+
+            game.handlePlayerAction(activePlayerId, 'PLACE', { side: worstSide, skipPower: true });
+            return;
+        }
+
+        // 6. Drawing card penalty: Draw from deck 1 or forced deck
+        const deckToDraw = game.state.forcedDeck || 1;
+        game.handlePlayerAction(activePlayerId, 'DRAW', { deckIndex: deckToDraw });
     },
 
     updateInactivityUI: () => {
