@@ -516,7 +516,7 @@ const ui = {
             document.getElementById('action-modal').style.display = 'none';
             if (state.parrotPredictedAnimal && isMyTurn && !ui.isParrotResultActive) {
                 const animalObj = ANIMALS.find(a => a.id === state.parrotPredictedAnimal);
-                ui.showOverlay("Prédiction Perroquet 🦜", `Vous avez prédit : ${animalObj ? animalObj.name : ''} ! Pioche automatique en cours...`);
+                ui.showOverlay("Prédiction Perroquet 🦜", `Vous avez prédit : ${animalObj ? animalObj.name : ''} !\nCliquez sur la pioche de votre choix (Pioche Gauche ⬅️ ou Pioche Droite ➡️).`);
             }
         } else {
             document.getElementById('action-modal').style.display = 'flex';
@@ -1188,18 +1188,12 @@ const game = {
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             const animalObj = ANIMALS.find(a => a.id === payload.animalId);
             game.addHistory(`${sourcePlayer.name} prédit : ${animalObj.name}.`);
-            game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a prédit : ${animalObj ? animalObj.name : ''} ! Pioche automatique...` });
+            game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a prédit : ${animalObj ? animalObj.name : ''} ! Choisissez une pioche (Gauche ou Droite).` });
             game.broadcastState();
 
-            setTimeout(() => {
-                let availableDecks = [];
-                if (game.state.deck1.length > 0) availableDecks.push(1);
-                if (game.state.deck2.length > 0) availableDecks.push(2);
-                if (availableDecks.length === 0) return;
-                
-                const chosenDeckIndex = availableDecks[Math.floor(Math.random() * availableDecks.length)];
-                game.handlePlayerAction(playerId, 'DRAW', { deckIndex: chosenDeckIndex });
-            }, 600);
+            if (sourcePlayer && sourcePlayer.isBot) {
+                setTimeout(game.playBotTurn, 800);
+            }
             return;
         }
         else if (action === 'CROCODILE_SELECT') {
