@@ -1363,6 +1363,26 @@ const game = {
     roomCode: null,
     botTimer: null,
     
+    VINTAGE_BOT_NAMES: [
+        "Germaine 🤖", "Gertrude 🤖", "Francine 🤖", "Huguette 🤖", 
+        "Raymonde 🤖", "Lucette 🤖", "Georgette 🤖", "Bernadette 🤖", 
+        "Gisèle 🤖", "Odette 🤖", "Paulette 🤖", "Yvonne 🤖", 
+        "Marcelle 🤖", "Jeannette 🤖", "Colette 🤖", "Jacqueline 🤖",
+        "Lucien 🤖", "Raymond 🤖", "Marcel 🤖", "Alphonse 🤖", 
+        "Gustave 🤖", "Fernand 🤖", "Eugène 🤖", "Hippolyte 🤖", 
+        "Maurice 🤖", "René 🤖", "Georges 🤖", "Henri 🤖", 
+        "Émile 🤖", "Gaston 🤖", "Lucien 🤖", "Firmin 🤖"
+    ],
+    getRandomBotName: () => {
+        const usedNames = (game.state && game.state.players) ? game.state.players.map(p => p.name) : [];
+        const available = game.VINTAGE_BOT_NAMES.filter(n => !usedNames.includes(n));
+        if (available.length > 0) {
+            const randomIndex = Math.floor(Math.random() * available.length);
+            return available[randomIndex];
+        }
+        return game.VINTAGE_BOT_NAMES[Math.floor(Math.random() * game.VINTAGE_BOT_NAMES.length)];
+    },
+
     PLAYER_COLORS: [
         '#00d2ff', // Electric Cyan
         '#ff4757', // Neon Coral Red
@@ -1404,7 +1424,7 @@ const game = {
     deferredPrompt: null,
 
     init: () => { 
-        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.93');
+        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.94');
         ui.showScreen('screen-home'); 
         soundEngine.updateSpeakerBtn(); 
         game.startInactivityTracker();
@@ -1418,7 +1438,7 @@ const game = {
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1.93').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=1.94').then(reg => {
                 reg.update();
             }).catch(err => console.log('SW error:', err));
         }
@@ -1804,7 +1824,8 @@ const game = {
         }
         const botId = 'bot_' + Math.floor(Math.random()*10000);
         const botColor = game.getPlayerColor(game.state.players.length);
-        game.state.players.push({ id: botId, name: "Bot " + (game.state.players.length), isBot: true, row: [], score: 0, color: botColor });
+        const botName = game.getRandomBotName();
+        game.state.players.push({ id: botId, name: botName, isBot: true, row: [], score: 0, color: botColor });
         ui.updateWaitingPlayers(game.state.players);
     },
 
