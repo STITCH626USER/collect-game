@@ -152,48 +152,53 @@ const soundEngine = {
                 lfo.stop(now + 1.8);
             }
             else if (animalId === 'crocodile') {
-                // 🐊 Crunchy Crocodile Bite (Double snappy impact + crackle noise burst)
-                [0, 0.09].forEach((delay, idx) => {
-                    // 1. Jaw Snap Impact
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = idx === 0 ? 'square' : 'sawtooth';
-                    osc.frequency.setValueAtTime(500 - idx * 100, now + delay);
-                    osc.frequency.exponentialRampToValueAtTime(40, now + delay + 0.12);
+                // 🐊 Crocodile: Heavy predator jaw crunch with low sub-bass & bone crackle
+                [0, 0.11].forEach((delay, idx) => {
+                    const subOsc = ctx.createOscillator();
+                    const subGain = ctx.createGain();
+                    subOsc.type = 'sawtooth';
+                    subOsc.frequency.setValueAtTime(280 - idx * 60, now + delay);
+                    subOsc.frequency.exponentialRampToValueAtTime(25, now + delay + 0.18);
 
-                    gain.gain.setValueAtTime(0.6, now + delay);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.12);
+                    subGain.gain.setValueAtTime(0.7, now + delay);
+                    subGain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.18);
 
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(now + delay);
-                    osc.stop(now + delay + 0.12);
+                    const lowpass = ctx.createBiquadFilter();
+                    lowpass.type = 'lowpass';
+                    lowpass.frequency.setValueAtTime(500, now + delay);
 
-                    // 2. Crunchy Crackle Burst (Noise)
-                    const bufferSize = Math.floor(ctx.sampleRate * 0.1);
+                    subOsc.connect(lowpass);
+                    lowpass.connect(subGain);
+                    subGain.connect(ctx.destination);
+                    
+                    subOsc.start(now + delay);
+                    subOsc.stop(now + delay + 0.18);
+
+                    const bufferSize = Math.floor(ctx.sampleRate * 0.12);
                     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                     const data = buffer.getChannelData(0);
                     for (let i = 0; i < bufferSize; i++) {
-                        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+                        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.5);
                     }
 
                     const noise = ctx.createBufferSource();
                     noise.buffer = buffer;
 
                     const noiseFilter = ctx.createBiquadFilter();
-                    noiseFilter.type = 'highpass';
-                    noiseFilter.frequency.setValueAtTime(1200, now + delay);
+                    noiseFilter.type = 'bandpass';
+                    noiseFilter.frequency.setValueAtTime(800, now + delay);
+                    noiseFilter.Q.setValueAtTime(1.5, now + delay);
 
                     const noiseGain = ctx.createGain();
-                    noiseGain.gain.setValueAtTime(0.4, now + delay);
-                    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.1);
+                    noiseGain.gain.setValueAtTime(0.5, now + delay);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
 
                     noise.connect(noiseFilter);
                     noiseFilter.connect(noiseGain);
                     noiseGain.connect(ctx.destination);
 
                     noise.start(now + delay);
-                    noise.stop(now + delay + 0.1);
+                    noise.stop(now + delay + 0.12);
                 });
             }
             else if (animalId === 'monkey') {
@@ -218,21 +223,29 @@ const soundEngine = {
                 });
             }
             else if (animalId === 'crab') {
-                // 🦀 Crabe: Double woodblock/claw snap
-                [0, 0.12].forEach(delay => {
+                // 🦀 Crabe: 3 rapid crisp pincer snaps (Cliquetis de pinces aigu & métallique)
+                [0, 0.07, 0.14].forEach((delay, i) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(600, now + delay);
-                    osc.frequency.exponentialRampToValueAtTime(120, now + delay + 0.06);
+                    const filter = ctx.createBiquadFilter();
+                    
+                    osc.type = 'triangle';
+                    const startFreq = 1800 + i * 200;
+                    osc.frequency.setValueAtTime(startFreq, now + delay);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + delay + 0.04);
+
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(1200, now + delay);
 
                     gain.gain.setValueAtTime(0.5, now + delay);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.04);
 
-                    osc.connect(gain);
+                    osc.connect(filter);
+                    filter.connect(gain);
                     gain.connect(ctx.destination);
+                    
                     osc.start(now + delay);
-                    osc.stop(now + delay + 0.06);
+                    osc.stop(now + delay + 0.04);
                 });
             }
             else if (animalId === 'hermit_crab') {
