@@ -671,23 +671,39 @@ const ui = {
         document.getElementById('parrot-modal').style.display = 'flex';
     },
 
-    showVictoryModal: (winner, reason, row) => {
-        document.getElementById('victory-title').innerText = winner.id === game.myId ? "VOUS AVEZ GAGNÉ ! 🎉" : "VICTOIRE ! 🎉";
-        document.getElementById('victory-subtitle').innerText = `${winner.name} a gagné ${reason}`;
+    showVictoryModal: (winner, reason, row, winningCardIndices = []) => {
+        const isMe = (winner.id === game.myId);
+        const titleEl = document.getElementById('victory-title');
+        const subtitleEl = document.getElementById('victory-subtitle');
+
+        if (isMe) {
+            titleEl.innerText = "VOUS AVEZ GAGNÉ ! 🎉";
+            titleEl.style.color = "var(--secondary)";
+            subtitleEl.innerText = `Vous avez remporté la manche ${reason}`;
+        } else {
+            titleEl.innerText = "PERDU ! 💔";
+            titleEl.style.color = "#ff4757";
+            const winnerColor = winner.color || '#00d2ff';
+            subtitleEl.innerHTML = `<span style="color: ${winnerColor}; font-weight: 900; text-shadow: 0 0 12px ${winnerColor}80;">${winner.name}</span> a remporté la manche ${reason}`;
+        }
         
         const cardsDiv = document.getElementById('victory-cards');
         cardsDiv.innerHTML = '';
-        row.forEach(c => {
-            const img = document.createElement('img');
-            img.src = c.img;
-            img.className = 'victory-card-tile';
-            cardsDiv.appendChild(img);
-        });
+        if (row && row.length) {
+            const hasSpecificIndices = (winningCardIndices && winningCardIndices.length > 0);
+            row.forEach((c, idx) => {
+                const img = document.createElement('img');
+                img.src = c.img;
+                const isWinningCard = hasSpecificIndices ? winningCardIndices.includes(idx) : true;
+                img.className = `victory-card-tile ${isWinningCard ? 'winning-card' : 'non-winning-card'}`;
+                cardsDiv.appendChild(img);
+            });
+        }
         document.getElementById('victory-modal').style.display = 'flex';
         
         const rematchBtn = document.getElementById('btn-rematch');
         rematchBtn.style.display = 'inline-block';
-        if (game.state.rematchVotes) {
+        if (game.state && game.state.rematchVotes) {
             if (game.state.rematchVotes.includes(game.myId)) {
                 rematchBtn.innerText = `En attente... (${game.state.rematchVotes.length}/${game.state.players.length})`;
                 rematchBtn.disabled = true;
@@ -702,8 +718,6 @@ const ui = {
             rematchBtn.disabled = false;
             rematchBtn.style.opacity = '1';
         }
-        
-        document.getElementById('victory-modal').style.display = 'flex';
     },
 
     openOpponentZoom: (playerId) => {
@@ -2107,11 +2121,102 @@ const game = {
 
             game.triggerVFX({ action: 'PLACE', player: playerId, card: card, side: payload.side });
 
+            // Check victory IMMEDIATELY upon placing the card into the row!
+            const winCheck = game.checkVictoryCondition(player);
+            if (winCheck.won) {
+                setTimeout(() => {
+                    game.triggerVictory(player, winCheck.reason, winCheck.winningCardIndices);
+                }, 600);
+                return;
+            }
+
             setTimeout(() => {
                 game.applyAnimalEffects(player, card, payload.side, payload.skipPower || wasDisablePower);
             }, 600);
             return;
         }
+    },
+
+    checkVictoryCondition: (player) => {
+        if (!player || !player.row || player.row.length === 0) {
+            return { won: false, reason: '', winningCardIndices: [] };
+        }
+
+        // 1. Lion + 7 unique species
+        const nonLions = player.row.filter(c => c.id !== 'lion');
+        const hasChameleon = nonLions.some(c => c.id === 'chameleon');
+        const uniqueSpecies = new Set(nonLions.filter(c => c.id !== 'chameleon').map(c => c.id));
+        const effectiveUniqueCount = uniqueSpecies.size + (hasChameleon ? 1 : 0);
+        if (player.row.find(c => c.id === 'lion') && effectiveUniqueCount >= 7) {
+            const allIndices = player.row.map((_, i) => i);
+            return { won: true, reason: "grâce au Lion (7 espèces différentes) !", winningCardIndices: allIndices };
+        }
+
+        // 2. 4 Contiguous matching species (sliding window of 4)
+        if (player.row.length >= 4) {
+            for (let i = 0; i <= player.row.length - 4; i++) {
+                const slice = player.row.slice(i, i + 4);
+                const nonChameleons = slice.filter(c => c.id !== 'chameleon').map(c => c.id);
+                const uniqueSet = new Set(nonChameleons);
+                if (uniqueSet.size <= 1) {
+                    return { won: true, reason: "en alignant 4 animaux identiques !", winningCardIndices: [i, i + 1, i + 2, i + 3] };
+                }
+            }
+        }
+
+        // 3. Octopus (3 pairs)
+        if (player.row.find(c => c.id === 'octopus')) {
+            let frequencies = {};
+            let chameleonIndices = [];
+            player.row.forEach((c, idx) => {
+                if (c.id === 'chameleon') chameleonIndices.push(idx);
+                else {
+                    if (!frequencies[c.id]) frequencies[c.id] = [];
+                    frequencies[c.id].push(idx);
+                }
+            });
+
+            let pairsIndices = [];
+            let unusedChameleons = [...chameleonIndices];
+
+            for (let id in frequencies) {
+                const idxs = frequencies[id];
+                while (idxs.length >= 2) {
+                    pairsIndices.push(idxs.pop(), idxs.pop());
+                }
+            }
+            for (let id in frequencies) {
+                const idxs = frequencies[id];
+                if (idxs.length === 1 && unusedChameleons.length > 0) {
+                    pairsIndices.push(idxs.pop());
+                    pairsIndices.push(unusedChameleons.pop());
+                }
+            }
+
+            if (pairsIndices.length >= 6) {
+                const octopusIdx = player.row.findIndex(c => c.id === 'octopus');
+                if (octopusIdx !== -1 && !pairsIndices.includes(octopusIdx)) pairsIndices.push(octopusIdx);
+                return { won: true, reason: "grâce à la Pieuvre (3 paires) !", winningCardIndices: pairsIndices };
+            }
+        }
+
+        // 4. 4 Hermit Crabs anywhere
+        const hermitIndices = player.row.map((c, idx) => c.id === 'hermit_crab' ? idx : -1).filter(idx => idx !== -1);
+        if (hermitIndices.length >= 4) {
+            return { won: true, reason: "en réunissant 4 Bernard l'hermite !", winningCardIndices: hermitIndices };
+        }
+
+        return { won: false, reason: '', winningCardIndices: [] };
+    },
+
+    triggerVictory: (winner, reason, winningCardIndices = []) => {
+        game.addHistory(`🏆 ${winner.name} GAGNE !`);
+        winner.score += 0.5;
+        game.state.started = false;
+        game.state.rematchVotes = game.state.players.filter(p => p.isBot).map(p => p.id);
+        game.broadcast({ type: 'VICTORY', winner: winner, reason: reason, row: winner.row, winningCardIndices: winningCardIndices });
+        ui.showVictoryModal(winner, reason, winner.row, winningCardIndices);
+        game.broadcastState();
     },
 
     applyAnimalEffects: (player, card, side, skipPower = false) => {
@@ -2132,7 +2237,6 @@ const game = {
             return;
         }
 
-        // Chameleon cancellation moved to finalizeTurn
         if (card.id === 'parrot') {
             game.state.parrotPredicting = player.id;
             game.broadcastState();
@@ -2154,72 +2258,14 @@ const game = {
         if (chameleons.length >= 2) {
             game.broadcast({ type: 'ALERT', msg: `Les Caméléons de ${player.name} s'annulent !` });
             player.row = player.row.filter(c => c.id !== 'chameleon');
-            game.triggerVFX({ action: 'REJECT', player: player.id }); // Trigger a visual discard
+            game.triggerVFX({ action: 'REJECT', player: player.id });
         }
 
-        let won = false;
-        let winReason = '';
-        
-        const nonLions = player.row.filter(c => c.id !== 'lion');
-        const hasChameleon = nonLions.some(c => c.id === 'chameleon');
-        const uniqueSpecies = new Set(nonLions.filter(c => c.id !== 'chameleon').map(c => c.id));
-        const effectiveUniqueCount = uniqueSpecies.size + (hasChameleon ? 1 : 0);
-        if (player.row.find(c => c.id === 'lion') && effectiveUniqueCount >= 7) {
-            game.broadcast({ type: 'ALERT', msg: `${player.name} a réuni tous les animaux avec son Lion ! VICTOIRE !` });
-            player.score += 0.5;
-            won = true; winReason = "grâce au Lion (7 espèces différentes) !";
-        }
-
-        if (!won && player.row.length >= 4) {
-            for (let i = 0; i <= player.row.length - 4; i++) {
-                const slice = player.row.slice(i, i + 4);
-                const nonChameleons = slice.filter(c => c.id !== 'chameleon').map(c => c.id);
-                const uniqueSet = new Set(nonChameleons);
-                if (uniqueSet.size <= 1) {
-                    game.broadcast({ type: 'ALERT', msg: `${player.name} a aligné 4 animaux ! VICTOIRE !` });
-                    player.score += 0.5;
-                    won = true; winReason = "en alignant 4 animaux identiques !";
-                    break;
-                }
-            }
-        }
-
-        if (!won && player.row.find(c => c.id === 'octopus')) {
-            let frequencies = {};
-            let chameleonCount = 0;
-            for(let c of player.row) {
-                if(c.id === 'chameleon') chameleonCount++;
-                else frequencies[c.id] = (frequencies[c.id] || 0) + 1;
-            }
-            let pairs = 0;
-            for(let id in frequencies) {
-                pairs += Math.floor(frequencies[id] / 2);
-                frequencies[id] = frequencies[id] % 2;
-            }
-            for(let id in frequencies) {
-                if(frequencies[id] === 1 && chameleonCount > 0) {
-                    pairs++;
-                    chameleonCount--;
-                    frequencies[id] = 0;
-                }
-            }
-            if (pairs >= 3) {
-                game.broadcast({ type: 'ALERT', msg: `${player.name} a formé 3 paires grâce à la Pieuvre ! VICTOIRE !` });
-                player.score += 0.5;
-                won = true; winReason = "grâce à la Pieuvre (3 paires) !";
-            }
-        }
-
-        if (won) {
-            game.addHistory(`🏆 ${player.name} GAGNE !`);
-            game.state.started = false;
-            game.state.rematchVotes = game.state.players.filter(p => p.isBot).map(p => p.id);
-            game.broadcast({ type: 'VICTORY', winner: player, reason: winReason, row: player.row });
-            ui.showVictoryModal(player, winReason, player.row);
-            game.broadcastState();
+        const winCheck = game.checkVictoryCondition(player);
+        if (winCheck.won) {
+            game.triggerVictory(player, winCheck.reason, winCheck.winningCardIndices);
             return;
         }
-
 
         if (getsExtraTurn) {
             game.addHistory(`${player.name} 💕 rejoue grâce à l'amour du Bernard l'hermite et du Crabe !`);
