@@ -1404,6 +1404,7 @@ const game = {
     deferredPrompt: null,
 
     init: () => { 
+        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.93');
         ui.showScreen('screen-home'); 
         soundEngine.updateSpeakerBtn(); 
         game.startInactivityTracker();
@@ -1417,7 +1418,9 @@ const game = {
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+            navigator.serviceWorker.register('./sw.js?v=1.93').then(reg => {
+                reg.update();
+            }).catch(err => console.log('SW error:', err));
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
