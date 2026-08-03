@@ -706,6 +706,10 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .btn-sound-toggle:active {
     transform: scale(0.95);
 }
+.btn-sound-toggle.sound-muted {
+    border-color: rgba(255, 71, 87, 0.6);
+    background: rgba(40, 15, 25, 0.88);
+}
 
 .inactivity-timer-badge {
     position: fixed;
