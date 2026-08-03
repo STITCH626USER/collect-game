@@ -432,13 +432,11 @@ const ui = {
         document.getElementById('deck-left').style.opacity = (canDraw && state.forcedDeck === 2) ? '0.3' : '1';
         document.getElementById('deck-right').style.opacity = (canDraw && state.forcedDeck === 1) ? '0.3' : '1';
 
-        if (!state.currentDrawnCard || state.parrotPredictedAnimal) {
+        if (!state.currentDrawnCard) {
+            document.getElementById('action-modal').style.display = 'none';
             if (state.parrotPredictedAnimal && isMyTurn) {
-                document.getElementById('action-modal').style.display = 'none';
                 const animalObj = ANIMALS.find(a => a.id === state.parrotPredictedAnimal);
-                ui.showOverlay("Prédiction Perroquet 🦜", `Vous avez prédit : ${animalObj ? animalObj.name : ''} ! Piochez une carte dans un des decks pour vérifier !`);
-            } else if (!state.currentDrawnCard) {
-                document.getElementById('action-modal').style.display = 'none';
+                ui.showOverlay("Prédiction Perroquet 🦜", `Vous avez prédit : ${animalObj ? animalObj.name : ''} ! Pioche automatique en cours...`);
             }
         } else {
             document.getElementById('action-modal').style.display = 'flex';
@@ -1501,20 +1499,17 @@ const game = {
         else if (data.action === 'MONKEY_STEAL') {
             vfx.push((done) => {
                 const targetCard = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
-                const centerDrawnCard = document.getElementById('drawn-card-img');
+                const centerDrawnCard = document.getElementById('drawn-card-img') || document.getElementById('drawn-card');
                 
-                if (targetCard && centerDrawnCard) {
-                    const rectB = targetCard.getBoundingClientRect(); // Opponent card
-                    const rectA = centerDrawnCard.getBoundingClientRect(); // Monkey
-                    
-                    targetCard.style.opacity = '0';
-                    centerDrawnCard.style.opacity = '0';
-                    
-                    vfx.flyCardToRect(data.monkeyImg, null, rectB, null, rectA, 'spin');
-                    vfx.flyCardToRect(data.cardImgB, null, rectA, () => { done(); }, rectB, 'spin-reverse');
-                } else {
-                    done(); // Prevent blocking
-                }
+                let sRect = targetCard ? targetCard.getBoundingClientRect() : { left: window.innerWidth/2, top: 100, width: 60, height: 90 };
+                let tRect = centerDrawnCard ? centerDrawnCard.getBoundingClientRect() : { left: window.innerWidth/2, top: window.innerHeight/2, width: 120, height: 180 };
+                
+                if (targetCard) targetCard.style.opacity = '0.3';
+                
+                vfx.flyCardToRect(data.cardImgB, null, tRect, () => {
+                    if (targetCard) targetCard.style.opacity = '1';
+                    done();
+                }, sRect, 'spin');
             });
         }
         else if (data.action === 'CRAB_MOVE') {
@@ -1652,24 +1647,20 @@ const game = {
 
         const needsToDrawForParrot = game.state.parrotPredictedAnimal && game.state.currentDrawnCard && game.state.currentDrawnCard.id === 'parrot';
 
-        if(!game.state.currentDrawnCard || needsToDrawForParrot) {
-            let delay = 500;
-            if (game.state.parrotPredictedAnimal) delay = 2000;
-
-            setTimeout(() => {
-                if(game.state.turn !== botId) return;
-                if(game.state.currentDrawnCard && !needsToDrawForParrot) return;
-                const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
-                game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
-            }, delay);
-            return;
+        if (game.state.parrotPredictedAnimal) {
+            // Auto-draw and resolution handles Parrot prediction
+            if (!game.state.currentDrawnCard) return;
+            if (game.state.currentDrawnCard.id !== game.state.parrotPredictedAnimal) return;
         }
 
-        if (game.state.parrotPredictedAnimal) {
-            // Si une prédiction est en cours et que la carte piochée ne correspond pas, la défausse automatique s'occupera de la suite.
-            if (game.state.currentDrawnCard && game.state.currentDrawnCard.id !== game.state.parrotPredictedAnimal) {
-                return;
-            }
+        if(!game.state.currentDrawnCard) {
+            setTimeout(() => {
+                if(game.state.turn !== botId) return;
+                if(game.state.currentDrawnCard) return;
+                const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
+                game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
+            }, 500);
+            return;
         }
 
         setTimeout(() => {
