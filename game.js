@@ -530,18 +530,20 @@ const ui = {
         ui.updateDiceScores(players, diceRolls);
     },
     updateDiceScores: (players, diceRolls = {}, winnerId = null) => {
+        if (players && players.length) ui.dicePlayersCache = players;
+        const validPlayers = (players && players.length) ? players : (ui.dicePlayersCache || []);
         const list = document.getElementById('dice-scores-list');
         if (!list) return;
         list.innerHTML = '';
-        players.forEach(p => {
+        validPlayers.forEach(p => {
             const rollVal = diceRolls[p.id];
             const isWinner = (winnerId && winnerId === p.id);
             const div = document.createElement('div');
-            div.className = `dice-score-item ${rollVal ? 'rolled' : ''} ${isWinner ? 'winner' : ''}`;
+            div.className = `dice-score-item ${rollVal !== undefined ? 'rolled' : ''} ${isWinner ? 'winner' : ''}`;
             div.innerHTML = `
                 <span>${p.name} ${p.isBot ? '🤖' : ''}</span>
-                <span style="font-weight:900; font-size:1.1rem; color:${isWinner ? '#2ed573' : (rollVal ? 'var(--secondary)' : 'rgba(255,255,255,0.4)')};">
-                    ${isWinner ? '🏆 1er (Dé : ' + rollVal + ')' : (rollVal ? '🎲 Dé : ' + rollVal : 'En attente...')}
+                <span style="font-weight:900; font-size:1.1rem; color:${isWinner ? '#2ed573' : (rollVal !== undefined ? 'var(--secondary)' : 'rgba(255,255,255,0.4)')};">
+                    ${isWinner ? '🏆 1er (Dé : ' + rollVal + ')' : (rollVal !== undefined ? '🎲 Dé : ' + rollVal : 'En attente...')}
                 </span>
             `;
             list.appendChild(div);
@@ -1690,14 +1692,19 @@ const game = {
         }
         else if(data.type === 'DICE_ROLL_START') {
             game.myDiceRoll = null;
+            if (!game.state) game.state = {};
+            game.state.players = data.players;
+            ui.dicePlayersCache = data.players;
             ui.showDiceModal(data.players, {});
         }
         else if(data.type === 'DICE_ROLL_UPDATE') {
-            const players = (game.state && game.state.players && game.state.players.length) ? game.state.players : (data.players || []);
+            if (data.players) ui.dicePlayersCache = data.players;
+            const players = (data.players && data.players.length) ? data.players : (ui.dicePlayersCache || (game.state ? game.state.players : []));
             ui.updateDiceScores(players, data.diceRolls);
         }
         else if(data.type === 'DICE_ROLL_WINNER') {
-            const players = (game.state && game.state.players && game.state.players.length) ? game.state.players : (data.players || []);
+            if (data.players) ui.dicePlayersCache = data.players;
+            const players = (data.players && data.players.length) ? data.players : (ui.dicePlayersCache || (game.state ? game.state.players : []));
             ui.updateDiceScores(players, data.diceRolls || {}, data.winnerId);
             setTimeout(() => {
                 ui.hideDiceModal();
@@ -1760,7 +1767,7 @@ const game = {
             if (!game.state.diceRolls) game.state.diceRolls = {};
             game.state.diceRolls[playerId] = payload.roll;
             
-            game.broadcast({ type: 'DICE_ROLL_UPDATE', diceRolls: game.state.diceRolls });
+            game.broadcast({ type: 'DICE_ROLL_UPDATE', diceRolls: game.state.diceRolls, players: game.state.players });
             ui.updateDiceScores(game.state.players, game.state.diceRolls);
 
             const allRolled = game.state.players.every(p => game.state.diceRolls[p.id] !== undefined);
