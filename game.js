@@ -484,22 +484,29 @@ const ui = {
         const descEl = document.getElementById('overlay-desc');
         const overlayEl = document.getElementById('overlay-msg');
         
-        // Prevent flickering / animation restarts if overlay content is already identical
-        if (overlayEl && overlayEl.style.display === 'block' && titleEl.innerText === title && descEl.innerText === desc && ui._lastOverlayBtnHtml === btnHtml) {
+        if (overlayEl && overlayEl.style.display === 'block' && titleEl.innerText === title && descEl.innerHTML === desc && ui._lastOverlayBtnHtml === btnHtml) {
             return;
         }
         ui._lastOverlayBtnHtml = btnHtml;
         titleEl.innerText = title;
-        descEl.innerText = desc;
+        descEl.innerHTML = desc;
         const btnContainer = document.getElementById('overlay-btn-container');
         if (btnContainer) {
             btnContainer.innerHTML = btnHtml;
             btnContainer.style.display = btnHtml ? 'block' : 'none';
         }
         if (overlayEl) overlayEl.style.display = 'block';
+
+        if (!btnHtml) {
+            if (ui._overlayAutoTimer) clearTimeout(ui._overlayAutoTimer);
+            ui._overlayAutoTimer = setTimeout(() => {
+                ui.hideOverlay();
+            }, 3000);
+        }
     },
     hideOverlay: (force = false) => {
         if (ui.isParrotResultActive && !force) return;
+        if (ui._overlayAutoTimer) clearTimeout(ui._overlayAutoTimer);
         ui._lastOverlayBtnHtml = null;
         const overlayEl = document.getElementById('overlay-msg');
         if (overlayEl) overlayEl.style.display = 'none';
@@ -510,19 +517,19 @@ const ui = {
         const descEl = document.getElementById('overlay-desc');
         const btnContainer = document.getElementById('overlay-btn-container');
 
-        const title = data.success ? "🎉 BONNE PIOCHE !" : "❌ MAUVAISE PIOCHE 😞";
+        const title = data.success ? "🎉 BONNE PIOCHE !" : "❌ RATÉ ! 😞";
         let text = "";
         if (data.success) {
-            text = `${data.playerName} a prédit <b>${data.predictedName}</b> et a pioché <b>${data.cardName}</b> ! Prédiction réussie 🦜 !`;
+            text = `<b>${data.playerName}</b> a pioché <b>${data.cardName}</b> !<br><span style="font-size:1.35rem; color:#2ed573;">🎯 Prédiction réussie ! Carte conservée.</span>`;
         } else {
-            text = `${data.playerName} a prédit <b>${data.predictedName}</b> mais a pioché <b>${data.cardName}</b> ! Carte remise sous la pioche, le Perroquet reste dans le jeu.`;
+            text = `<b>${data.playerName}</b> a pioché <b>${data.cardName}</b> !<br><span style="font-size:1.35rem; color:#ff4757;">❌ Raté ! Carte défaussée.</span>`;
         }
 
         titleEl.innerText = title;
         descEl.innerHTML = `
-            <div style="margin-top:12px; margin-bottom:12px; display:flex; flex-direction:column; align-items:center; gap:14px;">
-                <img src="${data.cardImg}" style="width:165px; aspect-ratio:2/3; border-radius:18px; border:4px solid white; box-shadow:0 20px 45px rgba(0,0,0,0.6); transform:scale(1.05);" alt="${data.cardName}">
-                <p style="font-size:1.2rem; font-weight:700; color:var(--text-main); text-align:center; margin:0; line-height:1.4;">${text}</p>
+            <div style="margin-top:12px; margin-bottom:12px; display:flex; flex-direction:column; align-items:center; gap:12px;">
+                <img src="${data.cardImg}" style="width:150px; aspect-ratio:2/3; border-radius:18px; border:4px solid white; box-shadow:0 20px 45px rgba(0,0,0,0.6); transform:scale(1.05);" alt="${data.cardName}">
+                <p style="font-size:1.25rem; font-weight:800; color:#ffffff; text-align:center; margin:0; line-height:1.35;">${text}</p>
             </div>
         `;
         if (btnContainer) btnContainer.style.display = 'none';
@@ -532,7 +539,7 @@ const ui = {
             ui.isParrotResultActive = false;
             ui.hideOverlay(true);
             if (game.state) ui.renderGameState(game.state);
-        }, 2000);
+        }, 3000);
     },
     showHermitLoveModal: (actingPlayerId, actingPlayerName) => {
         soundEngine.playAnimalSound('hermit_crab');
@@ -544,12 +551,12 @@ const ui = {
         const descEl = document.getElementById('hermit-love-desc');
 
         if (titleEl) {
-            titleEl.innerText = isMe ? "VOUS REPIOCHEZ ! 💕" : `${actingPlayerName.toUpperCase()} REPIOCHE ! 💕`;
+            titleEl.innerText = isMe ? "AMOUR PARFAIT ! 💕" : `AMOUR PARFAIT ! 💕`;
         }
         if (descEl) {
-            descEl.innerText = isMe 
-                ? "Le Bernard l'hermite et le Crabe ont trouvé l'amour parfait ! Vous rejouez un tour !"
-                : `${actingPlayerName} réunit le Bernard l'hermite et le Crabe et rejoue un tour !`;
+            descEl.innerHTML = isMe 
+                ? "<b style='font-size:1.45rem; color:#ff4757;'>Vous rejouez un tour !</b>"
+                : `<b style='font-size:1.45rem;'>${actingPlayerName} rejoue un tour !</b>`;
         }
 
         modal.style.display = 'flex';
@@ -557,7 +564,7 @@ const ui = {
         if (ui.hermitLoveTimer) clearTimeout(ui.hermitLoveTimer);
         ui.hermitLoveTimer = setTimeout(() => {
             ui.hideHermitLoveModal();
-        }, 2000);
+        }, 3000);
     },
     hideHermitLoveModal: () => {
         if (ui.hermitLoveTimer) clearTimeout(ui.hermitLoveTimer);
@@ -2288,7 +2295,7 @@ const game = {
                 });
 
                 setTimeout(() => {
-                    game.broadcast({ type: 'ALERT', msg: `Le Crocodile de ${sourcePlayer.name} a dévoré une carte de ${targetPlayer.name} !` });
+                    game.broadcast({ type: 'ALERT', msg: `🐊 <b>${sourcePlayer.name}</b> dévore une carte de <b>${targetPlayer.name}</b> !` });
                     targetPlayer.row.splice(payload.cardIndex, 1);
                     game.broadcastState();
                     setTimeout(() => { game.finalizeTurn(sourcePlayer); }, 800);
@@ -2302,7 +2309,7 @@ const game = {
                 game.state.monkeyTargeting = null;
                 game.state.disablePower = true;
                 game.addHistory(`${sourcePlayer.name} passe le pouvoir du Singe.`);
-                game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a gardé son Singe sans cibler d'adversaire !` });
+                game.broadcast({ type: 'ALERT', msg: `🐒 <b>${sourcePlayer.name}</b> passe le pouvoir du Singe.` });
                 game.broadcastState();
                 if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                 return;
@@ -2322,7 +2329,7 @@ const game = {
                     playerB: targetPlayer.id, 
                     indexB: payload.cardIndex, 
                     cardImgB: oppCard.img,
-                    monkeyImg: monkeyCard ? monkeyCard.img : 'assets/card_monkey.jpg?v=4'
+                    monkeyImg: monkeyCard ? monkeyCard.img : 'assets/card_parrot.jpg?v=4'
                 });
 
                 setTimeout(() => {
@@ -2330,7 +2337,7 @@ const game = {
                     game.state.currentDrawnCard = oppCard;
                     game.state.mustPlaceDrawnCard = true;
                     game.state.disablePower = true;
-                    game.broadcast({ type: 'ALERT', msg: `${sourcePlayer.name} a volé une carte à ${targetPlayer.name} avec son Singe !` });
+                    game.broadcast({ type: 'ALERT', msg: `🐒 <b>${sourcePlayer.name}</b> vole une carte à <b>${targetPlayer.name}</b> !` });
                     game.broadcastState();
                     if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                 }, 600);
@@ -2352,7 +2359,7 @@ const game = {
                             
                             const targetCardName = targetCard.name || "une carte";
                             game.addHistory(`${player.name} 🦀 déplace la carte ${targetCardName} de ${targetPlayer.name}.`);
-                            game.broadcast({ type: 'ALERT', msg: `Le Crabe de ${player.name} a déplacé la carte ${targetCardName} de ${targetPlayer.name} !` });
+                            game.broadcast({ type: 'ALERT', msg: `🦀 <b>${player.name}</b> déplace une carte de <b>${targetPlayer.name}</b> !` });
                             game.broadcastState();
                             setTimeout(() => { game.finalizeTurn(player); }, 800);
                         }, 600);
