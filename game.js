@@ -4,7 +4,7 @@ const ANIMALS = [
     { id: 'monkey', name: 'Singe', img: 'assets/card_monkey.jpg?v=4', desc: 'Échange votre Singe avec la carte d\'un adversaire.' },
     { id: 'crab', name: 'Crabe', img: 'assets/card_crab.jpg?v=4', desc: 'Déplace une carte de sa ligne ou d\'un adversaire (gauche/droite).' },
     { id: 'hermit_crab', name: 'Bernard l\'hermite', img: 'assets/card_hermit_crab.jpg?v=6', desc: 'Rejouez un tour si vous avez déjà un Crabe.' },
-    { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg?v=4', desc: 'Gagnez si vous avez 2 paires d\'animaux (4 cartes).' },
+    { id: 'octopus', name: 'Pieuvre', img: 'assets/card_octopus.jpg?v=4', desc: 'Gagnez si vous avez 3 paires d\'animaux dans votre jeu (avec la Pieuvre).' },
     { id: 'lion', name: 'Lion', img: 'assets/card_lion.jpg?v=4', desc: 'Gagnez si vous avez 1 exemplaire de chaque autre animal.' },
     { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=4', desc: 'Devinez votre pioche pour la conserver.' }
 ];
@@ -889,7 +889,7 @@ const ui = {
                         👑 <strong style="color: var(--secondary); font-weight: 800;">Le Roi Lion :</strong> Poser le <strong style="color: #fff; font-weight: 800;">Lion 🦁 + 6 autres espèces différentes</strong> (7 espèces au total).
                     </p>
                     <p style="margin: 0 0 6px 0;">
-                        🐙 <strong style="color: #e056fd; font-weight: 800;">La Pieuvre :</strong> Avoir la <strong style="color: #fff; font-weight: 800;">Pieuvre 🐙 + au moins 2 paires d'animaux</strong> dans votre jeu.
+                        🐙 <strong style="color: #e056fd; font-weight: 800;">La Pieuvre :</strong> Avoir la <strong style="color: #fff; font-weight: 800;">Pieuvre 🐙 + au moins 3 paires d'animaux</strong> dans votre jeu.
                     </p>
                     <p style="margin: 0;">
                         🐚 <strong style="color: #ff9f43; font-weight: 800;">Bernard l'Hermite :</strong> Poser <strong style="color: #fff; font-weight: 800;">4 Bernard l'Hermite</strong> dans votre jeu.
@@ -2633,10 +2633,10 @@ const game = {
                 }
             }
 
-            if (pairsIndices.length >= 4) {
+            if (pairsIndices.length >= 6) {
                 const octopusIdx = player.row.findIndex(c => c.id === 'octopus');
                 if (octopusIdx !== -1 && !pairsIndices.includes(octopusIdx)) pairsIndices.push(octopusIdx);
-                return { won: true, reason: "grâce à la Pieuvre (2 paires) !", winningCardIndices: pairsIndices };
+                return { won: true, reason: "grâce à la Pieuvre (3 paires) !", winningCardIndices: pairsIndices };
             }
         }
 
