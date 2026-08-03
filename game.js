@@ -722,7 +722,7 @@ const ui = {
             titleEl.style.color = "var(--secondary)";
             subtitleEl.innerText = `Vous avez remporté la manche ${reason}`;
         } else {
-            titleEl.innerText = "PERDU ! 💔";
+            titleEl.innerText = "PERDU ! 😭";
             titleEl.style.color = "#ff4757";
             const winnerColor = winner.color || '#00d2ff';
             subtitleEl.innerHTML = `<span style="color: ${winnerColor}; font-weight: 900; text-shadow: 0 0 12px ${winnerColor}80;">${winner.name}</span> a remporté la manche ${reason}`;
@@ -737,6 +737,7 @@ const ui = {
                 img.src = c.img;
                 const isWinningCard = hasSpecificIndices ? winningCardIndices.includes(idx) : true;
                 img.className = `victory-card-tile ${isWinningCard ? 'winning-card' : 'non-winning-card'}`;
+                img.style.zIndex = isWinningCard ? (50 + idx) : (idx + 1);
                 cardsDiv.appendChild(img);
             });
         }
@@ -869,6 +870,16 @@ const ui = {
         document.getElementById('help-modal').style.display = 'flex';
     },
 
+    showQuitConfirmModal: () => {
+        const modal = document.getElementById('quit-confirm-modal');
+        if (modal) modal.style.display = 'flex';
+    },
+
+    hideQuitConfirmModal: () => {
+        const modal = document.getElementById('quit-confirm-modal');
+        if (modal) modal.style.display = 'none';
+    },
+
     showSoundTesterModal: () => {
         const grid = document.getElementById('sound-tester-grid');
         if (!grid) return;
@@ -993,6 +1004,12 @@ const ui = {
         
         const turnPlayer = state.players.find(p => p.id === state.turn);
         const isMyTurn = (state.turn === effectiveMyId);
+
+        if (ui.lastTurnId !== state.turn) {
+            ui.lastTurnId = state.turn;
+            game.resetTurnTimer(20);
+        }
+
         const turnIndicator = document.getElementById('turn-indicator');
         const targetTurnText = isMyTurn ? "C'est votre tour !" : `Tour de ${turnPlayer ? turnPlayer.name : '...'}`;
         if (turnIndicator && turnIndicator.innerText !== targetTurnText) {
@@ -1383,12 +1400,42 @@ const game = {
         }, 4000);
     },
 
-    turnTimeLeft: 30,
+    turnTimeLeft: 20,
     shotClockTimer: null,
 
-    resetTurnTimer: (seconds = 30) => {
+    resetTurnTimer: (seconds = 20) => {
         game.turnTimeLeft = seconds;
         game.updateInactivityUI();
+    },
+
+    quitToHome: () => {
+        if (game.peer) {
+            try { game.peer.destroy(); } catch(e){}
+            game.peer = null;
+        }
+        game.clientConn = null;
+        game.connections = [];
+        game.isHost = false;
+        game.state = {
+            players: [],
+            deck1: [],
+            deck2: [],
+            currentDrawnCard: null,
+            drawnFromDeck: null,
+            mustPlaceDrawnCard: false,
+            turn: null,
+            winner: null,
+            history: [],
+            started: false,
+            diceRolls: {}
+        };
+        sessionStorage.removeItem('collect_room_code');
+        const modalsToHide = ['quit-confirm-modal', 'victory-modal', 'history-modal', 'help-modal', 'opponent-zoom-modal', 'parrot-modal', 'dice-modal', 'hermit-love-modal'];
+        modalsToHide.forEach(id => {
+            const m = document.getElementById(id);
+            if (m) m.style.display = 'none';
+        });
+        ui.showScreen('screen-home');
     },
 
     startInactivityTracker: () => {
@@ -1408,7 +1455,7 @@ const game = {
                     game.handleShotClockTimeout();
                 }
             } else {
-                game.turnTimeLeft = 30;
+                game.turnTimeLeft = 20;
             }
             game.updateInactivityUI();
         }, 1000);
@@ -1422,7 +1469,7 @@ const game = {
         const activePlayer = game.state.players.find(p => p.id === activePlayerId);
         if (!activePlayer) return;
 
-        game.resetTurnTimer(30);
+        game.resetTurnTimer(20);
 
         // If it's a Bot turn, execute standard bot logic
         if (activePlayer.isBot) {
@@ -1432,7 +1479,7 @@ const game = {
 
         // --- DISADVANTAGEOUS AFK PENALTY FOR HUMAN PLAYER ---
         game.broadcast({ type: 'ALERT', msg: `⏳ Temps écoulé pour ${activePlayer.name} ! Pénalité AFK appliquée.` });
-        game.addHistory(`⏱️ Temps écoulé (30s) pour ${activePlayer.name} : choix défavorable appliqué !`);
+        game.addHistory(`⏱️ Temps écoulé (20s) pour ${activePlayer.name} : choix défavorable appliqué !`);
 
         // 1. Crocodile targeting penalty: Crocodile bites one of the AFK player's OWN cards if possible!
         if (game.state.crocodileTargeting === activePlayerId) {
