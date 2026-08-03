@@ -290,9 +290,10 @@ const ui = {
                 kickBtnHtml = `<button class="btn-kick" title="Retirer" onclick="game.removePlayer('${p.id}')">❌</button>`;
             }
 
+            const color = p.color || '#fff';
             li.innerHTML = `
                 <div style="display:flex; align-items:center;">
-                    <span style="font-weight:900;">${p.name}</span>
+                    <span style="font-weight:900; color:${color}; text-shadow:0 0 10px ${color}40;">${p.name}</span>
                     ${roleTag}
                 </div>
                 ${kickBtnHtml}
@@ -496,6 +497,17 @@ const ui = {
                     return `<span class="history-badge"><img src="${info.img}" class="history-mini-img" alt="${match}"> ${match}</span>`;
                 });
             });
+
+            if (game.state && game.state.players) {
+                game.state.players.forEach(p => {
+                    if (p.name) {
+                        const color = p.color || '#ff4757';
+                        const escapedName = p.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const nameRegex = new RegExp(`\\b${escapedName}\\b`, 'g');
+                        formattedMsg = formattedMsg.replace(nameRegex, `<span class="history-player-name" style="color: ${color}; font-weight: 900; text-shadow: 0 0 10px ${color}40;">${p.name}</span>`);
+                    }
+                });
+            }
 
             if (msg.includes('GAGNE') || msg.includes('VICTOIRE')) {
                 div.style.borderLeftColor = '#2ed573';
@@ -848,6 +860,20 @@ const game = {
     roomCode: null,
     botTimer: null,
     
+    PLAYER_COLORS: [
+        '#00f2fe', // Electric Cyan
+        '#ff4757', // Neon Pink/Red
+        '#ffbe76', // Amber Gold
+        '#2ed573', // Emerald Lime
+        '#a55eea', // Bright Purple
+        '#ff7f50', // Coral Orange
+        '#70a1ff', // Soft Sky Blue
+        '#eccc68'  // Warm Gold
+    ],
+    getPlayerColor: (index) => {
+        return game.PLAYER_COLORS[index % game.PLAYER_COLORS.length];
+    },
+    
     state: {
         started: false,
         players: [],
@@ -946,7 +972,7 @@ const game = {
         if (codeEl) { codeEl.innerText = game.roomCode; codeEl.textContent = game.roomCode; }
         
         game.myId = 'host_' + Math.floor(Math.random() * 10000);
-        game.state.players = [{ id: game.myId, name: game.myName, isBot: false, row: [], score: 0, disconnected: false }];
+        game.state.players = [{ id: game.myId, name: game.myName, isBot: false, row: [], score: 0, disconnected: false, color: game.getPlayerColor(0) }];
         
         sessionStorage.setItem('collect_room_code', game.roomCode);
         sessionStorage.setItem('collect_player_name', game.myName);
@@ -996,7 +1022,8 @@ const game = {
 
                         if (game.state.players.length >= 5) { conn.send({type: 'ERROR', msg: "Salon complet (5 joueurs max)."}); return; }
                         game.connections.push(conn);
-                        game.state.players.push({ id: conn.peer, name: data.name, isBot: false, row: [], score: 0, disconnected: false });
+                        const playerColor = game.getPlayerColor(game.state.players.length);
+                        game.state.players.push({ id: conn.peer, name: data.name, isBot: false, row: [], score: 0, disconnected: false, color: playerColor });
                         ui.updateWaitingPlayers(game.state.players);
                         game.broadcast({ type: 'PLAYERS_UPDATE', players: game.state.players });
                         conn.send({ type: 'HISTORY_UPDATE', history: game.state.history });
@@ -1036,7 +1063,8 @@ const game = {
             return;
         }
         const botId = 'bot_' + Math.floor(Math.random()*10000);
-        game.state.players.push({ id: botId, name: "Bot " + (game.state.players.length), isBot: true, row: [], score: 0 });
+        const botColor = game.getPlayerColor(game.state.players.length);
+        game.state.players.push({ id: botId, name: "Bot " + (game.state.players.length), isBot: true, row: [], score: 0, color: botColor });
         ui.updateWaitingPlayers(game.state.players);
     },
 
@@ -1172,9 +1200,10 @@ const game = {
         game.state.crocTargeting = null;
 
         // Initialiser une main vide pour tout le monde
-        game.state.players.forEach(p => {
+        game.state.players.forEach((p, idx) => {
             p.row = [];
             if (p.score === undefined) p.score = 0;
+            if (!p.color) p.color = game.getPlayerColor(idx);
         });
         
         game.broadcast({ type: 'DICE_ROLL_START', players: game.state.players });
