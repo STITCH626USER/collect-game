@@ -1461,7 +1461,7 @@ const game = {
     deferredPrompt: null,
 
     init: () => { 
-        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.97');
+        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.98');
         ui.showScreen('screen-home'); 
         soundEngine.updateSpeakerBtn(); 
         game.startInactivityTracker();
@@ -1475,7 +1475,7 @@ const game = {
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1.97').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=1.98').then(reg => {
                 reg.update();
             }).catch(err => console.log('SW error:', err));
         }
