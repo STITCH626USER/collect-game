@@ -1063,8 +1063,13 @@ const game = {
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
                         game.triggerVFX({ action: 'PARROT_FLY', player: playerId });
+                        const pIndex = sourcePlayer.row.findIndex(c => c.id === 'parrot');
+                        if (pIndex !== -1) sourcePlayer.row.splice(pIndex, 1);
+
                         game.broadcast({ type: 'PARROT_RESULT', success: true, playerName: sourcePlayer.name });
                         game.state.parrotPredictedAnimal = null;
+                        game.state.currentDrawnCard = card;
+                        game.state.mustPlaceDrawnCard = true;
                         game.state.disablePower = true;
                         game.broadcastState();
                         if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
@@ -1082,13 +1087,12 @@ const game = {
                                 game.state.deck2Thumbnail = card.img;
                             }
                             
-                            const parrotCard = ANIMALS.find(a => a.id === 'parrot');
                             game.state.parrotPredictedAnimal = null;
-                            game.state.currentDrawnCard = { ...parrotCard, img: 'assets/card_parrot.jpg?v=4' };
-                            game.state.mustPlaceDrawnCard = true;
-                            game.state.disablePower = true;
+                            game.state.currentDrawnCard = null;
+                            game.state.mustPlaceDrawnCard = false;
+                            game.state.disablePower = false;
                             game.broadcastState();
-                            if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
+                            game.finalizeTurn(sourcePlayer, false);
                         }, 1600);
                     }
                 } else {
