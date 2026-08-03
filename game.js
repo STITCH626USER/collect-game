@@ -1077,11 +1077,17 @@ const game = {
         
         const activePlayer = game.state.players.find(p => p.id === game.state.turn);
         if(activePlayer && activePlayer.isBot) {
-            if (game.botTimer) clearTimeout(game.botTimer);
             const isFirstTurnOfGame = (!game.state.currentDrawnCard && game.state.players.every(p => !p.row || p.row.length === 0));
-            const botDelay = isFirstTurnOfGame ? 2000 : 600;
-            game.botTimer = setTimeout(game.playBotTurn, botDelay);
+            const botDelay = isFirstTurnOfGame ? 2000 : 800;
+            game.scheduleBotTurn(botDelay);
         }
+    },
+
+    scheduleBotTurn: (delay = 800) => {
+        if (game.botTimer) clearTimeout(game.botTimer);
+        game.botTimer = setTimeout(() => {
+            game.playBotTurn();
+        }, delay);
     },
 
     startGame: () => {
@@ -1904,12 +1910,21 @@ const game = {
     // --- BOTS ---
     playBotTurn: () => {
         if (!game.state.started) return;
+        if (game.isBotTurnRunning) return;
+        game.isBotTurnRunning = true;
+
+        const resetGuard = () => { game.isBotTurnRunning = false; };
+
         const botId = game.state.turn;
         const bot = game.state.players.find(p => p.id === botId);
-        if(!bot || !bot.isBot) return;
+        if(!bot || !bot.isBot) {
+            resetGuard();
+            return;
+        }
         
         if (game.state.crocodileTargeting === botId) {
             setTimeout(() => {
+                resetGuard();
                 const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 0);
                 if (opponents.length > 0) {
                     const target = opponents[Math.floor(Math.random() * opponents.length)];
@@ -1918,12 +1933,13 @@ const game = {
                 } else {
                     game.handlePlayerAction(botId, 'CROCODILE_SELECT', { skip: true });
                 }
-            }, 800);
+            }, 600);
             return;
         }
         
         if (game.state.monkeyTargeting === botId) {
             setTimeout(() => {
+                resetGuard();
                 const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 0);
                 if (opponents.length > 0) {
                     let chosenTarget = null;
@@ -1953,17 +1969,17 @@ const game = {
                 } else {
                     game.handlePlayerAction(botId, 'MONKEY_SELECT', { skip: true });
                 }
-            }, 800);
+            }, 600);
             return;
         }
         
         if (game.state.crabTargeting === botId) {
             setTimeout(() => {
+                resetGuard();
                 const opponents = game.state.players.filter(p => p.id !== bot.id && p.row.length > 1);
                 let target = null;
                 let cIndex = -1;
                 let index = -1;
-                // Le bot cherche à séparer une paire existante chez l'adversaire
                 for (let opp of opponents) {
                     for (let i = 0; i < opp.row.length - 1; i++) {
                         if (opp.row[i].id === opp.row[i+1].id) {
@@ -1984,13 +2000,13 @@ const game = {
                 } else {
                     game.handlePlayerAction(botId, 'CRAB_SELECT', { skip: true });
                 }
-            }, 800);
+            }, 600);
             return;
         }
 
         if (game.state.parrotPredicting === botId) {
             setTimeout(() => {
-                // Le bot prédit une carte qu'il possède aux extrémités pour faire une paire
+                resetGuard();
                 let animalIdToPredict = 'lion';
                 if (bot.row.length > 0) {
                     animalIdToPredict = bot.row[Math.random() > 0.5 ? 0 : bot.row.length - 1].id;
@@ -2004,22 +2020,23 @@ const game = {
         }
 
         if (game.state.parrotPredictedAnimal) {
-            // Auto-draw and resolution handles Parrot prediction
-            if (!game.state.currentDrawnCard) return;
-            if (game.state.currentDrawnCard.id !== game.state.parrotPredictedAnimal) return;
+            if (!game.state.currentDrawnCard) { resetGuard(); return; }
+            if (game.state.currentDrawnCard.id !== game.state.parrotPredictedAnimal) { resetGuard(); return; }
         }
 
         if(!game.state.currentDrawnCard) {
             setTimeout(() => {
+                resetGuard();
                 if(game.state.turn !== botId) return;
                 if(game.state.currentDrawnCard) return;
                 const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
                 game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
-            }, 500);
+            }, 400);
             return;
         }
 
         setTimeout(() => {
+            resetGuard();
             const card = game.state.currentDrawnCard;
             let wantsToKeep = true;
             let skipPower = false;
@@ -2032,16 +2049,13 @@ const game = {
             if (leftCard && card.id === leftCard.id) { bestSide = 'left'; formsPair = true; }
             else if (rightCard && card.id === rightCard.id) { bestSide = 'right'; formsPair = true; }
             
-            // Rejeter si c'est un caméléon en double
             if(card.id === 'chameleon' && bot.row.find(c => c.id === 'chameleon')) wantsToKeep = false;
             
-            // Si c'est une carte sans pouvoir qui ne forme pas de paire, on pourrait la jeter (sauf si on a peu de cartes)
             const powerCards = ['crocodile', 'monkey', 'crab', 'parrot'];
             if (!powerCards.includes(card.id) && !formsPair && bot.row.length >= 3) {
                 wantsToKeep = false;
             }
 
-            // Gestion intelligente des pouvoirs
             if(card.id === 'crocodile') {
                 const hasOpponents = game.state.players.some(p => p.id !== bot.id && p.row.length > 0);
                 if(!hasOpponents) skipPower = true;
@@ -2077,7 +2091,7 @@ const game = {
                     game.handlePlayerAction(botId, 'PLACE', { side: bestSide, skipPower: skipPower });
                 }
             }
-        }, 800);
+        }, 600);
     }
 };
 
