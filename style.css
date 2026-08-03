@@ -729,8 +729,14 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     padding: 8px 6px;
     min-height: 70px;
     align-items: center;
+    justify-content: center;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+}
+.opp-row-cards::before,
+.opp-row-cards::after {
+    content: '';
+    margin: auto;
 }
 .opp-row-cards::-webkit-scrollbar { display: none; }
 
