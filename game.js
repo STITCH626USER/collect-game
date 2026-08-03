@@ -620,7 +620,10 @@ const ui = {
                         img.style.borderColor = 'var(--primary)';
                         img.classList.add('clickable-target');
                     }
-                } else if (state.crocodileTargeting === myId || state.monkeyTargeting === myId) {
+                } else if (state.crocodileTargeting === myId) {
+                    img.classList.add('clickable-target');
+                    img.onclick = () => game.sendAction('CROCODILE_SELECT', { targetPlayerId: myId, cardIndex: index });
+                } else if (state.monkeyTargeting === myId) {
                     img.style.opacity = '0.5';
                 }
                 
