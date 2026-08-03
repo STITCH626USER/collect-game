@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Collect - v1.0</title>
+    <title>Le Roi des Animaux - v1.0</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f0f1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Roi Animaux">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=1.0">
@@ -38,14 +44,14 @@
         <!-- ================= HOME SCREEN ================= -->
         <div id="screen-home" class="screen active">
             <div class="logo-container bounce-in">
-                <h1 class="logo-title">Le <span class="crowned-r">R<span class="crown-icon">👑</span></span>oi</h1>
-                <h1 class="logo-title">des Animaux</h1>
+                <img src="assets/logo_horizontal.jpg" alt="Le Roi des Animaux" class="home-logo-img">
             </div>
             <div class="menu-actions fade-in-up">
                 <input type="text" id="input-host-name" placeholder="Votre Pseudo (Hôte)" maxlength="10">
                 <button class="btn btn-main" onclick="ui.showScreen('screen-host')">Créer un Salon</button>
                 <button class="btn btn-secondary" onclick="ui.showScreen('screen-join')">Rejoindre</button>
-                <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);">📖 Règles du Jeu</button>
+                <button id="btn-install-app" class="btn" style="display:none; background: linear-gradient(135deg, #1e90ff, #3742fa); color: white;" onclick="ui.installPWA()">📲 Installer l'application</button>
+                <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
             <div class="version-badge">v1.0</div>
         </div>

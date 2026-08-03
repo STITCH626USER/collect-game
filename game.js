@@ -132,6 +132,20 @@ const ui = {
     hideOverlay: () => {
         document.getElementById('overlay-msg').style.display = 'none';
     },
+    installPWA: () => {
+        if (game.deferredPrompt) {
+            game.deferredPrompt.prompt();
+            game.deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    const btn = document.getElementById('btn-install-app');
+                    if (btn) btn.style.display = 'none';
+                }
+                game.deferredPrompt = null;
+            });
+        } else {
+            ui.showOverlay("📲 Installer l'application", "Sur iOS (iPhone/iPad) : appuyez sur le bouton Partager ⎋ dans Safari puis choisissez 'Sur l'écran d'accueil ➕'.\nSur Android : ouvrez le menu ⠇ et sélectionnez 'Ajouter à l'écran d'accueil'.");
+        }
+    },
     updateWaitingPlayers: (players) => {
         const ul = document.getElementById('waiting-players-list');
         ul.innerHTML = '';
@@ -656,7 +670,22 @@ const game = {
         ui.renderHistory(game.state.history);
     },
 
-    init: () => { ui.showScreen('screen-home'); },
+    deferredPrompt: null,
+
+    init: () => { 
+        ui.showScreen('screen-home'); 
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            game.deferredPrompt = e;
+            const btn = document.getElementById('btn-install-app');
+            if (btn) btn.style.display = 'block';
+        });
+    },
 
     generateRoomCode: () => {
         return Math.floor(1000 + Math.random() * 9000).toString();

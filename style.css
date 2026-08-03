@@ -76,11 +76,19 @@ h1, h2, h3 { text-transform: uppercase; letter-spacing: 1px; font-weight: 900; }
 
 /* ================= LOBBY SCREENS ================= */
 #screen-home { justify-content: center; align-items: center; text-align: center; }
-.logo-container h1 { font-size: clamp(3rem, 10vw, 6rem); font-weight: 900; color: white; text-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); line-height: 1.1; margin: 0; }
-.crowned-r { position: relative; display: inline-block; }
-.crown-icon { position: absolute; top: -0.6em; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 0.7em; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); }
+.logo-container { width: 100%; display: flex; justify-content: center; align-items: center; }
+.home-logo-img { 
+    max-width: 92%; 
+    width: clamp(280px, 85vw, 560px); 
+    height: auto; 
+    object-fit: contain; 
+    border-radius: 24px;
+    filter: drop-shadow(0 15px 35px rgba(0,0,0,0.6));
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.home-logo-img:hover { transform: scale(1.03); }
 .subtitle { font-size: clamp(1rem, 4vw, 1.8rem); color: var(--text-main); margin-top: 15px; font-weight: 700; background: rgba(255,255,255,0.5); padding: 5px 20px; border-radius: 20px; display: inline-block; }
-.menu-actions { margin-top: 8vh; width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 25px; }
+.menu-actions { margin-top: 4vh; width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 20px; }
 
 .room-code-box, .join-box { padding: 40px; text-align: center; margin: 3vh auto; max-width: 500px; width: 100%; }
 .room-code-box .label { font-size: 1.3rem; color: var(--text-dim); font-weight: 700; }
