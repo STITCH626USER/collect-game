@@ -422,18 +422,48 @@ const ui = {
     
     renderHistory: (history) => {
         const list = document.getElementById('history-list');
+        if (!list) return;
         list.innerHTML = '';
         if (!history || history.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#999;">Aucune action pour le moment.</p>';
+            list.innerHTML = '<p style="text-align:center; color:rgba(255,255,255,0.5); margin:auto;">Aucune action pour le moment.</p>';
             return;
         }
+
+        const animalImgMap = [
+            { key: 'lion', name: 'Lion 🦁', img: 'assets/card_lion.jpg?v=2' },
+            { key: 'caméléon', name: 'Caméléon 🦎', img: 'assets/card_chameleon.jpg' },
+            { key: 'chameleon', name: 'Caméléon 🦎', img: 'assets/card_chameleon.jpg' },
+            { key: 'singe', name: 'Singe 🐒', img: 'assets/card_monkey.jpg?v=2' },
+            { key: 'crabe', name: 'Crabe 🦀', img: 'assets/card_crab.jpg?v=4' },
+            { key: 'pieuvre', name: 'Pieuvre 🐙', img: 'assets/card_octopus.jpg?v=2' },
+            { key: 'crocodile', name: 'Crocodile 🐊', img: 'assets/card_crocodile.jpg?v=2' },
+            { key: 'perroquet', name: 'Perroquet 🦜', img: 'assets/card_parrot.jpg?v=2' },
+            { key: "bernard l'hermite", name: "Bernard l'hermite 🐚", img: 'assets/card_hermit_crab.jpg?v=7' },
+            { key: "bernard-l'ermite", name: "Bernard l'hermite 🐚", img: 'assets/card_hermit_crab.jpg?v=7' }
+        ];
+
         history.forEach(msg => {
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerText = msg;
+            
+            let formattedMsg = msg;
+
+            animalImgMap.forEach(info => {
+                const regex = new RegExp(`\\b${info.key}(s|es)?\\b`, 'gi');
+                formattedMsg = formattedMsg.replace(regex, (match) => {
+                    return `<span class="history-badge"><img src="${info.img}" class="history-mini-img" alt="${match}"> ${match}</span>`;
+                });
+            });
+
+            if (msg.includes('GAGNE') || msg.includes('VICTOIRE')) {
+                div.style.borderLeftColor = '#2ed573';
+                div.style.background = 'linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(46, 213, 115, 0.05))';
+            }
+
+            div.innerHTML = formattedMsg;
             list.appendChild(div);
         });
-        list.scrollTop = list.scrollHeight;
+        list.scrollTop = 0;
     },
 
     renderGameState: (state, myId) => {
@@ -769,7 +799,8 @@ const game = {
     },
 
     addHistory: (msg) => {
-        game.state.history.push(msg);
+        if (!game.state.history) game.state.history = [];
+        game.state.history.unshift(msg);
         game.broadcast({ type: 'HISTORY_UPDATE', history: game.state.history });
         ui.renderHistory(game.state.history);
     },
