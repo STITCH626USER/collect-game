@@ -516,6 +516,7 @@ const ui = {
         if (modal) modal.style.display = 'none';
     },
     showDiceModal: (players, diceRolls = {}) => {
+        game.myDiceRoll = null;
         const modal = document.getElementById('dice-modal');
         if (modal) modal.style.display = 'flex';
         const box = document.getElementById('dice-visual-box');
@@ -1571,6 +1572,19 @@ const game = {
                 }, 700 + (idx * 400));
             }
         });
+
+        // Safety fallback: auto-roll for any player/bot stuck after 5 seconds
+        if (game.diceSafetyTimer) clearTimeout(game.diceSafetyTimer);
+        game.diceSafetyTimer = setTimeout(() => {
+            if (game.isHost && game.state.started && !game.state.diceResolved) {
+                game.state.players.forEach(p => {
+                    if (game.state.diceRolls[p.id] === undefined) {
+                        const autoRoll = Math.floor(1 + Math.random() * 6);
+                        game.handlePlayerAction(p.id, 'ROLL_DICE', { roll: autoRoll });
+                    }
+                });
+            }
+        }, 5000);
     },
 
     joinRoom: () => {
@@ -1677,13 +1691,16 @@ const game = {
             ui.showDiceModal(data.players, {});
         }
         else if(data.type === 'DICE_ROLL_UPDATE') {
-            ui.updateDiceScores(game.state ? game.state.players : [], data.diceRolls);
+            const players = (game.state && game.state.players && game.state.players.length) ? game.state.players : (data.players || []);
+            ui.updateDiceScores(players, data.diceRolls);
         }
         else if(data.type === 'DICE_ROLL_WINNER') {
-            ui.updateDiceScores(game.state ? game.state.players : [], {}, data.winnerId);
+            const players = (game.state && game.state.players && game.state.players.length) ? game.state.players : (data.players || []);
+            ui.updateDiceScores(players, data.diceRolls || {}, data.winnerId);
             setTimeout(() => {
                 ui.hideDiceModal();
                 ui.showScreen('screen-game');
+                if (game.state) ui.renderGameState(game.state, game.myId);
             }, 2200);
         }
         else if(data.type === 'START_GAME') { 
