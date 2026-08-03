@@ -2059,9 +2059,14 @@ const game = {
             return;
         }
 
-        if (game.state.parrotPredictedAnimal) {
-            if (!game.state.currentDrawnCard) { resetGuard(); return; }
-            if (game.state.currentDrawnCard.id !== game.state.parrotPredictedAnimal) { resetGuard(); return; }
+        if (game.state.parrotPredictedAnimal && !game.state.currentDrawnCard) {
+            setTimeout(() => {
+                resetGuard();
+                if (game.state.turn !== botId) return;
+                const deckToDraw = game.state.forcedDeck || (Math.random() > 0.5 ? 1 : 2);
+                game.handlePlayerAction(botId, 'DRAW', { deckIndex: deckToDraw });
+            }, 600);
+            return;
         }
 
         if(!game.state.currentDrawnCard) {
