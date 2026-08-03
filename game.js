@@ -157,7 +157,7 @@ const ui = {
 
         setTimeout(() => {
             ui.hideOverlay();
-        }, 2800);
+        }, 1800);
     },
     installPWA: () => {
         if (game.deferredPrompt) {
@@ -1158,6 +1158,7 @@ const game = {
                 if (game.state.parrotPredictedAnimal) {
                     const predictedAnimalObj = ANIMALS.find(a => a.id === game.state.parrotPredictedAnimal);
                     const predictedName = predictedAnimalObj ? predictedAnimalObj.name : "un animal";
+                    const parrotCardObj = ANIMALS.find(a => a.id === 'parrot') || { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=4' };
 
                     game.state.currentDrawnCard = card;
                     game.state.originalDeckIndex = payload.deckIndex;
@@ -1166,8 +1167,6 @@ const game = {
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
                         game.triggerVFX({ action: 'PARROT_FLY', player: playerId });
-                        const pIndex = sourcePlayer.row.findIndex(c => c.id === 'parrot');
-                        if (pIndex !== -1) sourcePlayer.row.splice(pIndex, 1);
 
                         game.broadcast({ 
                             type: 'PARROT_RESULT', 
@@ -1177,12 +1176,16 @@ const game = {
                             cardName: card.name,
                             predictedName: predictedName
                         });
-                        game.state.parrotPredictedAnimal = null;
-                        game.state.currentDrawnCard = card;
-                        game.state.mustPlaceDrawnCard = true;
-                        game.state.disablePower = true;
                         game.broadcastState();
-                        if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 2800);
+
+                        setTimeout(() => {
+                            game.state.parrotPredictedAnimal = null;
+                            game.state.currentDrawnCard = card;
+                            game.state.mustPlaceDrawnCard = true;
+                            game.state.disablePower = true;
+                            game.broadcastState();
+                            if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 600);
+                        }, 1800);
                     } else {
                         game.broadcast({ 
                             type: 'PARROT_RESULT', 
@@ -1192,7 +1195,6 @@ const game = {
                             cardName: card.name,
                             predictedName: predictedName
                         });
-                        game.state.currentDrawnCard = card;
                         game.broadcastState();
 
                         setTimeout(() => {
@@ -1205,12 +1207,13 @@ const game = {
                             }
                             
                             game.state.parrotPredictedAnimal = null;
-                            game.state.currentDrawnCard = null;
-                            game.state.mustPlaceDrawnCard = false;
-                            game.state.disablePower = false;
+                            game.state.currentDrawnCard = parrotCardObj;
+                            game.state.mustPlaceDrawnCard = true;
+                            game.state.disablePower = true;
                             game.broadcastState();
-                            game.finalizeTurn(sourcePlayer, false);
-                        }, 2800);
+
+                            if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 600);
+                        }, 1800);
                     }
                 } else {
                     game.state.currentDrawnCard = card;
