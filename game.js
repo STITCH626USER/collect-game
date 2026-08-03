@@ -1359,6 +1359,7 @@ const game = {
 
         if (action === 'PARROT_INIT') {
             game.state.parrotPredicting = playerId;
+            game.state.currentDrawnCard = null;
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             game.addHistory(`${sourcePlayer.name} utilise son Perroquet et va faire une prédiction...`);
             game.broadcastState();
@@ -1369,6 +1370,7 @@ const game = {
         if (action === 'PARROT_PREDICT') {
             game.state.parrotPredicting = null;
             game.state.parrotPredictedAnimal = payload.animalId;
+            game.state.currentDrawnCard = null;
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
             const animalObj = ANIMALS.find(a => a.id === payload.animalId);
             game.addHistory(`${sourcePlayer.name} prédit : ${animalObj.name}.`);
