@@ -744,6 +744,7 @@ const ui = {
         const cardsDiv = document.getElementById('victory-cards');
         cardsDiv.innerHTML = '';
         if (row && row.length) {
+            cardsDiv.style.setProperty('--card-count', row.length);
             const hasSpecificIndices = (winningCardIndices && winningCardIndices.length > 0);
             row.forEach((c, idx) => {
                 const img = document.createElement('img');
