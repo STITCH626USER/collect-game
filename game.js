@@ -1326,43 +1326,84 @@ const game = {
         }, 4000);
     },
 
-    inactivityTime: 90,
-    inactivityTimer: null,
+    turnTimeLeft: 30,
+    shotClockTimer: null,
+
+    resetTurnTimer: (seconds = 30) => {
+        game.turnTimeLeft = seconds;
+        game.updateInactivityUI();
+    },
 
     startInactivityTracker: () => {
-        const resetTimer = () => {
-            game.inactivityTime = 90;
-            game.updateInactivityUI();
-        };
-
         const timerBadge = document.getElementById('inactivity-timer-badge');
         if (timerBadge) {
-            timerBadge.onclick = resetTimer;
+            timerBadge.onclick = () => {
+                game.updateInactivityUI();
+            };
         }
 
-        ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(evt => {
-            window.addEventListener(evt, resetTimer, { passive: true });
-        });
-
-        if (game.inactivityTimer) clearInterval(game.inactivityTimer);
-        game.inactivityTimer = setInterval(() => {
-            if (game.inactivityTime > 0) {
-                game.inactivityTime--;
+        if (game.shotClockTimer) clearInterval(game.shotClockTimer);
+        game.shotClockTimer = setInterval(() => {
+            if (game.state && game.state.started) {
+                if (game.turnTimeLeft > 0) {
+                    game.turnTimeLeft--;
+                } else if (game.isHost) {
+                    game.handleShotClockTimeout();
+                }
+            } else {
+                game.turnTimeLeft = 30;
             }
             game.updateInactivityUI();
         }, 1000);
     },
 
+    handleShotClockTimeout: () => {
+        if (!game.state || !game.state.started) return;
+        const activePlayerId = game.state.turn;
+        if (!activePlayerId) return;
+
+        game.resetTurnTimer(30);
+
+        if (game.state.crocodileTargeting === activePlayerId) {
+            game.handlePlayerAction(activePlayerId, 'CROCODILE_SELECT', { skip: true });
+        } else if (game.state.crabTargeting === activePlayerId) {
+            game.handlePlayerAction(activePlayerId, 'CRAB_SELECT', { skip: true });
+        } else if (game.state.monkeyTargeting === activePlayerId) {
+            game.handlePlayerAction(activePlayerId, 'MONKEY_SELECT', { skip: true });
+        } else if (game.state.parrotPredicting === activePlayerId) {
+            game.handlePlayerAction(activePlayerId, 'PARROT_PREDICT', { animalId: 'lion' });
+        } else if (game.state.currentDrawnCard) {
+            game.handlePlayerAction(activePlayerId, 'PLACE', { side: 'left', skipPower: true });
+        } else {
+            const deckToDraw = game.state.forcedDeck || 1;
+            game.handlePlayerAction(activePlayerId, 'DRAW', { deckIndex: deckToDraw });
+        }
+    },
+
     updateInactivityUI: () => {
         const badge = document.getElementById('inactivity-timer-badge');
         const countEl = document.getElementById('inactivity-countdown');
-        if (countEl) countEl.innerText = `${game.inactivityTime}s`;
-        if (badge) {
-            if (game.inactivityTime <= 15) {
-                badge.classList.add('warning');
-            } else {
-                badge.classList.remove('warning');
-            }
+        if (!badge || !countEl) return;
+
+        if (!game.state || !game.state.started) {
+            badge.className = 'inactivity-timer-badge opp-turn';
+            countEl.innerText = `30s`;
+            return;
+        }
+
+        const effectiveMyId = game.myId || (game.state.players.length > 0 ? game.state.players[0].id : null);
+        const isMyTurn = (game.state.turn === effectiveMyId);
+        const activePlayer = game.state.players.find(p => p.id === game.state.turn);
+        const activeName = activePlayer ? (isMyTurn ? "Votre tour" : activePlayer.name) : "...";
+
+        countEl.innerText = `${activeName} : ${game.turnTimeLeft}s`;
+
+        if (game.turnTimeLeft <= 8) {
+            badge.className = 'inactivity-timer-badge warning';
+        } else if (isMyTurn) {
+            badge.className = 'inactivity-timer-badge my-turn';
+        } else {
+            badge.className = 'inactivity-timer-badge opp-turn';
         }
     },
 
@@ -2329,6 +2370,7 @@ const game = {
 
     finalizeTurn: (player, getsExtraTurn = false) => {
         game.isBotTurnRunning = false;
+        game.resetTurnTimer(30);
         // Règle passive : 2 Caméléons s'annulent toujours
         const chameleons = player.row.filter(c => c.id === 'chameleon');
         if (chameleons.length >= 2) {

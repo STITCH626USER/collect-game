@@ -666,33 +666,46 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     bottom: 12px;
     right: 108px;
     z-index: 10010;
-    background: rgba(20, 20, 35, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(20, 20, 35, 0.88);
+    border: 1px solid rgba(0, 229, 255, 0.4);
     color: var(--secondary);
     font-size: 0.78rem;
     font-weight: 900;
-    padding: 5px 10px;
+    padding: 5px 12px;
     border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 10px rgba(0, 229, 255, 0.2);
     backdrop-filter: blur(10px);
-    opacity: 0.75;
+    opacity: 0.9;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     cursor: pointer;
     user-select: none;
     font-family: 'Outfit', sans-serif;
-    transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    transition: all 0.3s ease;
+}
+.inactivity-timer-badge.my-turn {
+    border-color: var(--secondary);
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.25), rgba(15, 15, 26, 0.9));
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+}
+.inactivity-timer-badge.opp-turn {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(20, 20, 35, 0.85);
 }
 .inactivity-timer-badge.warning {
     color: #ff4757;
     border-color: #ff4757;
+    background: rgba(255, 71, 87, 0.25);
+    box-shadow: 0 0 20px rgba(255, 71, 87, 0.6);
     opacity: 1;
-    animation: timerPulse 1s infinite alternate;
+    animation: shotClockPulse 0.8s infinite alternate;
 }
-@keyframes timerPulse {
+@keyframes shotClockPulse {
     0% { transform: scale(1); }
-    100% { transform: scale(1.08); }
+    100% { transform: scale(1.06); }
 }
 
 .version-badge {
