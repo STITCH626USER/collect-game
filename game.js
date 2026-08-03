@@ -749,14 +749,30 @@ const ui = {
         const cardsDiv = document.getElementById('victory-cards');
         cardsDiv.innerHTML = '';
         if (row && row.length) {
-            cardsDiv.style.setProperty('--card-count', row.length);
-            const hasSpecificIndices = (winningCardIndices && winningCardIndices.length > 0);
-            row.forEach((c, idx) => {
+            let displayRow = [];
+            if (winningCardIndices && winningCardIndices.length > 0) {
+                winningCardIndices.forEach(idx => {
+                    if (row[idx]) {
+                        displayRow.push({ card: row[idx], originalIndex: idx, isWinning: true });
+                    }
+                });
+                row.forEach((c, idx) => {
+                    if (!winningCardIndices.includes(idx)) {
+                        displayRow.push({ card: c, originalIndex: idx, isWinning: false });
+                    }
+                });
+            } else {
+                displayRow = row.map((c, idx) => ({ card: c, originalIndex: idx, isWinning: true }));
+            }
+
+            cardsDiv.style.setProperty('--card-count', displayRow.length);
+
+            displayRow.forEach((item, displayIdx) => {
                 const img = document.createElement('img');
-                img.src = c.img;
-                const isWinningCard = hasSpecificIndices ? winningCardIndices.includes(idx) : true;
-                img.className = `victory-card-tile ${isWinningCard ? 'winning-card' : 'non-winning-card'}`;
-                img.style.zIndex = isWinningCard ? (50 + idx) : (idx + 1);
+                img.src = item.card.img;
+                img.className = `victory-card-tile ${item.isWinning ? 'winning-card' : 'non-winning-card'}`;
+                img.style.zIndex = item.isWinning ? (50 + displayIdx) : (displayIdx + 1);
+                img.title = item.card.name || '';
                 cardsDiv.appendChild(img);
             });
         }
