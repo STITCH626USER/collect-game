@@ -782,6 +782,24 @@ const ui = {
             const winnerColor = winner.color || '#00d2ff';
             subtitleEl.innerHTML = `<span style="color: ${winnerColor}; font-weight: 900; text-shadow: 0 0 12px ${winnerColor}80;">${winner.name}</span> a remporté la manche ${reason}`;
         }
+
+        // --- Jouer le son de l'animal déclencheur de la victoire sur le panneau final ---
+        setTimeout(() => {
+            if (reason.includes('Lion')) {
+                soundEngine.playAnimalSound('lion');
+            } else if (reason.includes('Pieuvre')) {
+                soundEngine.playAnimalSound('octopus');
+            } else if (reason.includes('Bernard')) {
+                soundEngine.playAnimalSound('hermit_crab');
+            } else if (reason.includes('alignant 4') || reason.includes('4 animaux')) {
+                let matchedCard = null;
+                if (winningCardIndices && winningCardIndices.length > 0 && row) {
+                    matchedCard = row.find((c, idx) => winningCardIndices.includes(idx) && c.id !== 'chameleon');
+                }
+                const animalId = matchedCard ? matchedCard.id : 'lion';
+                soundEngine.playAnimalSound(animalId);
+            }
+        }, 350);
         
         const cardsDiv = document.getElementById('victory-cards');
         cardsDiv.innerHTML = '';
@@ -1461,7 +1479,7 @@ const game = {
     deferredPrompt: null,
 
     init: () => { 
-        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.99');
+        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v2.00');
         ui.showScreen('screen-home'); 
         soundEngine.updateSpeakerBtn(); 
         game.startInactivityTracker();
@@ -1475,7 +1493,7 @@ const game = {
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1.99').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=2.00').then(reg => {
                 reg.update();
             }).catch(err => console.log('SW error:', err));
         }
