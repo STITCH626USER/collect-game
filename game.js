@@ -112,10 +112,6 @@ const vfx = {
 const ui = {
     crabPreview: null,
     showScreen: (screenId) => {
-        if (screenId === 'screen-host' && !game.isHost) {
-            game.hostRoom();
-            return;
-        }
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         if (screenId === 'screen-game') {
@@ -953,10 +949,16 @@ const game = {
                 if(data.type === 'ERROR') document.getElementById('join-msg').innerText = data.msg;
                 else if(data.type === 'PLAYERS_UPDATE') {
                     ui.showScreen('screen-host');
-                    document.getElementById('room-code-display').innerText = code;
-                    document.querySelector('.host-actions').style.display = 'none';
+                    const codeEl = document.getElementById('room-code-display');
+                    if (codeEl) { codeEl.innerText = code; codeEl.textContent = code; }
+                    const hostAct = document.querySelector('.host-actions');
+                    if (hostAct) hostAct.style.display = 'none';
                     ui.updateWaitingPlayers(data.players);
                 } 
+                else if(data.type === 'STATE_UPDATE') {
+                    game.state = data.state;
+                    ui.renderGameState(game.state);
+                }
                 else if(data.type === 'START_GAME') { 
                     ui.showScreen('screen-game'); 
                     ui.hideOverlay();
