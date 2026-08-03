@@ -1144,7 +1144,7 @@ const game = {
             const player = game.state.players.find(p => p.id === playerId);
             const card = game.state.currentDrawnCard;
             
-            game.addHistory(`${player.name} joue ${card.name}.`);
+            game.addHistory(`${player.name} pose ${card.name} dans son jeu.`);
 
             if(payload.side === 'left') player.row.unshift(card);
             else player.row.push(card);
