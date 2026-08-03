@@ -147,9 +147,9 @@ const ui = {
 
         titleEl.innerText = title;
         descEl.innerHTML = `
-            <div style="margin-top:12px; margin-bottom:12px; display:flex; flex-direction:column; align-items:center; gap:12px;">
-                <img src="${data.cardImg}" style="width:130px; aspect-ratio:2/3; border-radius:16px; border:3.5px solid white; box-shadow:0 15px 35px rgba(0,0,0,0.5); transform:scale(1.05);" alt="${data.cardName}">
-                <p style="font-size:1.1rem; font-weight:700; color:var(--text-main); text-align:center; margin:0; line-height:1.4;">${text}</p>
+            <div style="margin-top:12px; margin-bottom:12px; display:flex; flex-direction:column; align-items:center; gap:14px;">
+                <img src="${data.cardImg}" style="width:165px; aspect-ratio:2/3; border-radius:18px; border:4px solid white; box-shadow:0 20px 45px rgba(0,0,0,0.6); transform:scale(1.05);" alt="${data.cardName}">
+                <p style="font-size:1.2rem; font-weight:700; color:var(--text-main); text-align:center; margin:0; line-height:1.4;">${text}</p>
             </div>
         `;
         if (btnContainer) btnContainer.style.display = 'none';
