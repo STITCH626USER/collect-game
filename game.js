@@ -180,7 +180,7 @@ const ui = {
             ui.isParrotResultActive = false;
             ui.hideOverlay(true);
             if (game.state) ui.renderGameState(game.state);
-        }, 1800);
+        }, 2000);
     },
     showHermitLoveModal: (actingPlayerId, actingPlayerName) => {
         const modal = document.getElementById('hermit-love-modal');
@@ -1589,7 +1589,7 @@ const game = {
                             game.state.disablePower = true;
                             game.broadcastState();
                             if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 600);
-                        }, 1800);
+                        }, 2000);
                     } else {
                         game.broadcast({ 
                             type: 'PARROT_RESULT', 
@@ -1617,7 +1617,7 @@ const game = {
                             game.broadcastState();
 
                             if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 600);
-                        }, 1800);
+                        }, 2000);
                     }
                 } else {
                     game.state.currentDrawnCard = card;
