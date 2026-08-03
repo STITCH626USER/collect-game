@@ -176,9 +176,17 @@ const ui = {
         } else {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             if (isIOS) {
-                ui.showOverlay("📲 Installer sur iPhone / iPad", "Pour ajouter le jeu sur votre écran d'accueil :\n\n1️⃣ Appuyez sur le bouton Partager ⎋ (en bas de Safari)\n2️⃣ Choisissez 'Sur l'écran d'accueil ➕'\n3️⃣ Validez 'Ajouter' en haut à droite !");
+                ui.showOverlay(
+                    "📲 Installer sur iPhone / iPad",
+                    "Pour ajouter le jeu sur votre écran d'accueil :\n\n1️⃣ Appuyez sur le bouton Partager ⎋ (en bas de Safari)\n2️⃣ Choisissez 'Sur l'écran d'accueil ➕'\n3️⃣ Validez 'Ajouter' en haut à droite !",
+                    '<button class="btn btn-main" style="margin-top:10px; width:100%;" onclick="ui.hideOverlay()">✖ Fermer</button>'
+                );
             } else {
-                ui.showOverlay("📲 Installer l'application", "Ouvrez le menu de votre navigateur (⠇) et choisissez 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.");
+                ui.showOverlay(
+                    "📲 Installer l'application",
+                    "Ouvrez le menu de votre navigateur (⠇) et choisissez 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.",
+                    '<button class="btn btn-main" style="margin-top:10px; width:100%;" onclick="ui.hideOverlay()">✖ Fermer</button>'
+                );
             }
         }
     },

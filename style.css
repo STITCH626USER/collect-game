@@ -327,10 +327,34 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .overlay-content p { color: var(--text-main); font-size: 1.2rem; font-weight: 700; margin-bottom: 30px; }
 .overlay-content .btn { flex-shrink: 0; }
 
-.toast-banner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 26, 0.95); border: 2px solid var(--primary); padding: 20px 40px; border-radius: 40px; text-align: center; z-index: 1000; display: none; pointer-events: none; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 80%; max-width: 500px; animation: bounceInCenter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); backdrop-filter: blur(10px); }
-.toast-banner h3 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.5rem; font-weight: 900; }
-.toast-banner p { color: var(--text-main); margin: 0; font-size: 1.1rem; font-weight: 700; }
+.toast-banner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 26, 0.95); border: 2px solid var(--primary); padding: 20px 30px; border-radius: 30px; text-align: center; z-index: 1000; display: none; pointer-events: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.7); width: 85%; max-width: 480px; animation: bounceInCenter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); backdrop-filter: blur(15px); }
+.toast-banner h3 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.4rem; font-weight: 900; padding-right: 25px; }
+.toast-banner p { color: var(--text-main); margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.5; white-space: pre-line; }
 .toast-banner button { pointer-events: auto; }
+.btn-close-toast {
+    position: absolute;
+    top: -10px;
+    right: -15px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 1005;
+}
+.btn-close-toast:hover, .btn-close-toast:active {
+    background: #ff4757;
+    border-color: #ff4757;
+    transform: scale(1.15);
+}
 
 /* Help & History Buttons - Inline */
 .btn-help-inline, .btn-history-inline { 
