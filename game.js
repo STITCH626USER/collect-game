@@ -112,6 +112,10 @@ const vfx = {
 const ui = {
     crabPreview: null,
     showScreen: (screenId) => {
+        if (screenId === 'screen-host' && !game.isHost) {
+            game.hostRoom();
+            return;
+        }
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         if (screenId === 'screen-game') {
@@ -204,7 +208,8 @@ const ui = {
             `;
             ul.appendChild(li);
         });
-        document.getElementById('player-count').innerText = players.length;
+        const pc = document.getElementById('player-count');
+        if (pc) { pc.innerText = players.length; pc.textContent = players.length; }
     },
     
     showPlacement: (skipPower = false) => {
@@ -751,7 +756,8 @@ const game = {
         game.roomCode = game.generateRoomCode();
         const nameInput = document.getElementById('input-host-name');
         game.myName = (nameInput && nameInput.value && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Hôte";
-        document.getElementById('room-code-display').innerText = game.roomCode;
+        const codeEl = document.getElementById('room-code-display');
+        if (codeEl) { codeEl.innerText = game.roomCode; codeEl.textContent = game.roomCode; }
         
         // Immediate ID assignment so game.myId is NEVER null or delayed!
         game.myId = 'host_' + Math.floor(Math.random() * 10000);
