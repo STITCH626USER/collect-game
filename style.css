@@ -412,6 +412,38 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .animal-grid img { width: 100%; border-radius: 15px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 4px solid white; }
 .animal-grid img:hover { transform: scale(1.15) rotate(5deg); border-color: var(--secondary); box-shadow: 0 15px 30px rgba(252, 196, 25, 0.3); z-index: 10; position: relative; }
 
+/* Dice Roll Modal & VFX */
+.dice-score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+}
+.dice-score-item.rolled {
+    border-color: var(--secondary);
+    background: rgba(0, 229, 255, 0.12);
+}
+.dice-score-item.winner {
+    border-color: #2ed573;
+    background: rgba(46, 213, 115, 0.2);
+    box-shadow: 0 0 15px rgba(46, 213, 115, 0.4);
+}
+
+@keyframes diceRollSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(360deg) scale(1.3); }
+    100% { transform: rotate(720deg) scale(1); }
+}
+.dice-spinning {
+    animation: diceRollSpin 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* ================= ANIMATIONS & VFX ================= */
 .bounce-in { animation: bounceIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .fade-in { animation: fadeIn 0.8s ease; }

@@ -164,6 +164,41 @@ const ui = {
             if (game.state) ui.renderGameState(game.state);
         }, 1800);
     },
+    showDiceModal: (players, diceRolls = {}) => {
+        const modal = document.getElementById('dice-modal');
+        if (modal) modal.style.display = 'flex';
+        const box = document.getElementById('dice-visual-box');
+        if (box) { box.innerText = '🎲'; box.classList.remove('dice-spinning'); }
+        const btn = document.getElementById('btn-roll-dice');
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.innerText = '🎲 LANCER MON DÉ !';
+        }
+        ui.updateDiceScores(players, diceRolls);
+    },
+    updateDiceScores: (players, diceRolls = {}, winnerId = null) => {
+        const list = document.getElementById('dice-scores-list');
+        if (!list) return;
+        list.innerHTML = '';
+        players.forEach(p => {
+            const rollVal = diceRolls[p.id];
+            const isWinner = (winnerId && winnerId === p.id);
+            const div = document.createElement('div');
+            div.className = `dice-score-item ${rollVal ? 'rolled' : ''} ${isWinner ? 'winner' : ''}`;
+            div.innerHTML = `
+                <span>${p.name} ${p.isBot ? '🤖' : ''}</span>
+                <span style="font-weight:900; font-size:1.1rem; color:${isWinner ? '#2ed573' : (rollVal ? 'var(--secondary)' : 'rgba(255,255,255,0.4)')};">
+                    ${isWinner ? '🏆 1er (Dé : ' + rollVal + ')' : (rollVal ? '🎲 Dé : ' + rollVal : 'En attente...')}
+                </span>
+            `;
+            list.appendChild(div);
+        });
+    },
+    hideDiceModal: () => {
+        const modal = document.getElementById('dice-modal');
+        if (modal) modal.style.display = 'none';
+    },
     installPWA: () => {
         if (game.deferredPrompt) {
             game.deferredPrompt.prompt();
@@ -846,6 +881,28 @@ const game = {
         }
     },
 
+    rollDice: () => {
+        if (game.myDiceRoll) return;
+        const box = document.getElementById('dice-visual-box');
+        if (box) box.classList.add('dice-spinning');
+        const roll = Math.floor(1 + Math.random() * 6);
+        game.myDiceRoll = roll;
+        
+        setTimeout(() => {
+            if (box) {
+                box.classList.remove('dice-spinning');
+                box.innerText = roll;
+            }
+            game.sendAction('ROLL_DICE', { roll: roll });
+            const btn = document.getElementById('btn-roll-dice');
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.innerText = `🎲 Votre Dé : ${roll}`;
+            }
+        }, 700);
+    },
+
     broadcast: (data) => {
         game.connections.forEach(conn => conn.send(data));
         if (data.type === 'ALERT') {
@@ -917,10 +974,10 @@ const game = {
         game.state.deck1Thumbnail = null;
         game.state.deck2Thumbnail = null;
         game.state.started = true;
-        const startIndex = Math.floor(Math.random() * game.state.players.length);
-        game.state.turnIndex = startIndex;
-        const startingPlayer = game.state.players[startIndex];
-        game.state.turn = startingPlayer.id;
+        game.state.diceRolls = {};
+        game.state.diceResolved = false;
+        game.myDiceRoll = null;
+
         game.state.currentDrawnCard = null;
         game.state.mustPlaceDrawnCard = false;
         game.state.crabTargeting = null;
@@ -933,12 +990,18 @@ const game = {
             if (p.score === undefined) p.score = 0;
         });
         
-        game.broadcast({ type: 'START_GAME', starterName: startingPlayer.name });
-        ui.showScreen('screen-game');
-        document.getElementById('victory-modal').style.display = 'none';
-        ui.showOverlay("🎲 Tirage au sort !", `C'est ${startingPlayer.name} qui commence la partie !`);
-        setTimeout(() => { ui.hideOverlay(); }, 1800);
-        game.broadcastState();
+        game.broadcast({ type: 'DICE_ROLL_START', players: game.state.players });
+        ui.showDiceModal(game.state.players, game.state.diceRolls);
+
+        // Host automatically rolls for bots with staggered delays
+        game.state.players.forEach((p, idx) => {
+            if (p.isBot) {
+                setTimeout(() => {
+                    const botRoll = Math.floor(1 + Math.random() * 6);
+                    game.handlePlayerAction(p.id, 'ROLL_DICE', { roll: botRoll });
+                }, 700 + (idx * 400));
+            }
+        });
     },
 
     joinRoom: () => {
@@ -969,11 +1032,23 @@ const game = {
                     game.state = data.state;
                     ui.renderGameState(game.state);
                 }
+                else if(data.type === 'DICE_ROLL_START') {
+                    game.myDiceRoll = null;
+                    ui.showDiceModal(data.players, {});
+                }
+                else if(data.type === 'DICE_ROLL_UPDATE') {
+                    ui.updateDiceScores(game.state ? game.state.players : [], data.diceRolls);
+                }
+                else if(data.type === 'DICE_ROLL_WINNER') {
+                    ui.updateDiceScores(game.state ? game.state.players : [], {}, data.winnerId);
+                    setTimeout(() => {
+                        ui.hideDiceModal();
+                        ui.showScreen('screen-game');
+                    }, 2200);
+                }
                 else if(data.type === 'START_GAME') { 
                     ui.showScreen('screen-game'); 
                     document.getElementById('victory-modal').style.display = 'none';
-                    ui.showOverlay("🎲 Tirage au sort !", `C'est ${data.starterName || 'un joueur'} qui commence la partie !`);
-                    setTimeout(() => { ui.hideOverlay(); }, 1800);
                 }
                 else if(data.type === 'KICK') {
                     ui.showOverlay("Salon", data.msg || "Vous avez été retiré du salon par l'hôte.");
@@ -1017,6 +1092,46 @@ const game = {
                 ui.hideOverlay();
                 document.getElementById('victory-modal').style.display = 'none';
                 game.startGame();
+            }
+            return;
+        }
+
+        if (action === 'ROLL_DICE') {
+            if (!game.state.diceRolls) game.state.diceRolls = {};
+            game.state.diceRolls[playerId] = payload.roll;
+            
+            game.broadcast({ type: 'DICE_ROLL_UPDATE', diceRolls: game.state.diceRolls });
+            ui.updateDiceScores(game.state.players, game.state.diceRolls);
+
+            const allRolled = game.state.players.every(p => game.state.diceRolls[p.id] !== undefined);
+            if (allRolled && !game.state.diceResolved) {
+                game.state.diceResolved = true;
+                
+                let maxRoll = -1;
+                let winner = game.state.players[0];
+                game.state.players.forEach(p => {
+                    const r = game.state.diceRolls[p.id] || 0;
+                    if (r > maxRoll) {
+                        maxRoll = r;
+                        winner = p;
+                    }
+                });
+
+                const winnerIndex = game.state.players.findIndex(p => p.id === winner.id);
+                game.state.turnIndex = (winnerIndex !== -1) ? winnerIndex : 0;
+                game.state.turn = winner.id;
+                game.state.currentDrawnCard = null;
+                game.state.mustPlaceDrawnCard = false;
+
+                game.broadcast({ type: 'DICE_ROLL_WINNER', winnerId: winner.id, winnerName: winner.name, winnerScore: maxRoll });
+                ui.updateDiceScores(game.state.players, game.state.diceRolls, winner.id);
+
+                setTimeout(() => {
+                    ui.hideDiceModal();
+                    ui.showScreen('screen-game');
+                    document.getElementById('victory-modal').style.display = 'none';
+                    game.broadcastState();
+                }, 2200);
             }
             return;
         }

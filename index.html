@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Le Roi des Animaux - v1.24</title>
+    <title>Le Roi des Animaux - v1.25</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0f1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="assets/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.24">
+    <link rel="stylesheet" href="style.css?v=1.25">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -53,7 +53,7 @@
                 <button id="btn-install-app" class="btn" style="display:none; background: linear-gradient(135deg, #1e90ff, #3742fa); color: white;" onclick="ui.installPWA()">📲 Installer l'application</button>
                 <button class="btn btn-secondary" onclick="ui.showHelpModal()" style="margin-top: 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: var(--text-main);">📖 Règles du Jeu</button>
             </div>
-            <div class="version-badge">v1.24</div>
+            <div class="version-badge">v1.25</div>
         </div>
 
         <!-- ================= HOST / WAITING ROOM ================= -->
@@ -191,6 +191,24 @@
             </div>
         </div>
 
+        <!-- ================= DICE ROLL MODAL ================= -->
+        <div id="dice-modal" class="overlay" style="display: none;">
+            <div class="overlay-content bounce-in" style="max-width: 460px; text-align: center;">
+                <h2 style="color: var(--secondary); margin-top:0;">🎲 Tirage du Premier Joueur</h2>
+                <p style="font-weight: 700; color: rgba(255,255,255,0.85); margin-bottom: 15px; font-size: 1.05rem;">Lancez votre dé pour déterminer qui commence !</p>
+                
+                <div id="dice-visual-box" style="margin: 15px auto; width: 85px; height: 85px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 3.2rem; color: #0f0f1a; font-weight: 900; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 4px solid var(--secondary); transition: transform 0.6s ease;">
+                    🎲
+                </div>
+                
+                <button id="btn-roll-dice" class="btn btn-main pulse" onclick="game.rollDice()" style="margin-bottom: 20px; width: 100%;">🎲 LANCER MON DÉ !</button>
+                
+                <div class="dice-scores-list" id="dice-scores-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; text-align: left;">
+                    <!-- Player dice rolls listed here -->
+                </div>
+            </div>
+        </div>
+
         <!-- ================= VICTORY MODAL ================= -->
         <div id="victory-modal" class="overlay" style="display: none;">
             <div class="overlay-content victory-content bounce-in">
@@ -202,9 +220,9 @@
                 <button class="btn btn-main" id="btn-rematch" style="margin-top:20px;" onclick="game.sendAction('REMATCH')">Rejouer une manche</button>
             </div>
         </div>
-        <div class="version-badge">v1.24</div>
+        <div class="version-badge">v1.25</div>
     </div>
     
-    <script src="game.js?v=1.24"></script>
+    <script src="game.js?v=1.25"></script>
 </body>
 </html>
