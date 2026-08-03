@@ -617,14 +617,25 @@ const ui = {
     },
     updateWaitingPlayers: (players) => {
         const ul = document.getElementById('waiting-players-list');
+        if (!ul) return;
         ul.innerHTML = '';
+        const hostId = (players && players.length > 0) ? players[0].id : null;
+
         players.forEach(p => {
             const li = document.createElement('li');
+            let iconSvg = '';
             let roleTag = '';
-            if (p.id === game.myId) {
-                roleTag = game.isHost ? '<span style="opacity:0.6; font-size:0.95rem; margin-left:6px; font-weight:bold;">(Hôte - Vous)</span>' : '<span style="opacity:0.6; font-size:0.95rem; margin-left:6px; font-weight:bold;">(Vous)</span>';
-            } else if (p.isBot) {
-                roleTag = '<span style="opacity:0.6; font-size:0.95rem; margin-left:6px; font-weight:bold;">(Bot)</span>';
+
+            if (p.isBot) {
+                iconSvg = `<svg class="player-type-icon bot-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2a2 2 0 012 2v1h1a3 3 0 013 3v8a3 3 0 01-3 3H9a3 3 0 01-3-3V8a3 3 0 013-3h1V4a2 2 0 012-2zm-3.5 6a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm7 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-5.5 5h4v1.5h-4V15z"/></svg>`;
+                roleTag = '<span style="opacity:0.6; font-size:0.9rem; margin-left:6px; font-weight:700;">(Bot)</span>';
+            } else if (p.id === hostId) {
+                iconSvg = `<svg class="player-type-icon host-icon" viewBox="0 0 24 24" width="22" height="22" fill="#ffea00"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`;
+                roleTag = p.id === game.myId ? '<span style="opacity:0.65; font-size:0.9rem; margin-left:6px; font-weight:700;">(Hôte - Vous)</span>' : '<span style="opacity:0.65; font-size:0.9rem; margin-left:6px; font-weight:700;">(Hôte)</span>';
+            } else {
+                const guestColor = p.color || '#00e5ff';
+                iconSvg = `<svg class="player-type-icon human-icon" viewBox="0 0 24 24" width="22" height="22" fill="${guestColor}"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+                roleTag = p.id === game.myId ? '<span style="opacity:0.65; font-size:0.9rem; margin-left:6px; font-weight:700;">(Vous)</span>' : '';
             }
 
             let kickBtnHtml = '';
@@ -635,6 +646,7 @@ const ui = {
             const color = p.color || '#fff';
             li.innerHTML = `
                 <div style="display:flex; align-items:center;">
+                    ${iconSvg}
                     <span style="font-weight:900; color:${color}; text-shadow:0 0 10px ${color}40;">${p.name}</span>
                     ${roleTag}
                 </div>
