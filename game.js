@@ -787,7 +787,7 @@ const game = {
             game.peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 if(data.type === 'JOIN') {
-                    if(game.state.players.length >= 8) { conn.send({type: 'ERROR', msg: "Salon complet."}); return; }
+                    if(game.state.players.length >= 5) { conn.send({type: 'ERROR', msg: "Salon complet (5 joueurs max)."}); return; }
                     game.connections.push(conn);
                     game.state.players.push({ id: conn.peer, name: data.name, isBot: false, row: [], score: 0 });
                     ui.updateWaitingPlayers(game.state.players);
@@ -872,7 +872,9 @@ const game = {
         const activePlayer = game.state.players.find(p => p.id === game.state.turn);
         if(activePlayer && activePlayer.isBot) {
             if (game.botTimer) clearTimeout(game.botTimer);
-            game.botTimer = setTimeout(game.playBotTurn, 600);
+            const isFirstTurnOfGame = (!game.state.currentDrawnCard && game.state.players.every(p => !p.row || p.row.length === 0));
+            const botDelay = isFirstTurnOfGame ? 2000 : 600;
+            game.botTimer = setTimeout(game.playBotTurn, botDelay);
         }
     },
 
