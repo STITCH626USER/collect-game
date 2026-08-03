@@ -1955,6 +1955,7 @@ const game = {
                 game.state.turn = winner.id;
                 game.state.currentDrawnCard = null;
                 game.state.mustPlaceDrawnCard = false;
+                game.resetTurnTimer(30);
 
                 game.broadcast({ type: 'DICE_ROLL_WINNER', winnerId: winner.id, winnerName: winner.name, winnerScore: maxRoll });
                 ui.updateDiceScores(game.state.players, game.state.diceRolls, winner.id);
@@ -2119,7 +2120,12 @@ const game = {
             }
         }
 
-        if(game.state.turn !== playerId) return;
+        const activeTurnPlayer = game.state.players.find(p => p.id === game.state.turn);
+        const actionSenderPlayer = game.state.players.find(p => p.id === playerId) || (playerId === game.myId ? game.state.players.find(p => !p.isBot) : null);
+
+        if (!activeTurnPlayer || !actionSenderPlayer || activeTurnPlayer.id !== actionSenderPlayer.id) {
+            return;
+        }
 
         if (action === 'DRAW') {
             if(game.state.currentDrawnCard && !game.state.parrotPredictedAnimal) return;
@@ -2137,7 +2143,7 @@ const game = {
             }
 
             if (card) {
-                const sourcePlayer = game.state.players.find(p => p.id === playerId);
+                const sourcePlayer = actionSenderPlayer;
                 game.addHistory(`${sourcePlayer.name} pioche ${card.name}.`);
 
                 if (game.state.parrotPredictedAnimal) {
