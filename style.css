@@ -525,23 +525,26 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     box-shadow: 0 0 15px var(--primary); animation: explode 0.6s cubic-bezier(0.2, 1, 0.3, 1) forwards;
 }
 
-/* Victory Screen - Cascading Tile Swipe Carousel */
+#victory-modal {
+    background: rgba(8, 8, 16, 0.94) !important;
+    backdrop-filter: blur(16px) !important;
+}
 .victory-content { 
     text-align: center; 
-    background: rgba(15, 15, 26, 0.96); 
+    background: #0f0f1a !important; 
     border: 3px solid var(--secondary); 
-    box-shadow: 0 25px 70px rgba(0,0,0,0.85); 
-    border-radius: 40px; 
-    padding: 32px 24px 28px 24px; 
+    box-shadow: 0 25px 70px rgba(0,0,0,0.9); 
+    border-radius: 36px; 
+    padding: 28px 20px 24px 20px; 
     width: min(92vw, 560px); 
     box-sizing: border-box;
     overflow: visible !important; 
     position: relative; 
 }
 .victory-content h1 { 
-    font-size: clamp(2rem, 5.2vw, 3.2rem); 
+    font-size: clamp(1.8rem, 5vw, 3rem); 
     color: var(--secondary); 
-    margin-bottom: 8px; 
+    margin-bottom: 6px; 
     animation: pulse 1.5s infinite; 
     text-shadow: 0 4px 20px rgba(0,229,255,0.6); 
     position: relative; 
@@ -550,37 +553,37 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .victory-content h3 { 
     position: relative; 
     z-index: 10; 
-    font-size: clamp(1.05rem, 3.2vw, 1.3rem);
+    font-size: clamp(1.05rem, 3.2vw, 1.25rem);
     font-weight: 700;
     color: rgba(255,255,255,0.9);
     line-height: 1.4;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 .victory-cards { 
     --card-count: 4;
     display: flex; 
     flex-wrap: nowrap; 
     overflow: visible !important; 
-    gap: 0; 
-    padding: 25px 0; 
+    gap: 6px; 
+    padding: 18px 0; 
     margin: 10px auto 15px auto; 
     width: 100%; 
     max-width: 100%;
     box-sizing: border-box;
     align-items: center; 
     justify-content: center;
-    min-height: clamp(140px, 24vh, 190px);
+    min-height: clamp(130px, 22vh, 175px);
     position: relative;
     z-index: 20;
 }
 .victory-cards img, .victory-card-tile { 
-    width: min(calc((100% + (var(--card-count) - 1) * 16px) / var(--card-count)), 90px); 
-    max-width: 90px; 
+    width: min(calc((100% - (var(--card-count) - 1) * 6px) / var(--card-count)), 72px); 
+    max-width: 72px; 
     aspect-ratio: 2/3; 
     height: auto; 
-    border-radius: 14px; 
-    border: 3.5px solid white; 
-    box-shadow: 0 12px 30px rgba(0,0,0,0.6); 
+    border-radius: 12px; 
+    border: 3px solid white; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6); 
     flex-shrink: 0; 
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease, border-color 0.4s ease, filter 0.4s ease, opacity 0.4s ease; 
     object-fit: cover; 
@@ -588,33 +591,31 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     box-sizing: border-box;
     position: relative;
     background: #ffffff;
-}
-.victory-cards .victory-card-tile:not(:first-child) {
-    margin-left: min(calc(-1 * (100% / var(--card-count) * 0.35)), -16px);
+    margin-left: 0 !important;
 }
 
 /* Glowing Victory Highlight for Cards that won the match */
 .victory-card-tile.winning-card {
     z-index: 100 !important;
-    border: 4px solid #ffea00 !important;
-    box-shadow: 0 0 35px #ffea00, 0 0 70px rgba(0, 229, 255, 0.9), 0 15px 35px rgba(0,0,0,0.8) !important;
+    border: 3.5px solid #ffea00 !important;
+    box-shadow: 0 0 25px #ffea00, 0 0 50px rgba(0, 229, 255, 0.8), 0 10px 25px rgba(0,0,0,0.8) !important;
     animation: winningCardPulse 1.6s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95) !important;
 }
 
 .victory-card-tile.non-winning-card {
-    opacity: 0.5;
-    filter: grayscale(40%) brightness(0.8);
+    opacity: 0.4;
+    filter: grayscale(50%) brightness(0.7);
     transform: scale(0.92) !important;
 }
 
 @keyframes winningCardPulse {
     0% {
-        transform: scale(1.16) translateY(-8px) rotate(0deg);
-        box-shadow: 0 0 22px #ffea00, 0 0 40px rgba(0, 229, 255, 0.7), 0 12px 25px rgba(0,0,0,0.7);
+        transform: scale(1.08) translateY(-4px);
+        box-shadow: 0 0 18px #ffea00, 0 0 35px rgba(0, 229, 255, 0.7), 0 10px 20px rgba(0,0,0,0.7);
     }
     100% {
-        transform: scale(1.24) translateY(-16px) rotate(1deg);
-        box-shadow: 0 0 38px #ffea00, 0 0 65px rgba(0, 229, 255, 1), 0 20px 45px rgba(0,0,0,0.9);
+        transform: scale(1.14) translateY(-6px);
+        box-shadow: 0 0 30px #ffea00, 0 0 60px rgba(0, 229, 255, 1), 0 15px 30px rgba(0,0,0,0.9);
     }
 }
 
