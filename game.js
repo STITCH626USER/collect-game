@@ -1284,6 +1284,7 @@ const game = {
     init: () => { 
         ui.showScreen('screen-home'); 
         soundEngine.updateSpeakerBtn(); 
+        game.startInactivityTracker();
 
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         const installBtn = document.getElementById('btn-install-app');
@@ -1323,6 +1324,46 @@ const game = {
                 try { game.clientConn.send({ type: 'PING' }); } catch(e){}
             }
         }, 4000);
+    },
+
+    inactivityTime: 90,
+    inactivityTimer: null,
+
+    startInactivityTracker: () => {
+        const resetTimer = () => {
+            game.inactivityTime = 90;
+            game.updateInactivityUI();
+        };
+
+        const timerBadge = document.getElementById('inactivity-timer-badge');
+        if (timerBadge) {
+            timerBadge.onclick = resetTimer;
+        }
+
+        ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(evt => {
+            window.addEventListener(evt, resetTimer, { passive: true });
+        });
+
+        if (game.inactivityTimer) clearInterval(game.inactivityTimer);
+        game.inactivityTimer = setInterval(() => {
+            if (game.inactivityTime > 0) {
+                game.inactivityTime--;
+            }
+            game.updateInactivityUI();
+        }, 1000);
+    },
+
+    updateInactivityUI: () => {
+        const badge = document.getElementById('inactivity-timer-badge');
+        const countEl = document.getElementById('inactivity-countdown');
+        if (countEl) countEl.innerText = `${game.inactivityTime}s`;
+        if (badge) {
+            if (game.inactivityTime <= 15) {
+                badge.classList.add('warning');
+            } else {
+                badge.classList.remove('warning');
+            }
+        }
     },
 
     checkAndReconnect: () => {
@@ -1417,14 +1458,49 @@ const game = {
                     const p = game.state.players.find(item => item.id === conn.peer);
                     if (p) {
                         p.disconnected = true;
+                        const pName = p.name;
+                        game.addHistory(`⚠️ ${pName} s'est déconnecté. Suppression dans 90s.`);
+                        game.broadcast({ type: 'ALERT', msg: `⚠️ ${pName} s'est déconnecté. Si pas de reconnexion sous 90s, son jeu sera supprimé et la partie reprendra avec les joueurs restants !` });
                     }
-                    // 90-second grace period before removing disconnected player
+                    
+                    // 90-second grace period before removing disconnected player & their content
                     setTimeout(() => {
                         const targetP = game.state.players.find(item => item.id === conn.peer);
                         if (targetP && targetP.disconnected) {
+                            const targetName = targetP.name;
+                            // Remove disconnected player entry and cards
                             game.state.players = game.state.players.filter(item => item.id !== conn.peer);
                             ui.updateWaitingPlayers(game.state.players);
-                            if (game.state.started) game.broadcastState();
+                            
+                            game.broadcast({ 
+                                type: 'ALERT', 
+                                msg: `Fin du délai (90s) : ${targetName} a été retiré de la partie et son jeu a été supprimé. La partie reprend !` 
+                            });
+                            game.addHistory(`🗑️ ${targetName} a été retiré pour déconnexion (90s).`);
+
+                            if (game.state.started) {
+                                // If it was disconnected player's turn, advance turn immediately
+                                if (game.state.turn === conn.peer) {
+                                    game.state.turnIndex = (game.state.turnIndex) % game.state.players.length;
+                                    game.state.turn = game.state.players[game.state.turnIndex] ? game.state.players[game.state.turnIndex].id : null;
+                                }
+                                // Clear pending power targetings
+                                game.state.crocodileTargeting = null;
+                                game.state.crabTargeting = null;
+                                game.state.monkeyTargeting = null;
+                                game.state.parrotPredicting = null;
+
+                                // If only 1 player remains, declare victory by forfeit
+                                if (game.state.players.length < 2) {
+                                    game.state.started = false;
+                                    const remainingWinner = game.state.players[0];
+                                    if (remainingWinner) {
+                                        game.triggerVictory(remainingWinner, "par forfait (les autres joueurs se sont déconnectés)", remainingWinner.row.map((_, i) => i));
+                                    }
+                                } else {
+                                    game.broadcastState();
+                                }
+                            }
                         }
                     }, 90000);
 
