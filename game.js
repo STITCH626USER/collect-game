@@ -626,7 +626,7 @@ const ui = {
             myRowEl.innerHTML = '';
             
             let myRowToRender = [...myPlayer.row];
-            if (state.crabTargeting === myId && ui.crabPreview && ui.crabPreview.playerId === myId) {
+            if (state.crabTargeting === effectiveMyId && ui.crabPreview && ui.crabPreview.playerId === effectiveMyId) {
                 const card = myRowToRender.splice(ui.crabPreview.originalIndex, 1)[0];
                 myRowToRender.splice(ui.crabPreview.currentIndex, 0, card);
             }
@@ -635,39 +635,39 @@ const ui = {
                 const img = document.createElement('img');
                 img.src = c.img;
                 img.className = 'card';
-                img.id = `card-target-${myId}-${index}`;
+                img.id = `card-target-${effectiveMyId}-${index}`;
                 
-                if (state.crabTargeting === myId) {
+                if (state.crabTargeting === effectiveMyId) {
                     if (!ui.crabPreview && myRowToRender.length > 1) {
                         img.classList.add('clickable-target');
-                        img.onclick = () => { ui.crabPreview = { playerId: myId, originalIndex: index, currentIndex: index }; ui.renderGameState(state, myId); };
-                    } else if (ui.crabPreview && ui.crabPreview.playerId === myId && index === ui.crabPreview.currentIndex) {
+                        img.onclick = () => { ui.crabPreview = { playerId: effectiveMyId, originalIndex: index, currentIndex: index }; ui.renderGameState(state, effectiveMyId); };
+                    } else if (ui.crabPreview && ui.crabPreview.playerId === effectiveMyId && index === ui.crabPreview.currentIndex) {
                         img.style.borderColor = 'var(--primary)';
                         img.classList.add('clickable-target');
                     }
-                } else if (state.crocodileTargeting === myId) {
+                } else if (state.crocodileTargeting === effectiveMyId) {
                     img.classList.add('clickable-target');
-                    img.onclick = () => game.sendAction('CROCODILE_SELECT', { targetPlayerId: myId, cardIndex: index });
-                } else if (state.monkeyTargeting === myId) {
+                    img.onclick = () => game.sendAction('CROCODILE_SELECT', { targetPlayerId: effectiveMyId, cardIndex: index });
+                } else if (state.monkeyTargeting === effectiveMyId) {
                     img.style.opacity = '0.5';
                 }
                 
                 myRowEl.appendChild(img);
             });
 
-            if (state.crabTargeting === myId && ui.crabPreview && ui.crabPreview.playerId === myId) {
+            if (state.crabTargeting === effectiveMyId && ui.crabPreview && ui.crabPreview.playerId === effectiveMyId) {
                 if (ui.crabPreview.currentIndex > 0) {
                     const leftArrow = document.createElement('div');
                     leftArrow.className = 'crab-ghost bounce-in';
                     leftArrow.innerHTML = '⬅️';
-                    leftArrow.onclick = () => { ui.crabPreview.currentIndex--; ui.renderGameState(state, myId); };
+                    leftArrow.onclick = () => { ui.crabPreview.currentIndex--; ui.renderGameState(state, effectiveMyId); };
                     myRowEl.prepend(leftArrow);
                 }
                 if (ui.crabPreview.currentIndex < myRowToRender.length - 1) {
                     const rightArrow = document.createElement('div');
                     rightArrow.className = 'crab-ghost bounce-in';
                     rightArrow.innerHTML = '➡️';
-                    rightArrow.onclick = () => { ui.crabPreview.currentIndex++; ui.renderGameState(state, myId); };
+                    rightArrow.onclick = () => { ui.crabPreview.currentIndex++; ui.renderGameState(state, effectiveMyId); };
                     myRowEl.appendChild(rightArrow);
                 }
             }
