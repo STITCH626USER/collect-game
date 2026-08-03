@@ -143,7 +143,12 @@ const ui = {
                 game.deferredPrompt = null;
             });
         } else {
-            ui.showOverlay("📲 Installer l'application", "Sur iOS (iPhone/iPad) : appuyez sur le bouton Partager ⎋ dans Safari puis choisissez 'Sur l'écran d'accueil ➕'.\nSur Android : ouvrez le menu ⠇ et sélectionnez 'Ajouter à l'écran d'accueil'.");
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if (isIOS) {
+                ui.showOverlay("📲 Installer sur iPhone / iPad", "Pour ajouter le jeu sur votre écran d'accueil :\n\n1️⃣ Appuyez sur le bouton Partager ⎋ (en bas de Safari)\n2️⃣ Choisissez 'Sur l'écran d'accueil ➕'\n3️⃣ Validez 'Ajouter' en haut à droite !");
+            } else {
+                ui.showOverlay("📲 Installer l'application", "Ouvrez le menu de votre navigateur (⠇) et choisissez 'Ajouter à l'écran d'accueil' ou 'Installer l'application'.");
+            }
         }
     },
     updateWaitingPlayers: (players) => {
@@ -675,6 +680,14 @@ const game = {
     init: () => { 
         ui.showScreen('screen-home'); 
 
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const installBtn = document.getElementById('btn-install-app');
+        if (isStandalone && installBtn) {
+            installBtn.style.display = 'none';
+        } else if (installBtn) {
+            installBtn.style.display = 'block';
+        }
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
         }
@@ -682,8 +695,7 @@ const game = {
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             game.deferredPrompt = e;
-            const btn = document.getElementById('btn-install-app');
-            if (btn) btn.style.display = 'block';
+            if (installBtn && !isStandalone) installBtn.style.display = 'block';
         });
     },
 
