@@ -387,7 +387,8 @@ const ui = {
             return;
         }
 
-        document.getElementById('zoom-opp-name').innerText = `Jeu de ${p.name} (${p.score} 👑)`;
+        const pColor = p.color || '#fff';
+        document.getElementById('zoom-opp-name').innerHTML = `Jeu de <span style="color: ${pColor}; font-weight: 900; text-shadow: 0 0 10px ${pColor}40;">${p.name}</span> (${p.score} 👑)`;
         
         const zoomCardsContainer = document.getElementById('zoom-opp-cards');
         zoomCardsContainer.innerHTML = '';
@@ -695,6 +696,13 @@ const ui = {
 
         const myRowEl = document.getElementById('my-row');
         if (myPlayer) {
+            const myNameEl = document.getElementById('my-name-display');
+            if (myNameEl) {
+                myNameEl.innerText = `${myPlayer.name} (Vous)`;
+                myNameEl.style.color = myPlayer.color || '#00d2ff';
+                myNameEl.style.fontWeight = '900';
+                myNameEl.style.textShadow = `0 0 10px ${myPlayer.color || '#00d2ff'}40`;
+            }
             document.getElementById('my-score').innerText = myPlayer.score;
             myRowEl.innerHTML = '';
             
@@ -766,8 +774,9 @@ const ui = {
 
                 const header = document.createElement('div');
                 header.className = 'opponent-header-pill';
+                const oppColor = oppPlayer.color || '#fff';
                 header.innerHTML = `
-                    <span>${oppPlayer.name} ${oppPlayer.isBot ? '🤖' : ''} ${state.parrotPredicting === oppPlayer.id ? '🦜' : ''}</span>
+                    <span style="color: ${oppColor}; font-weight: 900; text-shadow: 0 0 10px ${oppColor}40;">${oppPlayer.name} ${oppPlayer.isBot ? '🤖' : ''} ${state.parrotPredicting === oppPlayer.id ? '🦜' : ''}</span>
                     <span><strong style="color:var(--secondary);">${oppPlayer.score}</strong> 👑</span>
                 `;
                 oppBlock.appendChild(header);
