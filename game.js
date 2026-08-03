@@ -473,6 +473,11 @@ const ui = {
             versionBadge.style.display = (screenId === 'screen-home') ? 'block' : 'none';
         }
 
+        const quitBtn = document.getElementById('btn-quit-game');
+        if (quitBtn) {
+            quitBtn.style.display = (screenId === 'screen-home') ? 'none' : 'flex';
+        }
+
         if (screenId === 'screen-game') {
             const vic = document.getElementById('victory-modal');
             if(vic) vic.style.display = 'none';
@@ -858,14 +863,20 @@ const ui = {
         grid.innerHTML = `
             <div class="rules-victory-banner" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 234, 0, 0.08)); border: 1.5px solid rgba(0, 229, 255, 0.35); border-radius: 20px; padding: 16px 18px; margin-bottom: 15px; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
                 <h3 style="color: var(--secondary); margin-top: 0; margin-bottom: 10px; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
-                    <span>🏆</span> Comment Gagner la Partie ?
+                    <span>🏆</span> Conditions de Victoire (4 manières de gagner !)
                 </h3>
-                <div style="font-size: 0.93rem; line-height: 1.55; color: rgba(255,255,255,0.92); font-weight: 600;">
-                    <p style="margin: 0 0 8px 0;">
-                        🥇 <strong style="color: #2ed573; font-weight: 800;">Règle de Base :</strong> Alignez <strong style="color: #fff; font-weight: 800;">4 animaux identiques d'affilée</strong> (ex: 4 Lions 🦁🦁🦁🦁 côte à côte) dans votre jeu pour l'emporter instantanément !
+                <div style="font-size: 0.93rem; line-height: 1.6; color: rgba(255,255,255,0.92); font-weight: 600;">
+                    <p style="margin: 0 0 6px 0;">
+                        🥇 <strong style="color: #2ed573; font-weight: 800;">Alignement :</strong> Alignez <strong style="color: #fff; font-weight: 800;">4 animaux identiques consécutifs</strong> (ex: 4 Singes 🐒🐒🐒🐒).
+                    </p>
+                    <p style="margin: 0 0 6px 0;">
+                        👑 <strong style="color: var(--secondary); font-weight: 800;">Le Roi Lion :</strong> Poser le <strong style="color: #fff; font-weight: 800;">Lion 🦁 + 6 autres espèces différentes</strong> (7 espèces au total).
+                    </p>
+                    <p style="margin: 0 0 6px 0;">
+                        🐙 <strong style="color: #e056fd; font-weight: 800;">La Pieuvre :</strong> Avoir la <strong style="color: #fff; font-weight: 800;">Pieuvre 🐙 + au moins 2 paires d'animaux</strong> dans votre jeu.
                     </p>
                     <p style="margin: 0;">
-                        🌟 <strong style="color: var(--secondary); font-weight: 800;">Règle des 7 Espèces :</strong> Réunissez <strong style="color: #fff; font-weight: 800;">7 espèces différentes</strong> dans votre jeu !
+                        🐚 <strong style="color: #ff9f43; font-weight: 800;">Bernard l'Hermite :</strong> Poser <strong style="color: #fff; font-weight: 800;">4 Bernard l'Hermite</strong> dans votre jeu.
                     </p>
                 </div>
             </div>
@@ -2593,10 +2604,10 @@ const game = {
                 }
             }
 
-            if (pairsIndices.length >= 6) {
+            if (pairsIndices.length >= 4) {
                 const octopusIdx = player.row.findIndex(c => c.id === 'octopus');
                 if (octopusIdx !== -1 && !pairsIndices.includes(octopusIdx)) pairsIndices.push(octopusIdx);
-                return { won: true, reason: "grâce à la Pieuvre (3 paires) !", winningCardIndices: pairsIndices };
+                return { won: true, reason: "grâce à la Pieuvre (2 paires) !", winningCardIndices: pairsIndices };
             }
         }
 
