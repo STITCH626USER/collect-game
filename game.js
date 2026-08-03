@@ -152,20 +152,49 @@ const soundEngine = {
                 lfo.stop(now + 1.8);
             }
             else if (animalId === 'crocodile') {
-                // 🐊 Crocodile: Snappy jaw snap + growl
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(180, now);
-                osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+                // 🐊 Crunchy Crocodile Bite (Double snappy impact + crackle noise burst)
+                [0, 0.09].forEach((delay, idx) => {
+                    // 1. Jaw Snap Impact
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = idx === 0 ? 'square' : 'sawtooth';
+                    osc.frequency.setValueAtTime(500 - idx * 100, now + delay);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + delay + 0.12);
 
-                gain.gain.setValueAtTime(0.8, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    gain.gain.setValueAtTime(0.6, now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.12);
 
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.12);
+
+                    // 2. Crunchy Crackle Burst (Noise)
+                    const bufferSize = Math.floor(ctx.sampleRate * 0.1);
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+                    }
+
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    const noiseFilter = ctx.createBiquadFilter();
+                    noiseFilter.type = 'highpass';
+                    noiseFilter.frequency.setValueAtTime(1200, now + delay);
+
+                    const noiseGain = ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.4, now + delay);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.1);
+
+                    noise.connect(noiseFilter);
+                    noiseFilter.connect(noiseGain);
+                    noiseGain.connect(ctx.destination);
+
+                    noise.start(now + delay);
+                    noise.stop(now + delay + 0.1);
+                });
             }
             else if (animalId === 'monkey') {
                 // 🐒 Singe: High-pitched double screech chatter
