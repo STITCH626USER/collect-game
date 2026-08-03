@@ -456,6 +456,14 @@ const vfx = {
 // --- UI CONTROLLER ---
 const ui = {
     crabPreview: null,
+    getPlayerIconSvg: (p, size = 20) => {
+        if (!p) return '';
+        const color = p.color || '#00e5ff';
+        if (p.isBot) {
+            return `<svg class="player-type-icon bot-icon" viewBox="0 0 24 24" width="${size}" height="${size}" fill="currentColor"><path d="M12 2a2 2 0 012 2v1h1a3 3 0 013 3v8a3 3 0 01-3 3H9a3 3 0 01-3-3V8a3 3 0 013-3h1V4a2 2 0 012-2zm-3.5 6a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm7 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-5.5 5h4v1.5h-4V15z"/></svg>`;
+        }
+        return `<svg class="player-type-icon human-icon" viewBox="0 0 24 24" width="${size}" height="${size}" fill="${color}"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+    },
     showScreen: (screenId) => {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
