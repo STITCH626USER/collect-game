@@ -861,14 +861,13 @@ const game = {
     botTimer: null,
     
     PLAYER_COLORS: [
-        '#00f2fe', // Electric Cyan
-        '#ff4757', // Neon Pink/Red
-        '#ffbe76', // Amber Gold
-        '#2ed573', // Emerald Lime
-        '#a55eea', // Bright Purple
-        '#ff7f50', // Coral Orange
+        '#00d2ff', // Electric Cyan
+        '#ff4757', // Neon Coral Red
+        '#ff9f43', // Vibrant Gold Orange
+        '#10ac84', // Deep Vivid Emerald Green
+        '#e056fd', // Bright Electric Violet
         '#70a1ff', // Soft Sky Blue
-        '#eccc68'  // Warm Gold
+        '#ff6b6b'  // Bright Coral
     ],
     getPlayerColor: (index) => {
         return game.PLAYER_COLORS[index % game.PLAYER_COLORS.length];
