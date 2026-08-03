@@ -532,9 +532,9 @@ const ui = {
 
         titleEl.innerText = title;
         descEl.innerHTML = `
-            <div style="margin-top:12px; margin-bottom:12px; display:flex; flex-direction:column; align-items:center; gap:12px;">
-                <img src="${data.cardImg}" style="width:150px; aspect-ratio:2/3; border-radius:18px; border:4px solid white; box-shadow:0 20px 45px rgba(0,0,0,0.6); transform:scale(1.05);" alt="${data.cardName}">
-                <p style="font-size:1.25rem; font-weight:800; color:#ffffff; text-align:center; margin:0; line-height:1.35;">${text}</p>
+            <div style="margin-top:6px; margin-bottom:6px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <img src="${data.cardImg}" style="width:105px; aspect-ratio:2/3; border-radius:14px; border:3px solid white; box-shadow:0 12px 30px rgba(0,0,0,0.6); object-fit:cover; overflow:hidden; background:#fff;" alt="${data.cardName}">
+                <p style="font-size:1.05rem; font-weight:800; color:#ffffff; text-align:center; margin:0; line-height:1.3;">${text}</p>
             </div>
         `;
         if (btnContainer) btnContainer.style.display = 'none';
