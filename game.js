@@ -414,7 +414,7 @@ const ui = {
         }
 
         const updateDOM = () => {
-        const effectiveMyId = myId || (state.players.length > 0 ? state.players[0].id : null);
+        const effectiveMyId = game.myId || myId || (state.players.length > 0 ? state.players[0].id : null);
         const myPlayer = state.players.find(p => p.id === effectiveMyId) || state.players[0];
         
         document.getElementById('deck-left-count').innerText = state.deck1Count;
@@ -910,8 +910,10 @@ const game = {
         game.state.deck1Thumbnail = null;
         game.state.deck2Thumbnail = null;
         game.state.started = true;
-        game.state.turnIndex = 0;
-        game.state.turn = game.state.players[0].id;
+        const startIndex = Math.floor(Math.random() * game.state.players.length);
+        game.state.turnIndex = startIndex;
+        const startingPlayer = game.state.players[startIndex];
+        game.state.turn = startingPlayer.id;
         game.state.currentDrawnCard = null;
         game.state.mustPlaceDrawnCard = false;
         game.state.crabTargeting = null;
@@ -924,10 +926,11 @@ const game = {
             if (p.score === undefined) p.score = 0;
         });
         
-        game.broadcast({ type: 'START_GAME' });
+        game.broadcast({ type: 'START_GAME', starterName: startingPlayer.name });
         ui.showScreen('screen-game');
-        ui.hideOverlay();
         document.getElementById('victory-modal').style.display = 'none';
+        ui.showOverlay("🎲 Tirage au sort !", `C'est ${startingPlayer.name} qui commence la partie !`);
+        setTimeout(() => { ui.hideOverlay(); }, 1800);
         game.broadcastState();
     },
 
@@ -961,8 +964,9 @@ const game = {
                 }
                 else if(data.type === 'START_GAME') { 
                     ui.showScreen('screen-game'); 
-                    ui.hideOverlay();
-                    document.getElementById('victory-modal').style.display = 'none'; 
+                    document.getElementById('victory-modal').style.display = 'none';
+                    ui.showOverlay("🎲 Tirage au sort !", `C'est ${data.starterName || 'un joueur'} qui commence la partie !`);
+                    setTimeout(() => { ui.hideOverlay(); }, 1800);
                 }
                 else if(data.type === 'KICK') {
                     ui.showOverlay("Salon", data.msg || "Vous avez été retiré du salon par l'hôte.");
