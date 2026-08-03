@@ -1,9 +1,9 @@
-const CACHE_NAME = 'roi-des-animaux-v1.67';
+const CACHE_NAME = 'roi-des-animaux-v1.68';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=1.67',
-  './game.js?v=1.67',
+  './style.css?v=1.68',
+  './game.js?v=1.68',
   './manifest.json',
   './assets/logo_horizontal.jpg',
   './assets/icon-192.png',

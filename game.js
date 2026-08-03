@@ -46,21 +46,43 @@ const soundEngine = {
             const ctx = soundEngine.getAudioContext();
             if (!ctx) return;
             const now = ctx.currentTime;
-            [392, 523.25, 659.25, 783.99].forEach((freq, idx) => {
+
+            // 1. Lush Orchestral Pad Swell (C Major 9 chord)
+            const padFrequencies = [130.81, 196.00, 261.63, 329.63, 392.00, 587.33];
+            padFrequencies.forEach((freq) => {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                const delay = idx * 0.12;
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.08, now + 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 1.6);
+            });
+
+            // 2. Crystal Marimba Fanfare Arpeggio (C5 - E5 - G5 - C6)
+            const chimeNotes = [523.25, 659.25, 783.99, 1046.50];
+            chimeNotes.forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const delay = idx * 0.14;
+
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(freq, now + delay);
 
                 gain.gain.setValueAtTime(0, now + delay);
-                gain.gain.linearRampToValueAtTime(0.35, now + delay + 0.03);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.5);
+                gain.gain.linearRampToValueAtTime(0.22, now + delay + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.9);
 
                 osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.start(now + delay);
-                osc.stop(now + delay + 0.5);
+                osc.stop(now + delay + 0.9);
             });
         } catch(e){}
     },
@@ -1386,10 +1408,10 @@ const game = {
         if (!badge || !countEl) return;
 
         if (!game.state || !game.state.started) {
-            badge.className = 'inactivity-timer-badge opp-turn';
-            countEl.innerText = `30s`;
+            badge.style.display = 'none';
             return;
         }
+        badge.style.display = 'flex';
 
         const effectiveMyId = game.myId || (game.state.players.length > 0 ? game.state.players[0].id : null);
         const isMyTurn = (game.state.turn === effectiveMyId);

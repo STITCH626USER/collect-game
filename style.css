@@ -633,7 +633,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .btn-sound-toggle {
     position: fixed;
     bottom: 12px;
-    right: 65px;
+    right: 88px;
     z-index: 10010;
     background: rgba(20, 20, 35, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -648,7 +648,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     backdrop-filter: blur(10px);
-    opacity: 0.75;
+    opacity: 0.85;
     transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
 }
 .btn-sound-toggle:hover {
@@ -664,7 +664,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .inactivity-timer-badge {
     position: fixed;
     bottom: 12px;
-    right: 108px;
+    right: 130px;
     z-index: 10010;
     background: rgba(20, 20, 35, 0.88);
     border: 1px solid rgba(0, 229, 255, 0.4);
@@ -676,7 +676,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 10px rgba(0, 229, 255, 0.2);
     backdrop-filter: blur(10px);
     opacity: 0.9;
-    display: flex;
+    display: none;
     align-items: center;
     gap: 6px;
     cursor: pointer;
