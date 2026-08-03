@@ -271,7 +271,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .my-collection { 
     display: flex; 
     flex-wrap: nowrap;
-    gap: clamp(8px, 2.5vw, 16px); 
+    gap: 0; 
     min-height: clamp(100px, 18vh, 165px); 
     height: auto;
     overflow-x: auto; 
@@ -279,15 +279,17 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     -webkit-overflow-scrolling: touch;
     align-items: center; 
     justify-content: center;
-    padding: 12px 16px; 
+    padding: 14px 20px; 
     scrollbar-width: none; 
     scroll-behavior: smooth;
     width: 100%;
+    scroll-padding: 0 20px;
 }
 .my-collection::before,
 .my-collection::after {
     content: '';
-    margin: auto;
+    flex: 0 0 12px;
+    margin: auto 0;
 }
 .my-collection::-webkit-scrollbar { display: none; }
 
@@ -298,18 +300,22 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     border-radius: 14px; 
     flex-shrink: 0; 
     scroll-snap-align: center;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease; 
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease, margin 0.3s ease; 
     object-fit: cover; 
     box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.15); 
     border: 2.5px solid white; 
     position: relative;
     transform: perspective(500px) rotateY(-3deg);
 }
+.my-collection .card:not(:first-child) {
+    margin-left: clamp(-18px, -2.8vw, -12px);
+}
+
 .card:hover, .card:active { 
     transform: perspective(500px) rotateY(0deg) translateY(-16px) scale(1.18) !important; 
     box-shadow: 0 25px 45px rgba(0,0,0,0.8), 0 0 25px rgba(0, 229, 255, 0.6) !important; 
     border-color: var(--secondary) !important; 
-    z-index: 50 !important; 
+    z-index: 100 !important; 
 }
 #opponent-area-1v1 .card:hover, #opponent-area-1v1 .card:active {
     transform: perspective(500px) rotateY(0deg) translateY(16px) scale(1.18) !important; 
@@ -723,20 +729,22 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .opp-row-cards {
     display: flex;
     flex-wrap: nowrap;
-    gap: clamp(6px, 2vw, 12px);
+    gap: 0;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    padding: 8px 6px;
+    padding: 10px 16px;
     min-height: 70px;
     align-items: center;
     justify-content: center;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    scroll-padding: 0 16px;
 }
 .opp-row-cards::before,
 .opp-row-cards::after {
     content: '';
-    margin: auto;
+    flex: 0 0 10px;
+    margin: auto 0;
 }
 .opp-row-cards::-webkit-scrollbar { display: none; }
 
@@ -750,8 +758,12 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     object-fit: cover;
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
     border: 2px solid white;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, margin 0.3s ease;
     transform: perspective(500px) rotateY(-3deg);
+    position: relative;
+}
+.opp-row-cards .card:not(:first-child) {
+    margin-left: clamp(-14px, -2.2vw, -9px);
 }
 
 /* ================= GPU ACCELERATION & ULTRA-SMOOTH PERFORMANCE ================= */
