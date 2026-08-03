@@ -1959,8 +1959,6 @@ const game = {
                     game.state.mustPlaceDrawnCard = true;
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
-                        game.triggerVFX({ action: 'PARROT_FLY', player: playerId });
-
                         game.broadcast({ 
                             type: 'PARROT_RESULT', 
                             success: true, 
@@ -2000,12 +1998,11 @@ const game = {
                             }
                             
                             game.state.parrotPredictedAnimal = null;
-                            game.state.currentDrawnCard = parrotCardObj;
-                            game.state.mustPlaceDrawnCard = true;
-                            game.state.disablePower = true;
+                            game.state.currentDrawnCard = null;
+                            game.state.mustPlaceDrawnCard = false;
+                            game.state.disablePower = false;
                             game.broadcastState();
-
-                            if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 600);
+                            game.finalizeTurn(sourcePlayer);
                         }, 2000);
                     }
                 } else {
