@@ -24,6 +24,9 @@ body {
     overflow: hidden;
     touch-action: manipulation;
     user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 #app-container {
@@ -460,8 +463,8 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .help-row { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.06); padding: 12px 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.12); transition: all 0.2s ease; }
 .help-row:hover { background: rgba(255,255,255,0.1); border-color: var(--secondary); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
 .help-row img { width: 50px; height: 75px; object-fit: cover; border-radius: 10px; border: 1.5px solid rgba(255,255,255,0.4); box-shadow: 0 5px 15px rgba(0,0,0,0.5); flex-shrink: 0; }
-.help-row div h4 { color: var(--secondary); margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 900; }
-.help-row div p { margin: 0; font-size: 0.9rem; color: rgba(255,255,255,0.85); line-height: 1.35; font-weight: 700; }
+.help-row div h4 { color: var(--secondary); margin: 0 0 4px 0; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.3px; }
+.help-row div p { margin: 0; font-size: 0.92rem; color: rgba(255,255,255,0.92); line-height: 1.4; font-weight: 600; }
 
 /* Parrot Grid */
 .animal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }

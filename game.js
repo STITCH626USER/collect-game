@@ -841,16 +841,16 @@ const ui = {
     showHelpModal: () => {
         const grid = document.getElementById('help-grid');
         grid.innerHTML = `
-            <div class="rules-victory-banner" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(255, 234, 0, 0.1)); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 16px; margin-bottom: 15px; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
-                <h3 style="color: var(--secondary); margin-top: 0; margin-bottom: 10px; font-size: 1.2rem; font-weight: 900; display: flex; align-items: center; gap: 8px;">
+            <div class="rules-victory-banner" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(255, 234, 0, 0.08)); border: 1.5px solid rgba(0, 229, 255, 0.35); border-radius: 20px; padding: 16px 18px; margin-bottom: 15px; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.3);">
+                <h3 style="color: var(--secondary); margin-top: 0; margin-bottom: 10px; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
                     <span>🏆</span> Comment Gagner la Partie ?
                 </h3>
-                <div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); font-weight: 700;">
+                <div style="font-size: 0.93rem; line-height: 1.55; color: rgba(255,255,255,0.92); font-weight: 600;">
                     <p style="margin: 0 0 8px 0;">
-                        🥇 <strong style="color: #2ed573;">Règle de Base :</strong> Alignez <strong>4 animaux identiques d'affilée</strong> (ex: 4 Lions 🦁🦁🦁🦁 côte à côte) dans votre jeu pour l'emporter instantanément !
+                        🥇 <strong style="color: #2ed573; font-weight: 800;">Règle de Base :</strong> Alignez <strong style="color: #fff; font-weight: 800;">4 animaux identiques d'affilée</strong> (ex: 4 Lions 🦁🦁🦁🦁 côte à côte) dans votre jeu pour l'emporter instantanément !
                     </p>
                     <p style="margin: 0;">
-                        🌟 <strong style="color: var(--secondary);">Règle des 7 Espèces :</strong> Réunissez <strong>7 espèces différentes</strong> dans votre jeu !
+                        🌟 <strong style="color: var(--secondary); font-weight: 800;">Règle des 7 Espèces :</strong> Réunissez <strong style="color: #fff; font-weight: 800;">7 espèces différentes</strong> dans votre jeu !
                     </p>
                 </div>
             </div>
