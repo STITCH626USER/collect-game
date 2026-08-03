@@ -2100,22 +2100,22 @@ const game = {
         let won = false;
         let winReason = '';
         
-        const uniqueAnimals = new Set(player.row.filter(c => c.id !== 'lion').map(c => c.id));
-        if (player.row.find(c => c.id === 'lion') && uniqueAnimals.size >= 7) {
+        const nonLions = player.row.filter(c => c.id !== 'lion');
+        const hasChameleon = nonLions.some(c => c.id === 'chameleon');
+        const uniqueSpecies = new Set(nonLions.filter(c => c.id !== 'chameleon').map(c => c.id));
+        const effectiveUniqueCount = uniqueSpecies.size + (hasChameleon ? 1 : 0);
+        if (player.row.find(c => c.id === 'lion') && effectiveUniqueCount >= 7) {
             game.broadcast({ type: 'ALERT', msg: `${player.name} a réuni tous les animaux avec son Lion ! VICTOIRE !` });
             player.score += 0.5;
             won = true; winReason = "grâce au Lion (7 espèces différentes) !";
         }
 
-        if (!won) {
-            let lastId = null; let count = 0;
-            for (let c of player.row) {
-                if (c.id === lastId || c.id === 'chameleon' || lastId === 'chameleon') {
-                    count++;
-                    if(c.id !== 'chameleon') lastId = c.id; 
-                } else { count = 1; lastId = c.id; }
-                
-                if (count >= 4) {
+        if (!won && player.row.length >= 4) {
+            for (let i = 0; i <= player.row.length - 4; i++) {
+                const slice = player.row.slice(i, i + 4);
+                const nonChameleons = slice.filter(c => c.id !== 'chameleon').map(c => c.id);
+                const uniqueSet = new Set(nonChameleons);
+                if (uniqueSet.size <= 1) {
                     game.broadcast({ type: 'ALERT', msg: `${player.name} a aligné 4 animaux ! VICTOIRE !` });
                     player.score += 0.5;
                     won = true; winReason = "en alignant 4 animaux identiques !";
