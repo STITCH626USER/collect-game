@@ -1461,7 +1461,7 @@ const game = {
     deferredPrompt: null,
 
     init: () => { 
-        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.98');
+        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.99');
         ui.showScreen('screen-home'); 
         soundEngine.updateSpeakerBtn(); 
         game.startInactivityTracker();
@@ -1475,7 +1475,7 @@ const game = {
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1.98').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=1.99').then(reg => {
                 reg.update();
             }).catch(err => console.log('SW error:', err));
         }
@@ -2249,6 +2249,11 @@ const game = {
         else if(data.type === 'HERMIT_EXTRA_TURN') {
             ui.showHermitLoveModal(data.playerId, data.playerName);
         }
+        else if(data.type === 'CHAMELEON_CANCEL') {
+            soundEngine.playAnimalSound('chameleon');
+            ui.showOverlay("🦎 Double Caméléon !", `Les 2 Caméléons de ${data.playerName} s'annulent et repartent à la défausse !`);
+            setTimeout(() => { ui.hideOverlay(); }, 2200);
+        }
         else if(data.type === 'VFX') game.handleVFX(data);
         else if(data.type === 'VICTORY') ui.showVictoryModal(data.winner, data.reason, data.row);
         else if(data.type === 'HISTORY_UPDATE') ui.renderHistory(data.history);
@@ -2755,13 +2760,17 @@ const game = {
     finalizeTurn: (player, getsExtraTurn = false) => {
         game.isBotTurnRunning = false;
         game.resetTurnTimer(30);
-        // Règle passive : 2 Caméléons s'annulent toujours
-        const chameleons = player.row.filter(c => c.id === 'chameleon');
-        if (chameleons.length >= 2) {
-            game.broadcast({ type: 'ALERT', msg: `Les Caméléons de ${player.name} s'annulent !` });
-            player.row = player.row.filter(c => c.id !== 'chameleon');
-            game.triggerVFX({ action: 'REJECT', player: player.id });
-        }
+        
+        // Règle passive : 2 Caméléons s'annulent TOUJOURS chez TOUS les joueurs
+        game.state.players.forEach(p => {
+            const chameleons = p.row.filter(c => c.id === 'chameleon');
+            if (chameleons.length >= 2) {
+                chameleons.forEach(c => game.state.discardPile.push(c));
+                p.row = p.row.filter(c => c.id !== 'chameleon');
+                game.addHistory(`🦎 ${p.name} a 2 Caméléons ! Ils s'annulent et repartent à la défausse.`);
+                game.broadcast({ type: 'CHAMELEON_CANCEL', playerId: p.id, playerName: p.name });
+            }
+        });
 
         const winCheck = game.checkVictoryCondition(player);
         if (winCheck.won) {
@@ -2800,25 +2809,13 @@ const game = {
                 let tRect = { left: window.innerWidth/2, top: data.player === game.myId ? window.innerHeight - 50 : 50, width: 75, height: 110 };
                 let targetCardEl = null;
 
-                if (container) {
+                if (container && container.children.length > 0) {
                     const targetIdx = (data.side === 'left') ? 0 : container.children.length - 1;
-                    if (container.children.length > 0 && targetIdx >= 0 && targetIdx < container.children.length) {
+                    if (targetIdx >= 0 && targetIdx < container.children.length) {
                         targetCardEl = container.children[targetIdx];
+                        tRect = targetCardEl.getBoundingClientRect();
                         targetCardEl.style.opacity = '0';
                     }
-
-                    const placeholder = document.createElement('div');
-                    placeholder.style.width = (data.player === game.myId ? 75 : 40) + 'px';
-                    placeholder.style.height = (data.player === game.myId ? 110 : 60) + 'px';
-                    placeholder.style.flexShrink = '0';
-                    if (data.side === 'left') container.prepend(placeholder);
-                    else container.appendChild(placeholder);
-                    
-                    tRect = placeholder.getBoundingClientRect();
-                    if (tRect.top === 0 && tRect.left === 0 && data.player !== game.myId) {
-                        tRect = { left: window.innerWidth/2, top: 50, width: 40, height: 60 };
-                    }
-                    placeholder.remove();
                 }
 
                 vfx.flyCardToRect(data.card.img, 'drawn-card-img', tRect, () => {
