@@ -1646,8 +1646,6 @@ const game = {
             return;
         }
 
-        const needsToDrawForParrot = game.state.parrotPredictedAnimal && game.state.currentDrawnCard && game.state.currentDrawnCard.id === 'parrot';
-
         if (game.state.parrotPredictedAnimal) {
             // Auto-draw and resolution handles Parrot prediction
             if (!game.state.currentDrawnCard) return;
@@ -1727,9 +1725,3 @@ const game = {
 };
 
 document.addEventListener("DOMContentLoaded", game.init);
-const originalHost = game.hostRoom;
-ui.showScreen = (id) => {
-    if(id === 'screen-host' && !game.isHost && game.connections.length === 0) game.hostRoom();
-    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-};
