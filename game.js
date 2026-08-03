@@ -296,15 +296,10 @@ const ui = {
         row.forEach(c => {
             const img = document.createElement('img');
             img.src = c.img;
-            
-            if (reason.includes('Lion')) {
-                img.classList.add('highlight-win');
-            } else if (reason.includes('Pieuvre')) {
-                img.classList.add('highlight-win');
-            }
-            
+            img.className = 'victory-card-tile';
             cardsDiv.appendChild(img);
         });
+        document.getElementById('victory-modal').style.display = 'flex';
         
         const rematchBtn = document.getElementById('btn-rematch');
         rematchBtn.style.display = 'inline-block';

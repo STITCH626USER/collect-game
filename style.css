@@ -258,41 +258,44 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 
 .my-collection { 
     display: flex; 
-    gap: 6px; 
-    min-height: clamp(80px, 14vh, 130px); 
+    flex-wrap: nowrap;
+    gap: clamp(8px, 2.5vw, 16px); 
+    min-height: clamp(100px, 18vh, 165px); 
     height: auto;
     overflow-x: auto; 
-    align-items: center; 
-    justify-content: center;
-    padding: 8px 4px; 
-    scrollbar-width: none; 
+    scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+    align-items: center; 
+    justify-content: flex-start;
+    padding: 12px 16px; 
+    scrollbar-width: none; 
     scroll-behavior: smooth;
+    width: 100%;
 }
-.my-collection::before { content: ''; margin-left: auto; }
-.my-collection::after { content: ''; margin-right: auto; }
 .my-collection::-webkit-scrollbar { display: none; }
 
 .my-collection .card { 
-    width: clamp(40px, 12vw, 56px); 
+    width: clamp(62px, 16vw, 92px); 
     height: auto;
-    aspect-ratio: 2.5/3.5;
-    border-radius: 8px; 
+    aspect-ratio: 2/3;
+    border-radius: 14px; 
     flex-shrink: 0; 
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease; 
+    scroll-snap-align: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease; 
     object-fit: cover; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
-    border: 1px solid rgba(255,255,255,0.1); 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.15); 
+    border: 2.5px solid white; 
     position: relative;
+    transform: perspective(500px) rotateY(-3deg);
 }
-.card:hover { 
-    transform: translateY(-20px) scale(1.15) !important; 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.2) !important; 
-    border-color: rgba(255,255,255,0.5); 
+.card:hover, .card:active { 
+    transform: perspective(500px) rotateY(0deg) translateY(-16px) scale(1.18) !important; 
+    box-shadow: 0 25px 45px rgba(0,0,0,0.8), 0 0 25px rgba(0, 229, 255, 0.6) !important; 
+    border-color: var(--secondary) !important; 
     z-index: 50 !important; 
 }
-#opponent-area-1v1 .card:hover {
-    transform: translateY(20px) scale(1.15) !important; 
+#opponent-area-1v1 .card:hover, #opponent-area-1v1 .card:active {
+    transform: perspective(500px) rotateY(0deg) translateY(16px) scale(1.18) !important; 
 }
 
 /* Force Portrait / Orientation Lock Message */
@@ -470,12 +473,42 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     box-shadow: 0 0 15px var(--primary); animation: explode 0.6s cubic-bezier(0.2, 1, 0.3, 1) forwards;
 }
 
-/* Victory Screen */
-.victory-content { text-align: center; background: rgba(15, 15, 26, 0.95); border: 2px solid var(--secondary); box-shadow: 0 20px 60px rgba(0,0,0,0.5); border-radius: 50px; }
-.victory-content h1 { font-size: clamp(2.5rem, 6vw, 4rem); color: var(--secondary); margin-bottom: 15px; animation: pulse 1.5s infinite; text-shadow: 0 4px 10px rgba(0,229,255,0.5); }
-.victory-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin: 30px 0; }
-.victory-cards img { width: clamp(60px, 10vw, 100px); height: clamp(90px, 15vw, 150px); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); border: 1px solid rgba(255,255,255,0.2); }
-.victory-cards img.highlight-win { border: 4px solid #2ed573; box-shadow: 0 0 30px rgba(46, 213, 115, 0.6); transform: scale(1.2) rotate(-5deg); z-index: 10; }
+/* Victory Screen - Cascading Tile Swipe Carousel */
+.victory-content { text-align: center; background: rgba(15, 15, 26, 0.95); border: 2.5px solid var(--secondary); box-shadow: 0 20px 60px rgba(0,0,0,0.7); border-radius: 40px; padding: 25px 15px; width: 92vw; max-width: 550px; }
+.victory-content h1 { font-size: clamp(2.2rem, 5.5vw, 3.5rem); color: var(--secondary); margin-bottom: 10px; animation: pulse 1.5s infinite; text-shadow: 0 4px 15px rgba(0,229,255,0.6); }
+.victory-cards { 
+    display: flex; 
+    flex-wrap: nowrap; 
+    overflow-x: auto; 
+    scroll-snap-type: x mandatory; 
+    -webkit-overflow-scrolling: touch; 
+    gap: 12px; 
+    padding: 18px 10px; 
+    margin: 20px 0; 
+    width: 100%; 
+    scrollbar-width: none; 
+    align-items: center; 
+    justify-content: flex-start;
+}
+.victory-cards::-webkit-scrollbar { display: none; }
+.victory-cards img { 
+    width: clamp(75px, 20vw, 115px); 
+    aspect-ratio: 2/3; 
+    height: auto; 
+    border-radius: 18px; 
+    border: 3.5px solid #2ed573; 
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6), 0 0 20px rgba(46, 213, 115, 0.6); 
+    flex-shrink: 0; 
+    scroll-snap-align: center; 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    object-fit: cover; 
+    transform: perspective(600px) rotateY(-4deg); 
+}
+.victory-cards img:hover, .victory-cards img:active { 
+    transform: perspective(600px) rotateY(0deg) scale(1.15) translateY(-6px) !important; 
+    box-shadow: 0 25px 45px rgba(0,0,0,0.8), 0 0 35px rgba(46, 213, 115, 0.9) !important; 
+    z-index: 20 !important; 
+}
 
 @keyframes crocBite {
     0% { transform: scale(1); filter: brightness(1); }
@@ -627,23 +660,29 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 
 .opp-row-cards {
     display: flex;
-    gap: 8px;
+    flex-wrap: nowrap;
+    gap: clamp(6px, 2vw, 12px);
     overflow-x: auto;
-    padding: 4px 2px;
-    min-height: 60px;
+    scroll-snap-type: x mandatory;
+    padding: 8px 6px;
+    min-height: 70px;
     align-items: center;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
+.opp-row-cards::-webkit-scrollbar { display: none; }
 
 .opp-row-cards .card {
-    width: clamp(42px, 11vw, 64px);
+    width: clamp(52px, 14vw, 76px);
     height: auto;
-    aspect-ratio: 2.5/3.5;
-    border-radius: 8px;
+    aspect-ratio: 2/3;
+    border-radius: 12px;
     flex-shrink: 0;
+    scroll-snap-align: center;
     object-fit: cover;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    border: 1.5px solid white;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    border: 2px solid white;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    transform: perspective(500px) rotateY(-3deg);
 }
 
