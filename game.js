@@ -2689,7 +2689,15 @@ const game = {
                 if (origCard && data.player === game.myId) origCard.style.opacity = '0';
                 
                 let tRect = { left: window.innerWidth/2, top: data.player === game.myId ? window.innerHeight - 50 : 50, width: 75, height: 110 };
+                let targetCardEl = null;
+
                 if (container) {
+                    const targetIdx = (data.side === 'left') ? 0 : container.children.length - 1;
+                    if (container.children.length > 0 && targetIdx >= 0 && targetIdx < container.children.length) {
+                        targetCardEl = container.children[targetIdx];
+                        targetCardEl.style.opacity = '0';
+                    }
+
                     const placeholder = document.createElement('div');
                     placeholder.style.width = (data.player === game.myId ? 75 : 40) + 'px';
                     placeholder.style.height = (data.player === game.myId ? 110 : 60) + 'px';
@@ -2698,7 +2706,6 @@ const game = {
                     else container.appendChild(placeholder);
                     
                     tRect = placeholder.getBoundingClientRect();
-                    // Fallback to top if container returned 0/0 because it is hidden
                     if (tRect.top === 0 && tRect.left === 0 && data.player !== game.myId) {
                         tRect = { left: window.innerWidth/2, top: 50, width: 40, height: 60 };
                     }
@@ -2706,6 +2713,10 @@ const game = {
                 }
 
                 vfx.flyCardToRect(data.card.img, 'drawn-card-img', tRect, () => {
+                    if (targetCardEl) {
+                        targetCardEl.style.opacity = '1';
+                        targetCardEl.classList.add('bounce-in');
+                    }
                     done();
                 });
             });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Le Roi des Animaux - v1.83</title>
+    <title>Le Roi des Animaux - v1.84</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f0f1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="assets/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.83">
+    <link rel="stylesheet" href="style.css?v=1.84">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -50,7 +50,7 @@
         <!-- ================= HOME SCREEN ================= -->
         <div id="screen-home" class="screen active">
             <div class="logo-container bounce-in">
-                <img src="assets/logo_horizontal.png?v=1.83" alt="Le Roi des Animaux" class="home-logo-img">
+                <img src="assets/logo_horizontal.png?v=1.84" alt="Le Roi des Animaux" class="home-logo-img">
             </div>
             <div class="menu-actions fade-in-up">
                 <input type="text" id="input-host-name" placeholder="Votre Pseudo (Hôte)" maxlength="10">
@@ -126,8 +126,8 @@
                 <!-- ================= ACTION FLOATING PANEL ================= -->
                 <div id="action-modal" style="display:none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; flex-direction: column; align-items: center; gap: 15px; width: 100%; max-width: 420px; pointer-events: none;">
                     <div style="pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 15px; width: 100%;">
-                        <div class="card drawn-card shadow-pop" id="drawn-card" style="width: clamp(155px, 38vw, 240px); aspect-ratio: 2/3; border-radius: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.6); border: 4.5px solid white;">
-                            <img src="" id="drawn-card-img" alt="Card" style="width: 100%; height: 100%; border-radius: inherit;">
+                        <div class="card drawn-card shadow-pop" id="drawn-card" style="width: clamp(155px, 38vw, 240px); aspect-ratio: 2/3; border-radius: 22px; box-shadow: 0 25px 60px rgba(0,0,0,0.6); border: 4.5px solid white; overflow: hidden; background: #ffffff;">
+                            <img src="" id="drawn-card-img" alt="Card" style="width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 0;">
                         </div>
                         <div class="card-actions" id="card-actions" style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-top: 0;">
                             <!-- Actions will be injected here by JS -->
@@ -274,9 +274,9 @@
                 <button class="btn btn-main" id="btn-rematch" style="margin-top:20px;" onclick="game.sendAction('REMATCH')">Rejouer une manche</button>
             </div>
         </div>
-        <div class="version-badge">v1.83</div>
+        <div class="version-badge">v1.84</div>
     </div>
     
-    <script src="game.js?v=1.83"></script>
+    <script src="game.js?v=1.84"></script>
 </body>
 </html>
