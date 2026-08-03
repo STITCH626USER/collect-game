@@ -12,7 +12,24 @@ const ANIMALS = [
 // --- SOUND SYNTHESIZER ENGINE ---
 const soundEngine = {
     audioCtx: null,
+    isMuted: localStorage.getItem('collect_sound_muted') === 'true',
+
+    toggleMute: () => {
+        soundEngine.isMuted = !soundEngine.isMuted;
+        localStorage.setItem('collect_sound_muted', soundEngine.isMuted);
+        soundEngine.updateSpeakerBtn();
+    },
+
+    updateSpeakerBtn: () => {
+        const btn = document.getElementById('btn-sound-toggle');
+        if (btn) {
+            btn.innerText = soundEngine.isMuted ? '🔇' : '🔊';
+            btn.title = soundEngine.isMuted ? 'Activer le son' : 'Couper le son';
+        }
+    },
+
     getAudioContext: () => {
+        if (soundEngine.isMuted) return null;
         if (!soundEngine.audioCtx) {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             soundEngine.audioCtx = new AudioContext();
@@ -23,9 +40,60 @@ const soundEngine = {
         return soundEngine.audioCtx;
     },
 
-    playAnimalSound: (animalId) => {
+    playIntroSound: () => {
+        if (soundEngine.isMuted) return;
         try {
             const ctx = soundEngine.getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            [392, 523.25, 659.25, 783.99].forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const delay = idx * 0.12;
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + delay);
+
+                gain.gain.setValueAtTime(0, now + delay);
+                gain.gain.linearRampToValueAtTime(0.35, now + delay + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.5);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now + delay);
+                osc.stop(now + delay + 0.5);
+            });
+        } catch(e){}
+    },
+
+    playDiceSound: () => {
+        if (soundEngine.isMuted) return;
+        try {
+            const ctx = soundEngine.getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            [0, 0.05, 0.11, 0.18, 0.26].forEach((delay, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800 - idx * 80, now + delay);
+                osc.frequency.exponentialRampToValueAtTime(150, now + delay + 0.04);
+
+                gain.gain.setValueAtTime(0.3, now + delay);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.04);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now + delay);
+                osc.stop(now + delay + 0.04);
+            });
+        } catch(e){}
+    },
+
+    playAnimalSound: (animalId) => {
+        if (soundEngine.isMuted) return;
+        try {
+            const ctx = soundEngine.getAudioContext();
+            if (!ctx) return;
             const now = ctx.currentTime;
 
             if (animalId === 'lion') {
@@ -389,6 +457,7 @@ const ui = {
         }, 2000);
     },
     showHermitLoveModal: (actingPlayerId, actingPlayerName) => {
+        soundEngine.playAnimalSound('hermit_crab');
         const modal = document.getElementById('hermit-love-modal');
         if (!modal) return;
         
@@ -1139,6 +1208,7 @@ const game = {
 
     init: () => { 
         ui.showScreen('screen-home'); 
+        soundEngine.updateSpeakerBtn(); 
 
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
         const installBtn = document.getElementById('btn-install-app');
@@ -1327,6 +1397,7 @@ const game = {
 
     rollDice: () => {
         if (game.myDiceRoll) return;
+        soundEngine.playDiceSound();
         const box = document.getElementById('dice-visual-box');
         if (box) box.classList.add('dice-spinning');
         const roll = Math.floor(1 + Math.random() * 6);
@@ -1392,6 +1463,7 @@ const game = {
 
     startGame: () => {
         vfx.clearAll();
+        soundEngine.playIntroSound();
         if (game.state.players.length < 2) {
             ui.showOverlay("Action impossible", "Il faut au moins 2 joueurs pour démarrer la partie !");
             setTimeout(ui.hideOverlay, 3000);
@@ -2111,6 +2183,7 @@ const game = {
             });
         }
         else if (data.action === 'CROCODILE_BITE') {
+            soundEngine.playAnimalSound('crocodile');
             vfx.push((done) => {
                 const targetElement = document.getElementById(`card-target-${data.player}-${data.cardIndex}`);
                 if (targetElement) vfx.crocodileBite(targetElement, done);
@@ -2118,6 +2191,7 @@ const game = {
             });
         }
         else if (data.action === 'CROCODILE_ATTACK') {
+            soundEngine.playAnimalSound('crocodile');
             vfx.push((done) => {
                 const crocCard = document.getElementById(`card-target-${data.attackerId}-${data.attackerIndex}`);
                 const targetCard = document.getElementById(`card-target-${data.targetId}-${data.targetIndex}`);
@@ -2131,6 +2205,7 @@ const game = {
             });
         }
         else if (data.action === 'PARROT_FLY') {
+            soundEngine.playAnimalSound('parrot');
             vfx.push((done) => {
                 const drawnEl = document.getElementById('drawn-card') || document.body;
                 const rect = drawnEl.getBoundingClientRect();
@@ -2170,6 +2245,7 @@ const game = {
              });
         }
         else if (data.action === 'MONKEY_STEAL') {
+            soundEngine.playAnimalSound('monkey');
             vfx.push((done) => {
                 const targetCard = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
                 const drawnCardArea = document.getElementById('drawn-card-img') || document.getElementById('drawn-card');
@@ -2198,6 +2274,7 @@ const game = {
             });
         }
         else if (data.action === 'CRAB_MOVE') {
+            soundEngine.playAnimalSound('crab');
             vfx.push((done) => {
                 const cardEl = document.getElementById(`card-target-${data.player}-${data.originalIndex}`);
                 const is1v1 = game.state.players.length === 2;
