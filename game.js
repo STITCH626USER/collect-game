@@ -1153,34 +1153,34 @@ const ui = {
         }
         
         if (state.crocodileTargeting === effectiveMyId) {
-            ui.showOverlay("Attaque Crocodile 🐊", "Cliquez sur une carte à dévorer, ou passez si vous ne voulez pas utiliser le pouvoir.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('CROCODILE_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
+            ui.showOverlay("🐊 Crocodile", "Choisissez une carte à dévorer.", `<button class="btn-action btn-reject" style="width: 100%; margin-top: 10px;" onclick="game.sendAction('CROCODILE_SELECT', {skip: true})">Passer</button>`);
         } else if (state.monkeyTargeting === effectiveMyId) {
-            ui.showOverlay("Pouvoir du Singe 🐒", "Cliquez sur la carte avec laquelle échanger, ou passez.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('MONKEY_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
+            ui.showOverlay("🐒 Singe", "Choisissez une carte à échanger.", `<button class="btn-action btn-reject" style="width: 100%; margin-top: 10px;" onclick="game.sendAction('MONKEY_SELECT', {skip: true})">Passer</button>`);
         } else if (state.crabTargeting === effectiveMyId) {
             if (ui.crabPreview) {
-                ui.showOverlay("Pouvoir du Crabe 🦀", "Déplacez la carte, puis validez.", `
-                    <button class="btn-action btn-keep" style="width: 100%; margin-bottom: 10px;" onclick="game.sendAction('CRAB_SELECT', { targetPlayerId: ui.crabPreview.playerId, originalIndex: ui.crabPreview.originalIndex, currentIndex: ui.crabPreview.currentIndex }); ui.crabPreview = null;">✅ Valider le déplacement</button>
-                    <button class="btn-action btn-reject" style="width: 100%;" onclick="ui.crabPreview = null; ui.renderGameState(game.state, game.myId);">Annuler la sélection</button>
+                ui.showOverlay("🦀 Crabe", "Validez le déplacement de la carte.", `
+                    <button class="btn-action btn-keep" style="width: 100%; margin-bottom: 8px;" onclick="game.sendAction('CRAB_SELECT', { targetPlayerId: ui.crabPreview.playerId, originalIndex: ui.crabPreview.originalIndex, currentIndex: ui.crabPreview.currentIndex }); ui.crabPreview = null;">✅ Valider</button>
+                    <button class="btn-action btn-reject" style="width: 100%;" onclick="ui.crabPreview = null; ui.renderGameState(game.state, game.myId);">Annuler</button>
                 `);
             } else {
-                ui.showOverlay("Pouvoir du Crabe 🦀", "Cliquez sur une carte à déplacer, ou passez.", `<button class="btn-action btn-reject" style="width: 100%;" onclick="game.sendAction('CRAB_SELECT', {skip: true})">Ne pas utiliser le pouvoir</button>`);
+                ui.showOverlay("🦀 Crabe", "Choisissez une carte à déplacer.", `<button class="btn-action btn-reject" style="width: 100%; margin-top: 10px;" onclick="game.sendAction('CRAB_SELECT', {skip: true})">Passer</button>`);
             }
         } else if (state.crocodileTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crocodileTargeting);
-            ui.showOverlay("Attaque Crocodile...", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} choisit sa cible...`);
+            ui.showOverlay("🐊 Crocodile", `${targetingPlayer ? targetingPlayer.name : 'L\'adversaire'} dévore une carte...`);
         } else if (state.monkeyTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.monkeyTargeting);
-            ui.showOverlay("Pouvoir du Singe...", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} choisit avec qui échanger...`);
+            ui.showOverlay("🐒 Singe", `${targetingPlayer ? targetingPlayer.name : 'L\'adversaire'} échange une carte...`);
         } else if (state.crabTargeting) {
             const targetingPlayer = state.players.find(p => p.id === state.crabTargeting);
-            ui.showOverlay("Pouvoir du Crabe...", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} hésite à déplacer une carte...`);
+            ui.showOverlay("🦀 Crabe", `${targetingPlayer ? targetingPlayer.name : 'L\'adversaire'} déplace une carte...`);
         } else if (state.parrotPredictedAnimal && state.turn !== effectiveMyId) {
             const targetingPlayer = state.players.find(p => p.id === state.turn);
             const animalNameMap = {
                 lion: 'le Lion 🦁', chameleon: 'le Caméléon 🦎', monkey: 'le Singe 🐒',
                 crab: 'le Crabe 🦀', octopus: 'la Pieuvre 🐙', crocodile: 'le Crocodile 🐊', parrot: 'le Perroquet 🦜', 'hermit_crab': 'le Bernard-l\'ermite 🐚'
             };
-            ui.showOverlay("Prédiction en cours 🦜", `${targetingPlayer ? targetingPlayer.name : 'Adversaire'} a prédit ${animalNameMap[state.parrotPredictedAnimal]} ! Il s'apprête à piocher...`);
+            ui.showOverlay("🦜 Perroquet", `${targetingPlayer ? targetingPlayer.name : 'L\'adversaire'} a prédit ${animalNameMap[state.parrotPredictedAnimal]} !`);
         } else {
             ui.crabPreview = null;
             ui.hideOverlay();
@@ -1424,7 +1424,7 @@ const game = {
     deferredPrompt: null,
 
     init: () => { 
-        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.94');
+        document.querySelectorAll('.version-badge').forEach(el => el.innerText = 'v1.95');
         ui.showScreen('screen-home'); 
         soundEngine.updateSpeakerBtn(); 
         game.startInactivityTracker();
@@ -1438,7 +1438,7 @@ const game = {
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1.94').then(reg => {
+            navigator.serviceWorker.register('./sw.js?v=1.95').then(reg => {
                 reg.update();
             }).catch(err => console.log('SW error:', err));
         }
