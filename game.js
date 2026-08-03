@@ -1501,6 +1501,7 @@ const game = {
     },
 
     scheduleBotTurn: (delay = 800) => {
+        game.isBotTurnRunning = false;
         if (game.botTimer) clearTimeout(game.botTimer);
         game.botTimer = setTimeout(() => {
             game.playBotTurn();
@@ -1508,6 +1509,7 @@ const game = {
     },
 
     startGame: () => {
+        game.isBotTurnRunning = false;
         vfx.clearAll();
         soundEngine.playIntroSound();
         if (game.state.players.length < 2) {
@@ -2126,6 +2128,7 @@ const game = {
     },
 
     finalizeTurn: (player, getsExtraTurn = false) => {
+        game.isBotTurnRunning = false;
         // Règle passive : 2 Caméléons s'annulent toujours
         const chameleons = player.row.filter(c => c.id === 'chameleon');
         if (chameleons.length >= 2) {
