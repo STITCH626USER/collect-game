@@ -149,7 +149,7 @@ input::placeholder { color: rgba(255,255,255,0.4); }
 .opp-cards-mini { 
     display: flex; 
     flex-wrap: nowrap; 
-    justify-content: flex-start; 
+    justify-content: center; 
     gap: 0; 
     margin-top: 15px; 
     position: relative; 
@@ -158,6 +158,11 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     padding: 15px 5px; 
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+}
+.opp-cards-mini::before,
+.opp-cards-mini::after {
+    content: '';
+    margin: auto;
 }
 .opp-cards-mini::-webkit-scrollbar { display: none; }
 .opp-cards-mini img { 
@@ -273,11 +278,16 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     align-items: center; 
-    justify-content: flex-start;
+    justify-content: center;
     padding: 12px 16px; 
     scrollbar-width: none; 
     scroll-behavior: smooth;
     width: 100%;
+}
+.my-collection::before,
+.my-collection::after {
+    content: '';
+    margin: auto;
 }
 .my-collection::-webkit-scrollbar { display: none; }
 
@@ -504,7 +514,12 @@ input::placeholder { color: rgba(255,255,255,0.4); }
     width: 100%; 
     scrollbar-width: none; 
     align-items: center; 
-    justify-content: flex-start;
+    justify-content: center;
+}
+.victory-cards::before,
+.victory-cards::after {
+    content: '';
+    margin: auto;
 }
 .victory-cards::-webkit-scrollbar { display: none; }
 .victory-cards img { 
