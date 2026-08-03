@@ -522,6 +522,11 @@ const ui = {
     },
 
     renderGameState: (state, myId) => {
+        if (state && state.players) {
+            state.players.forEach((p, idx) => {
+                if (!p.color) p.color = game.getPlayerColor(idx);
+            });
+        }
         if (!state.started) {
             if (document.getElementById('victory-modal').style.display === 'flex' && state.rematchVotes) {
                  const rematchBtn = document.getElementById('btn-rematch');
@@ -1142,7 +1147,7 @@ const game = {
             crocodileTargeting: game.state.crocodileTargeting,
             monkeyTargeting: game.state.monkeyTargeting,
             crabTargeting: game.state.crabTargeting,
-            players: game.state.players.map(p => ({ id: p.id, name: p.name, isBot: p.isBot, score: p.score, row: p.row }))
+            players: game.state.players.map((p, idx) => ({ id: p.id, name: p.name, isBot: p.isBot, score: p.score, row: p.row, color: p.color || game.getPlayerColor(idx) }))
         };
         game.broadcast({ type: 'STATE_UPDATE', state: safeState });
         ui.renderGameState(safeState, game.myId);
