@@ -726,6 +726,13 @@ const game = {
         game.connections.forEach(conn => conn.send(data));
         if (data.type === 'ALERT') {
             ui.showOverlay("Info", data.msg);
+        } else if (data.type === 'PARROT_RESULT') {
+            if (data.success) {
+                ui.showOverlay("🎉 BONNE PIOCHE !", `${data.playerName} a réussi sa prédiction ! Le Perroquet s'envole 🦜 !`);
+            } else {
+                ui.showOverlay("❌ MAUVAISE PIOCHE 😞", `${data.playerName} a raté sa prédiction ! Carte défaussée, placez votre Perroquet 🦜.`);
+            }
+            setTimeout(ui.hideOverlay, 1600);
         }
     },
 
@@ -837,8 +844,15 @@ const game = {
                     ui.hideOverlay();
                     document.getElementById('victory-modal').style.display = 'none'; 
                 }
-                else if(data.type === 'STATE_UPDATE') ui.renderGameState(data.state, game.myId);
                 else if(data.type === 'ALERT') ui.showOverlay("Info", data.msg);
+                else if(data.type === 'PARROT_RESULT') {
+                    if (data.success) {
+                        ui.showOverlay("🎉 BONNE PIOCHE !", `${data.playerName} a réussi sa prédiction ! Le Perroquet s'envole 🦜 !`);
+                    } else {
+                        ui.showOverlay("❌ MAUVAISE PIOCHE 😞", `${data.playerName} a raté sa prédiction ! Carte défaussée, placez votre Perroquet 🦜.`);
+                    }
+                    setTimeout(ui.hideOverlay, 1600);
+                }
                 else if(data.type === 'VFX') game.handleVFX(data);
                 else if(data.type === 'VICTORY') ui.showVictoryModal(data.winner, data.reason, data.row);
                 else if(data.type === 'HISTORY_UPDATE') ui.renderHistory(data.history);
@@ -1049,13 +1063,13 @@ const game = {
                     
                     if (card.id === game.state.parrotPredictedAnimal) {
                         game.triggerVFX({ action: 'PARROT_FLY', player: playerId });
-                        game.broadcast({ type: 'ALERT', msg: "🎉 Prédiction réussie ! Le Perroquet s'envole 🦜 !" });
+                        game.broadcast({ type: 'PARROT_RESULT', success: true, playerName: sourcePlayer.name });
                         game.state.parrotPredictedAnimal = null;
                         game.state.disablePower = true;
                         game.broadcastState();
                         if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
                     } else {
-                        game.broadcast({ type: 'ALERT', msg: "❌ Mauvaise pioche 😞 ! Carte défaussée, placez votre Perroquet 🦜 !" });
+                        game.broadcast({ type: 'PARROT_RESULT', success: false, playerName: sourcePlayer.name });
                         game.state.currentDrawnCard = card;
                         game.broadcastState();
 
@@ -1075,7 +1089,7 @@ const game = {
                             game.state.disablePower = true;
                             game.broadcastState();
                             if (sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
-                        }, 1400);
+                        }, 1600);
                     }
                 } else {
                     game.state.currentDrawnCard = card;
