@@ -1566,11 +1566,32 @@ const game = {
         ui.updateWaitingPlayers(game.state.players);
         ui.showScreen('screen-host');
         
+        const PEER_ICE_SERVERS = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' }
+        ];
+
+        if (game.peer) {
+            try { game.peer.destroy(); } catch(e){}
+        }
+
         try {
-            game.peer = new Peer(`collect-${game.roomCode}`, {
-                config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] }
-            });
+            game.peer = new Peer(`collect-${game.roomCode}`, { config: { 'iceServers': PEER_ICE_SERVERS } });
             
+            game.peer.on('error', (err) => {
+                console.log("Host Peer error:", err);
+                if (err.type === 'unavailable-id') {
+                    game.roomCode = game.generateRoomCode();
+                    const codeEl = document.getElementById('room-code-display');
+                    if (codeEl) { codeEl.innerText = game.roomCode; codeEl.textContent = game.roomCode; }
+                    sessionStorage.setItem('collect_room_code', game.roomCode);
+                    game.hostRoom();
+                }
+            });
+
             game.peer.on('open', (id) => {
                 const hostP = game.state.players.find(p => p.id === game.myId);
                 if (hostP) hostP.id = id;
@@ -1860,18 +1881,48 @@ const game = {
     joinRoom: () => {
         const codeInput = document.getElementById('input-room-code');
         const nameInput = document.getElementById('input-player-name');
-        const code = codeInput ? codeInput.value.trim() : '';
+        const msgEl = document.getElementById('join-msg');
+        const rawCode = codeInput ? codeInput.value : '';
+        const code = rawCode.replace(/[^0-9]/g, '').trim();
         const name = (nameInput && nameInput.value && nameInput.value.trim() !== '') ? nameInput.value.trim() : "Joueur";
-        if (code.length !== 4) return;
         
-        document.getElementById('join-msg').innerText = "Connexion...";
+        if (code.length !== 4) {
+            if (msgEl) msgEl.innerText = "⚠️ Entrez le code à 4 chiffres du salon.";
+            return;
+        }
+        
+        if (msgEl) msgEl.innerText = `🔄 Connexion au salon ${code}...`;
         
         sessionStorage.setItem('collect_room_code', code);
         sessionStorage.setItem('collect_player_name', name);
 
-        game.peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+        if (game.peer) {
+            try { game.peer.destroy(); } catch(e){}
+        }
+
+        const PEER_ICE_SERVERS = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' }
+        ];
+
+        game.peer = new Peer({ config: { 'iceServers': PEER_ICE_SERVERS } });
         
-        game.peer.on('error', (err) => { document.getElementById('join-msg').innerText = "Erreur (" + err.type + ")"; });
+        game.peer.on('error', (err) => {
+            console.log("Client Peer error:", err);
+            if (msgEl) {
+                if (err.type === 'peer-unavailable') {
+                    msgEl.innerText = `❌ Salon ${code} introuvable. Vérifiez le code ou réessayez.`;
+                } else if (err.type === 'network') {
+                    msgEl.innerText = "❌ Problème de réseau. Vérifiez votre connexion Internet.";
+                } else {
+                    msgEl.innerText = `❌ Impossible de rejoindre (${err.type}).`;
+                }
+            }
+        });
+
         game.peer.on('open', (id) => {
             game.myId = id;
             game.myName = name;
@@ -1881,7 +1932,15 @@ const game = {
             game.clientConn = conn;
             game.connections = [conn];
 
+            const connTimeout = setTimeout(() => {
+                if (!game.clientConn || !game.clientConn.open) {
+                    if (msgEl) msgEl.innerText = `❌ Le salon ${code} ne répond pas. Vérifiez que l'hôte est actif.`;
+                }
+            }, 8000);
+
             conn.on('open', () => { 
+                clearTimeout(connTimeout);
+                if (msgEl) msgEl.innerText = "✅ Connecté ! Chargement du salon...";
                 conn.send({ type: 'JOIN', name: name, reconnectId: id }); 
             });
             conn.on('data', (data) => {
@@ -1889,6 +1948,10 @@ const game = {
             });
             conn.on('close', () => {
                 game.clientConn = null;
+            });
+            conn.on('error', () => {
+                clearTimeout(connTimeout);
+                if (msgEl) msgEl.innerText = "❌ Échec de la connexion avec le salon.";
             });
         });
     },
@@ -1902,7 +1965,15 @@ const game = {
             try { game.peer.destroy(); } catch(e){}
         }
 
-        game.peer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+        const PEER_ICE_SERVERS = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' }
+        ];
+
+        game.peer = new Peer({ config: { 'iceServers': PEER_ICE_SERVERS } });
         
         game.peer.on('open', (id) => {
             game.myId = id;
@@ -1911,7 +1982,12 @@ const game = {
             game.clientConn = conn;
             game.connections = [conn];
 
+            const connTimeout = setTimeout(() => {
+                game.isReconnecting = false;
+            }, 8000);
+
             conn.on('open', () => {
+                clearTimeout(connTimeout);
                 game.isReconnecting = false;
                 conn.send({ type: 'JOIN', name: name, reconnectId: reconnectId || id });
             });
@@ -1922,6 +1998,7 @@ const game = {
 
             conn.on('close', () => {
                 game.clientConn = null;
+                game.isReconnecting = false;
             });
         });
 
