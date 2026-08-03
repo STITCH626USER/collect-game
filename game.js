@@ -624,6 +624,22 @@ const ui = {
         }
     },
     
+    showPlacementForParrot: () => {
+        const myPlayer = game.state.players.find(p => p.id === game.myId);
+        document.getElementById('card-actions').style.display = 'none';
+
+        if (myPlayer && myPlayer.row.length === 0) {
+            game.sendAction('PARROT_INIT', { side: 'right' });
+        } else {
+            const pa = document.getElementById('placement-actions');
+            pa.innerHTML = `
+                <button class="btn-action btn-place" onclick="game.sendAction('PARROT_INIT', { side: 'left' })">⬅ Gauche</button>
+                <button class="btn-action btn-place" onclick="game.sendAction('PARROT_INIT', { side: 'right' })">Droite ➡</button>
+            `;
+            pa.style.display = 'flex';
+        }
+    },
+    
     showParrotModal: () => {
         const grid = document.getElementById('parrot-animal-grid');
         grid.innerHTML = '';
@@ -943,7 +959,7 @@ const ui = {
                             cardActions.innerHTML = `
                                 ${!state.mustPlaceDrawnCard ? '<button class="btn-action btn-reject" onclick="game.rejectCard()">❌ Jeter</button>' : ''}
                                 <button class="btn-action btn-neutral" onclick="ui.showPlacement(true)">✅ SANS pouvoir</button>
-                                <button class="btn-action btn-keep" onclick="ui.showParrotModal()">✨ AVEC pouvoir</button>
+                                <button class="btn-action btn-keep" onclick="ui.showPlacementForParrot()">✨ AVEC pouvoir</button>
                             `;
                         } else {
                             cardActions.innerHTML = `
@@ -1771,9 +1787,16 @@ const game = {
 
         if (action === 'PARROT_INIT') {
             game.state.parrotPredicting = playerId;
-            game.state.currentDrawnCard = null;
             const sourcePlayer = game.state.players.find(p => p.id === playerId);
-            game.addHistory(`${sourcePlayer.name} utilise son Perroquet et va faire une prédiction...`);
+            const side = payload.side || 'right';
+            const parrotCardObj = ANIMALS.find(a => a.id === 'parrot') || { id: 'parrot', name: 'Perroquet', img: 'assets/card_parrot.jpg?v=4' };
+            
+            if (side === 'left') sourcePlayer.row.unshift(parrotCardObj);
+            else sourcePlayer.row.push(parrotCardObj);
+
+            game.triggerVFX({ action: 'PLACE', player: playerId, card: parrotCardObj, side: side });
+            game.state.currentDrawnCard = null;
+            game.addHistory(`${sourcePlayer.name} pose son Perroquet 🦜 et s'apprête à prédire...`);
             game.broadcastState();
             if (sourcePlayer && sourcePlayer.isBot) setTimeout(game.playBotTurn, 800);
             return;
@@ -2582,7 +2605,7 @@ const game = {
                 if (card.id === 'monkey' && !skipPower && !game.state.disablePower && !game.state.mustPlaceDrawnCard) {
                     game.handlePlayerAction(botId, 'MONKEY_INIT', {});
                 } else if (card.id === 'parrot' && !skipPower && !game.state.disablePower && !game.state.mustPlaceDrawnCard) {
-                    game.handlePlayerAction(botId, 'PARROT_INIT', {});
+                    game.handlePlayerAction(botId, 'PARROT_INIT', { side: bestSide });
                 } else {
                     game.handlePlayerAction(botId, 'PLACE', { side: bestSide, skipPower: skipPower });
                 }
