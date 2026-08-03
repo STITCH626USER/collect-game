@@ -61,6 +61,7 @@ const vfx = {
         if (customClass === 'spin') flying.style.transform = 'rotate(360deg)';
         else if (customClass === 'spin-reverse') flying.style.transform = 'rotate(-360deg)';
         else if (customClass === 'attack') flying.style.transform = 'scale(1.4) rotate(10deg)';
+        else if (customClass === 'simple-swap') flying.style.transform = 'scale(1.05)';
 
         setTimeout(() => {
             flying.remove();
@@ -1488,8 +1489,11 @@ const game = {
                 
                 game.triggerVFX({
                     action: 'MONKEY_STEAL',
-                    playerB: targetPlayer.id, indexB: payload.cardIndex, cardImgB: oppCard.img,
-                    monkeyImg: monkeyCard.img
+                    playerA: sourcePlayer.id,
+                    playerB: targetPlayer.id, 
+                    indexB: payload.cardIndex, 
+                    cardImgB: oppCard.img,
+                    monkeyImg: monkeyCard ? monkeyCard.img : 'assets/card_monkey.jpg?v=4'
                 });
 
                 setTimeout(() => {
@@ -1903,17 +1907,29 @@ const game = {
         else if (data.action === 'MONKEY_STEAL') {
             vfx.push((done) => {
                 const targetCard = document.getElementById(`card-target-${data.playerB}-${data.indexB}`);
-                const centerDrawnCard = document.getElementById('drawn-card-img') || document.getElementById('drawn-card');
+                const drawnCardArea = document.getElementById('drawn-card-img') || document.getElementById('drawn-card');
                 
-                let sRect = targetCard ? targetCard.getBoundingClientRect() : { left: window.innerWidth/2, top: 100, width: 60, height: 90 };
-                let tRect = centerDrawnCard ? centerDrawnCard.getBoundingClientRect() : { left: window.innerWidth/2, top: window.innerHeight/2, width: 120, height: 180 };
-                
-                if (targetCard) targetCard.style.opacity = '0.3';
-                
-                vfx.flyCardToRect(data.cardImgB, null, tRect, () => {
+                const sRectB = targetCard 
+                    ? targetCard.getBoundingClientRect() 
+                    : { left: window.innerWidth/2, top: 80, width: 60, height: 90 };
+
+                const sRectA = drawnCardArea 
+                    ? drawnCardArea.getBoundingClientRect() 
+                    : { left: window.innerWidth/2, top: window.innerHeight - 150, width: 90, height: 135 };
+
+                if (targetCard) targetCard.style.opacity = '0';
+                if (drawnCardArea && data.playerA === game.myId) drawnCardArea.style.opacity = '0';
+
+                // 1. Fly Stolen Card (Card B) -> to Player A's drawn area
+                vfx.flyCardToRect(data.cardImgB, null, sRectA, null, sRectB, 'simple-swap');
+
+                // 2. Fly Monkey Card (Card A) -> to Player B's target card slot
+                const monkeyImg = data.monkeyImg || 'assets/card_monkey.jpg?v=4';
+                vfx.flyCardToRect(monkeyImg, null, sRectB, () => {
                     if (targetCard) targetCard.style.opacity = '1';
+                    if (drawnCardArea && data.playerA === game.myId) drawnCardArea.style.opacity = '1';
                     done();
-                }, sRect, 'spin');
+                }, sRectA, 'simple-swap');
             });
         }
         else if (data.action === 'CRAB_MOVE') {
